@@ -1,5 +1,7 @@
 # Mitesh — Isaac Sim Track (Isaac Lab): Scene, Randomizer, Expert Adapter, Data
 
+> **Superseded at H8 (scene part):** the Isaac track now runs in the **provided FR3 Duo scene** (right arm only), as a whole-team push. Follow [`docs/handoffs/2026-10-22-isaac-fr3-session.md`](../handoffs/2026-10-22-isaac-fr3-session.md); you lead I0 and I3. The Panda/own-scene instructions below no longer apply to Isaac.
+
 > **Updated H6.5.** The robot is now a single-arm **Franka Panda** in **our own simple table scene**. The FR3 Duo and the provided USD scene are out. Read the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md) and the [shared-core plan](../plans/2026-10-22-sim-shared-core.md) first.
 
 ## Agent brief (paste to your agent)

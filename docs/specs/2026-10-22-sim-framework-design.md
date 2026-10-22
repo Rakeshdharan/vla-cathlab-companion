@@ -1,5 +1,12 @@
 # Simulation Framework Design: Isaac Sim + robosuite (Panda, LIBERO conventions)
 
+> **Amendment (H8): the Isaac track uses the provided FR3 Duo scene.**
+> - Isaac now uses the **provided `Hackathon_FR3Duo_flattened.usd`** with the **FR3 Duo, right arm only**: pick from a zone on the right supply cart → `ServingTray`.
+> - Objects: the scene's bottle and pill container, plus a new syringe.
+> - Data: the **provided Siemens schema** (16-D absolute joints, gripper 1 = open, 3 cameras at 224², 30 fps), so it can be co-trained with the 94 provided demos.
+> - **robosuite stays Panda + LIBERO I/O as below.** We therefore have two embodiments: models train per embodiment, and the shared variation grid, expert waypoints and contracts make the pipeline embodiment-agnostic.
+> - Isaac handover: [`docs/handoffs/2026-10-22-isaac-fr3-session.md`](../handoffs/2026-10-22-isaac-fr3-session.md).
+
 *Status: approved 2026-10-22, about H6.5. Supersedes the robot, scene, DataEngine, model and eval-suite parts of [the original design spec](2026-10-22-cathlab-learning-loop-design.md). The architecture, contracts, the five stages, the loop, versioning and the awareness module still apply.*
 
 ## 1. Decisions
