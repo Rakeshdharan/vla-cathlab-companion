@@ -95,7 +95,6 @@ FAIL vial layout=8 seed=10000 steps=300 trace=['approach', 'pre_grasp'] flags={'
 - `trace` is the list of waypoints the robot reached, in order: `rise` (only if it starts low), `approach`, `pre_grasp`, `grasp`, `close`, `lift`, `above_tray`, `lower`, `open`, `retreat`. The failure happened right after the last one listed.
 - `flags` are the task stages: `reach`, `grasp`, `lift`, `transport`, `place`. The first `False` is the stage that failed.
 - `steps=300` means the episode ran out of time (the robot was stuck).
-- Known case: **vial on held-out layout 8** fails because the bottle stands between the robot and the vial and the arm hits it. This only affects evaluation layouts, not the training data.
 
 Send Rakesh the command you ran, the `FAIL` lines and the preview GIF.
 

@@ -9,6 +9,8 @@ scene:
   pick_region_center: [0.55, 0.15]
   pick_region_size: [0.30, 0.40]
   min_separation: 0.12
+  reach_corridor_width: 0.15   # keep the 0.25 m bottle out of the arm's path to the other objects
+  tall_object_height: 0.10
 
 objects:
   bottle:  {shape: cylinder, radius: 0.031,  length: 0.250, upright: true,  mass: 0.30,  grasp: side}

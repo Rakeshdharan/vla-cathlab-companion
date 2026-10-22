@@ -68,3 +68,27 @@ def test_generation_order_is_balanced_diverse_and_a_permutation():
     assert len({c.layout_id for c in first}) >= 6
     assert len({c.obj_color_id for c in first}) == 4 and len({c.table_color_id for c in first}) == 4
     assert generation_order(SPEC, cfgs) == ordered
+
+
+def test_tall_objects_never_stand_between_the_robot_and_another_object():
+    w = SPEC.scene.reach_corridor_width
+    assert w > 0
+    for lay in layouts(SPEC):
+        for tall, obj in SPEC.objects.items():
+            if not (obj.upright and obj.length >= SPEC.scene.tall_object_height):
+                continue
+            b = np.array(lay[tall][:2])
+            for other, pose in lay.items():
+                if other == tall:
+                    continue
+                p = np.array(pose[:2])
+                t = b @ p / (p @ p)
+                lateral = abs(p[0] * b[1] - p[1] * b[0]) / np.linalg.norm(p)
+                assert not (0 < t < 1 and lateral < w), (tall, other, lay)
+
+
+def test_corridor_rule_is_off_by_default():
+    raw = SPEC.model_dump()
+    raw["scene"].pop("reach_corridor_width")
+    raw["scene"].pop("tall_object_height")
+    assert VariationSpec.model_validate(raw).scene.reach_corridor_width == 0.0
