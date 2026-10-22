@@ -1,0 +1,5 @@
+scene_id: dummy
+backend: dummy
+asset: none
+objects: {guidewire: none, catheter: none, sheath: none}
+cameras: [head, wrist_left, wrist_right]

@@ -1,0 +1,9 @@
+robot_id: fr3_duo
+description: "Franka FR3 Duo bimanual robot"
+arms: [left, right]
+action_dim: 16  # 7 joints + 1 gripper per arm × 2
+obs_dim: 16
+control_hz: 30.0
+chunk_size: 10
+cameras: [head, wrist_left, wrist_right]
+image_size: [224, 224]

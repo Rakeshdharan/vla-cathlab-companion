@@ -1,0 +1,13 @@
+task_id: handover
+instruction_templates:
+  - "Hand me the {object}"
+  - "Help me with the {object}"
+  - "Please pass the {object}"
+objects: [guidewire, catheter, sheath, syringe, scissors, gauze]
+success_predicate: "target object resting on handover_table and gripper open"
+stage_predicates:
+  reach: "end-effector within 5 cm of target"
+  grasp: "gripper closed and target in contact"
+  lift: "target z > table z + 5 cm"
+  transport: "target xy within handover_table bounds"
+  place: "target resting on handover_table, gripper open"
