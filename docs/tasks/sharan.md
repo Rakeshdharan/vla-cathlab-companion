@@ -1,5 +1,10 @@
 # Sharan — Research, Dataset Intelligence, Version & Serve
 
+> **Update (H6.5):** see the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
+> - **Coverage map** = the variation grid: object × layout × object colour × table colour × `source_sim`. Read each episode's `config` from `meta/episodes_extra.jsonl`.
+> - **Gaps** are empty cells or cells where expert/policy success < threshold. Emit them as a list of `EpisodeConfig`-style cell keys for the loop.
+> - **Provided FR3 Duo data:** still run the validators and readiness report on it (embodiment-agnostic demo).
+
 You come from IT rather than robotics, so this scope plays to that: data quality, registries, APIs, Docker and research synthesis. Your agent can explain any robotics term; ask it to.
 
 ## Agent brief (paste to your agent)
