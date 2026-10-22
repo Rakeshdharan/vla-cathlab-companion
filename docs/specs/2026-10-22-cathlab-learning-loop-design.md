@@ -1,6 +1,6 @@
 # CathLab Companion — Autonomous Robot Learning Loop (Design Spec)
 
-*Siemens Healthineers Hackathon 2026, Challenge C2 · Team: Rakesh (lead), Navneet, Mitesh, Akanksh, Sharanrajapur · 36 h, agent-assisted*
+*Siemens Healthineers Hackathon 2026, Challenge C2 · Team: Rakesh (lead), Navneet, Mitesh, Akanksh, Sharan · 36 h, agent-assisted*
 
 ## 1. Goal
 
