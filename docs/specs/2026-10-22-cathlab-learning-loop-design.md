@@ -166,7 +166,7 @@ All decisions are logged as a human-readable "learning journal". This becomes th
 | Owner | Scope |
 |---|---|
 | **Rakesh** | Architecture, contracts, repo/CI skeleton, Isaac env bring-up + `IsaacBackend`, 01 Ingest, 03 training runs, Loop Controller, RoboSimStudio sim2sim, integration, demo |
-| **Sharanrajapur** | Literature review and option catalogue, 02 Dataset Intelligence reports, 05 registry / policy server / Docker / W&B wiring, pitch-deck research slides |
+| **Sharan** | Literature review and option catalogue, 02 Dataset Intelligence reports, 05 registry / policy server / Docker / W&B wiring, pitch-deck research slides |
 | **Navneet** | Awareness/proactive assist, ElevenLabs voice in/out, instruction interface |
 | **Mitesh** | DataEngine (domain-rand, MimicGen, scripted GraspGen+cuRobo expert, teleop, Cosmos), env factory, new object creation |
 | **Akanksh** | VLA research/selection, 04 eval harness design and metrics, VLM success judge, benchmarking and result plots |

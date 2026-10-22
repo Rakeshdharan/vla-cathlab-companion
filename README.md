@@ -29,4 +29,4 @@ Agent workflows live in `.github/`:
 - Scoped instructions for contracts, Python, datasets and models.
 - A `Contract Reviewer` agent for PRs.
 
-Team: Rakesh (lead), Navneet, Mitesh, Akanksh, Sharanrajapur.
+Team: Rakesh (lead), Navneet, Mitesh, Akanksh, Sharan.

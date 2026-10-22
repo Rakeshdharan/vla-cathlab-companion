@@ -1,4 +1,4 @@
-# Sharanrajapur — Research, Dataset Intelligence, Version & Serve
+# Sharan — Research, Dataset Intelligence, Version & Serve
 
 You come from IT rather than robotics, so this scope plays to that: data quality, registries, APIs, Docker and research synthesis. Your agent can explain any robotics term; ask it to.
 

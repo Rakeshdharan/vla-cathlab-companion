@@ -31,10 +31,10 @@
 
 - **Produces:** `IsaacBackend`, `RoboSimStudioBackend` (both `SimBackend`); `PolicyAdapter` subclasses in `train/adapters/` (`SmolVLAAdapter`, `Pi05Adapter`, `GR00TAdapter`, `ACTAdapter`); datasets `cathlab/handover@v0`, `@v1`, `@v2`; `loop.run_iteration(prev_card: ModelCard) -> ModelCard`.
 - **Consumes:**
-  - `dataset_intel.coverage_report(dataset_path) -> CoverageReport` (Sharanrajapur);
+  - `dataset_intel.coverage_report(dataset_path) -> CoverageReport` (Sharan);
   - `dataengine.generate(gap: GapSpec, n: int) -> DatasetManifest` (Mitesh);
   - `eval.run_suite` + benchmark config (Akanksh);
-  - `serve.registry.register(card)` / `promote(card)` (Sharanrajapur).
+  - `serve.registry.register(card)` / `promote(card)` (Sharan).
 
 ## Notes / commands
 

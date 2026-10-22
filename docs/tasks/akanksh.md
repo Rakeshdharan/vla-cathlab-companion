@@ -25,7 +25,7 @@
 
 ## Interfaces
 
-- **Consumes:** `PolicyAdapter` implementations (Rakesh, Mitesh's `ScriptedExpert`, Sharanrajapur's `PolicyClient`); `SimBackend`s; `ModelCard`.
+- **Consumes:** `PolicyAdapter` implementations (Rakesh, Mitesh's `ScriptedExpert`, Sharan's `PolicyClient`); `SimBackend`s; `ModelCard`.
 - **Produces:** `EvalReport` JSONs in `reports/`, `Verdict`, benchmark artifacts, `failures.to_gaps(report) -> list[GapSpec]`.
 
 ## Acceptance

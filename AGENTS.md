@@ -24,7 +24,7 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | Package | Owner |
 |---|---|
 | `contracts/`, `ingest/`, `train/`, `loop/`, `sim/isaac/`, `sim/robosimstudio/` | Rakesh |
-| `dataset_intel/`, `serve/`, `docs/research/` | Sharanrajapur |
+| `dataset_intel/`, `serve/`, `docs/research/` | Sharan |
 | `awareness/` | Navneet |
 | `dataengine/`, `envfactory/`, `assets/` | Mitesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
