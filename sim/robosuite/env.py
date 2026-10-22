@@ -118,9 +118,17 @@ class CathlabPickPlace(ManipulationEnv):
 
     def _setup_references(self):
         super()._setup_references()
+        m = self.sim.model
         # Lying cylinders get a single, see-sawing contact otherwise (syringe sank 2 mm and rocked).
-        self.sim.model._model.opt.enableflags |= mujoco.mjtEnableBit.mjENBL_MULTICCD
-        self.obj_body_ids = {n: self.sim.model.body_name2id(o.root_body) for n, o in self.objects.items()}
+        m._model.opt.enableflags |= mujoco.mjtEnableBit.mjENBL_MULTICCD
+        self.obj_body_ids = {n: m.body_name2id(o.root_body) for n, o in self.objects.items()}
+        # Captured once: randomize.apply_episode_config scales from these, and hard_reset=False keeps edits.
+        if not hasattr(self, "nominal_inertial"):
+            self.nominal_inertial = {n: (float(m.body_mass[i]), m.body_inertia[i].copy())
+                                     for n, i in self.obj_body_ids.items()}
+            head = m._model.vis.headlight
+            self.nominal_lights = {"diffuse": m.light_diffuse.copy(), "specular": m.light_specular.copy(),
+                                   "head_ambient": np.array(head.ambient), "head_diffuse": np.array(head.diffuse)}
 
     def _reset_internal(self):
         super()._reset_internal()
