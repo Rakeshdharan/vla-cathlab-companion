@@ -1,0 +1,3 @@
+latency_budget_ms_p95: 200.0
+registry_path: "reports/registry"
+policy_server_port: 8765

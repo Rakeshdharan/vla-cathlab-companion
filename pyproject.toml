@@ -1,0 +1,17 @@
+[project]
+name = "cathlab-companion"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2", "pyyaml", "numpy"]
+
+[project.optional-dependencies]
+train = ["lerobot", "wandb"]
+voice = ["elevenlabs"]
+eval = ["wandb", "pillow", "matplotlib", "pandas", "scipy"]
+
+[dependency-groups]
+dev = ["pytest", "pytest-cov"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

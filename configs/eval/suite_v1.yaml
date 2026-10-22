@@ -1,0 +1,41 @@
+# Eval suite v1 — sized for < 30 min per model on a single GPU
+suite_id: suite_v1
+task: handover
+
+# Seeds: 5 per tier × 6 objects × 5 tiers = 150 episodes max
+seeds:
+  in_distribution: [0, 1, 2, 3, 4]
+  new_poses: [10, 11, 12, 13, 14]
+  heavy_clutter: [20, 21, 22, 23, 24]
+  unseen_distractors: [30, 31, 32, 33, 34]
+  new_lighting: [40, 41, 42, 43, 44]
+
+objects: [guidewire, catheter, sheath, syringe, scissors, gauze]
+
+difficulty_tiers:
+  - name: in_distribution
+    description: "Standard poses, no distractors, default lighting"
+    scene_variant: default
+  - name: new_poses
+    description: "Objects in random poses (rotated/shifted by ±15cm, ±45°)"
+    scene_variant: new_poses
+  - name: heavy_clutter
+    description: "5 additional random distractor objects on table"
+    scene_variant: heavy_clutter
+  - name: unseen_distractors
+    description: "Novel distractor objects not seen during training"
+    scene_variant: unseen_distractors
+  - name: new_lighting
+    description: "Lighting intensity and color temperature varied"
+    scene_variant: new_lighting
+
+max_steps_per_episode: 300
+video_capture: true
+video_fps: 30
+vlm_judge: true
+
+# Latency budget (p95 must stay under this for promotion)
+latency_budget_ms_p95: 200.0
+
+# Minimum improvement for promotion: v(n+1) Wilson CI lower bound > v(n) success_rate
+promotion_delta: 0.0
