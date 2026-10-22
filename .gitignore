@@ -26,4 +26,6 @@ videos/
 
 # Generated rollout videos/raw eval dumps; curated reports (*.md, *.json) stay tracked
 reports/**/raw/
-mine_task_desciptiom.md
+
+# Local caches / provided raw data (hosted on HF Hub, never in git)
+.cache/
