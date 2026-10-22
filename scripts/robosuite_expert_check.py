@@ -59,6 +59,7 @@ def main() -> None:
     params = parse_params(args.param)
     sim = RobosuiteExpertSim(spec, use_camera_obs=False, has_offscreen_renderer=False)
     per_object: dict[str, list[int]] = {}
+    steps: dict[str, list[int]] = {}
     stuck_at: dict[str, Counter] = {}
     t0 = time.time()
     for cfg in pick_configs(spec, args.split, args.n, args.objects.split(",")):
@@ -66,6 +67,7 @@ def main() -> None:
         counts = per_object.setdefault(cfg.object, [0, 0])
         counts[0] += 1
         counts[1] += r.success
+        steps.setdefault(cfg.object, []).append(r.steps)
         if not r.success:
             failed = f"stuck_after_{r.trace[-1]}" if r.trace else "stuck_at_start"
             if r.trace and r.trace[-1] == "retreat":
@@ -76,10 +78,12 @@ def main() -> None:
     elapsed = time.time() - t0
     n_eps = sum(c[0] for c in per_object.values())
     summary = {"split": args.split, "params": dataclasses.asdict(params),
-               "per_object": {o: {"success": s, "attempted": a, "rate": s / a} for o, (a, s) in per_object.items()},
+               "per_object": {o: {"success": s, "attempted": a, "rate": s / a, "mean_steps": sum(steps[o]) / a,
+                                  "max_steps": max(steps[o])} for o, (a, s) in per_object.items()},
                "failures": {o: dict(c) for o, c in stuck_at.items()}, "sec_per_episode": elapsed / max(n_eps, 1)}
     for obj, v in summary["per_object"].items():
-        print(f"{obj:8s} {v['success']:3d}/{v['attempted']:<3d} {v['rate']:.0%}  failures: {summary['failures'].get(obj, {})}")
+        print(f"{obj:8s} {v['success']:3d}/{v['attempted']:<3d} {v['rate']:.0%}  steps mean {v['mean_steps']:.0f} "
+              f"max {v['max_steps']}  failures: {summary['failures'].get(obj, {})}")
     print(f"{elapsed / max(n_eps, 1):.2f} s/episode (no rendering)")
     if args.json:
         Path(args.json).write_text(json.dumps(summary, indent=2))
