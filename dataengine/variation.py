@@ -22,6 +22,10 @@ class SceneGeometry(BaseModel):
     pick_region_center: tuple[float, float]
     pick_region_size: tuple[float, float]
     min_separation: float
+    # A tall upright object may not stand within this distance of the line from the robot base to another object,
+    # closer to the base than that object (the forearm would hit it). 0 disables the rule.
+    reach_corridor_width: float = 0.0
+    tall_object_height: float = 0.10
 
 
 class ObjectSpec(BaseModel):
@@ -97,10 +101,29 @@ def layouts(spec: VariationSpec) -> list[dict[str, tuple[float, float, float]]]:
                 placed[name] = (float(x), float(y), float(rng.uniform(-np.pi, np.pi)))
             pts = np.array([p[:2] for p in placed.values()])
             dists = np.linalg.norm(pts[:, None] - pts[None], axis=-1)[np.triu_indices(len(pts), 1)]
-            if dists.min() >= spec.scene.min_separation:
+            if dists.min() >= spec.scene.min_separation and not _blocks_reach(spec, placed):
                 out.append(placed)
                 break
     return out
+
+
+def _blocks_reach(spec: VariationSpec, placed: dict[str, tuple[float, float, float]]) -> bool:
+    width = spec.scene.reach_corridor_width
+    if width <= 0:
+        return False
+    for tall, obj in spec.objects.items():
+        if not (obj.upright and obj.length >= spec.scene.tall_object_height):
+            continue
+        b = np.array(placed[tall][:2])
+        for other, pose in placed.items():
+            if other == tall:
+                continue
+            p = np.array(pose[:2])
+            t = b @ p / (p @ p)
+            lateral = abs(p[0] * b[1] - p[1] * b[0]) / np.linalg.norm(p)
+            if 0 < t < 1 and lateral < width:
+                return True
+    return False
 
 
 def object_poses(spec: VariationSpec, cfg: EpisodeConfig) -> dict[str, np.ndarray]:
