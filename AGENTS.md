@@ -1,6 +1,6 @@
 # AGENTS.md — CathLab Companion
 
-Siemens Healthineers Hackathon 2026 (C2). We build a **simulation-first, self-improving robot learning loop**: a Franka FR3 Duo hands cathlab instruments to a clinician ("Hand me the guidewire"). 36 h, 5 people, each working with coding agents in this one repo.
+Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in Isaac Sim + robosuite, LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka FR3 Duo hands cathlab instruments to a clinician ("Hand me the guidewire"). 36 h, 5 people, each working with coding agents in this one repo.
 
 Read these before non-trivial work:
 - Design spec: [docs/specs/2026-10-22-cathlab-learning-loop-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md)
@@ -24,10 +24,10 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 
 | Package | Owner |
 |---|---|
-| `contracts/`, `ingest/`, `train/`, `loop/`, `sim/isaac/`, `sim/robosimstudio/` | Rakesh |
+| `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
 | `dataset_intel/`, `serve/`, `docs/research/` | Sharan |
 | `awareness/` | Navneet |
-| `dataengine/`, `envfactory/`, `assets/` | Mitesh |
+| `sim/isaac/`, `assets/` | Mitesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
 
 ## Build and test

@@ -1,49 +1,26 @@
-# Rakesh — Lead: Architecture, Ingest, Training, Loop, Sim2Sim
+# Rakesh — Lead: Shared Sim Core, robosuite Track, Training, Loop, Integration
 
-## Agent brief (paste to your agent)
-
-> You are helping build the CathLab Companion learning loop (spec: `docs/specs/2026-10-22-cathlab-learning-loop-design.md`).
->
-> My scope:
-> - (1) implement the foundation plan `docs/plans/2026-10-22-cathlab-loop-implementation.md` Tasks 1–4;
-> - (2) `IsaacBackend(SimBackend)` for the provided FR3 Duo USD scene;
-> - (3) `ingest/`: load the provided LeRobot dataset, validate it against `configs/robots/fr3_duo.yaml`, add paraphrased instructions and stage segmentation, write `DatasetManifest`;
-> - (4) `train/`: a single `train` CLI wrapping `lerobot-train` per model adapter, logging to W&B;
-> - (5) `loop/`: the self-improving controller (EvalReport + coverage map → gap spec → DataEngine request → retrain → eval → promote);
-> - (6) `sim/robosimstudio/`: `RoboSimStudioBackend` for sim2sim.
->
-> Use only the `contracts/` interfaces to talk to other packages. Write tests first using `DummySim`/`RandomPolicy`.
+> **Updated H6.5.** Single-arm Franka Panda, our own table scene in Isaac Sim + robosuite, LIBERO-compatible I/O. See the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
 
 ## Deliverables
 
 | # | Deliverable | Path | Due |
 |---|---|---|---|
-| R1 | Foundation contracts + runner (plan Tasks 1–4), pushed to `main` | `contracts/`, `eval/runner.py` | H2 |
-| R2 | `configs/robots/fr3_duo.yaml` (joint names, action dim, cameras, control Hz) from provided docs | `configs/robots/` | H2 |
-| R3 | `IsaacBackend` with stage flags computed from sim state (predicates in `configs/tasks/handover.yaml`) | `sim/isaac/` | H8 |
-| R4 | Ingest: provided dataset → validated LeRobot + manifest `cathlab/handover@v0`; instruction paraphrases; stage segmentation column | `ingest/` | H6 |
-| R5 | `train` CLI: `python -m train --model smolvla --data cathlab/handover@v0` → checkpoint + `ModelCard` | `train/` | H8 (v0 run started by H4 on cloud GPU) |
-| R6 | Loop controller + learning journal (`reports/loop_journal.md`) | `loop/` | H24 |
-| R7 | `RoboSimStudioBackend` for the simplified scene (table + objects + FR3) and sim2sim eval | `sim/robosimstudio/` | H26 |
-| R8 | Integration, demo script, final pitch | `scripts/demo.sh`, `docs/pitch/` | H32–36 |
+| R1 | Foundation contracts on `main` (merge the reviewed `feat/akanksh-eval-harness` contracts or plan Tasks 1–4) | `contracts/`, `eval/runner.py` | H7 |
+| R2 | **Shared sim core**: [plan](../plans/2026-10-22-sim-shared-core.md) Tasks 1–6 (variation spec, expert, fake sim, generator, LeRobot sink) | `dataengine/`, `configs/variation/`, `configs/tasks/cathlab_pick.yaml` | H8 |
+| R3 | **robosuite env** `CathlabPickPlace` (from `PickPlace`): Panda + `OSC_POSE`, table (top at base z = 0 after offset), tray, 3 objects at spec dimensions, `agentview` + `robot0_eye_in_hand` at 256², 20 Hz; randomizer applying `EpisodeConfig` | `sim/robosuite/env.py`, `sim/robosuite/randomize.py` | H10 |
+| R4 | `RobosuiteExpertSim` (`ExpertSim`) + `RobosuiteBackend` (`SimBackend`); expert ≥80% on 20 train configs | `sim/robosuite/expert_sim.py`, `sim/robosuite/backend.py` | H12 |
+| R5 | 384 train episodes in parallel shards → `cathlab/pick_robosuite@v1` | data on HF | H16 |
+| R6 | 01 Ingest: provided FR3 Duo datasets validated + reported (embodiment-agnostic demo); instruction paraphrases for the 3 objects | `ingest/` | H14 |
+| R7 | Training from LIBERO checkpoints: SmolVLA v0/v1/v2, ACT v0/v1, frontier (π0.5 or X-VLA, Akanksh's pick) v1; W&B + `ModelCard` | `train/` | H18–H28 |
+| R8 | Loop: failing grid cells → `eval_configs`-style configs for those cells → generate in both sims → v2 | `loop/` | H28 |
+| R9 *(stretch)* | RoboSimStudio: prompt → cathlab scene showcase; optional held-out eval with a Panda embodiment | `sim/robosimstudio/` | H30 |
 
-## Interfaces
+## Notes
 
-- **Produces:** `IsaacBackend`, `RoboSimStudioBackend` (both `SimBackend`); `PolicyAdapter` subclasses in `train/adapters/` (`SmolVLAAdapter`, `Pi05Adapter`, `GR00TAdapter`, `ACTAdapter`); datasets `cathlab/handover@v0`, `@v1`, `@v2`; `loop.run_iteration(prev_card: ModelCard) -> ModelCard`.
-- **Consumes:**
-  - `dataset_intel.coverage_report(dataset_path) -> CoverageReport` (Sharan);
-  - `dataengine.generate(gap: GapSpec, n: int) -> DatasetManifest` (Mitesh);
-  - `eval.run_suite` + benchmark config (Akanksh);
-  - `serve.registry.register(card)` / `promote(card)` (Sharan).
-
-## Notes / commands
-
-- Fine-tune SmolVLA (LeRobot): `lerobot-train --policy.path=lerobot/smolvla_base --dataset.repo_id=<hf>/cathlab_handover_v0 --batch_size=64 --steps=20000 --wandb.enable=true`. Check the flags against the installed LeRobot version (`~/lerobot` exists locally).
-- RoboSimStudio is installed at `~/robosimstudio`. Its `robosimstudio_real2sim_agent` can scaffold the scene. Coordinate with Mitesh's env factory so both use the same `SceneSpec`.
-- Bimanual risk: if a model can't take 16-D actions, decide on single-arm masking in the adapter and record it in `docs/decisions.md`.
-
-## Acceptance
-
-- `uv run pytest` is green; `python -m eval.cli --policy random --sim isaac` produces an `EvalReport`.
-- v0, v1 and v2 model cards exist with linked eval reports; the loop journal explains why v2 was promoted.
-- The same checkpoint is evaluated in Isaac and RoboSimStudio, and the Δ success is reported.
+- Share the robosuite `agentview` camera pose with Mitesh by H8, so both sims render the same viewpoint.
+- robosuite `OSC_POSE` takes the normalized action unchanged (output_max 0.05 m / 0.5 rad), so no scaling is needed.
+- Data versions:
+  - v0 = `pick_isaac@v1`;
+  - v1 = v0 + `pick_robosuite@v1`;
+  - v2 = v1 + loop-targeted episodes.

@@ -22,7 +22,7 @@
 | Item | Value |
 |---|---|
 | Robot | Franka Panda, Franka hand (max opening 80 mm), fixed base |
-| Action | `float32[7]` = Δx, Δy, Δz (m, base frame, clipped to ±0.05 per step), Δaxis-angle (rad, clipped to ±0.5), gripper (−1 open, +1 close) |
+| Action | `float32[7]` **normalized to [-1, 1]** (LIBERO / robosuite `OSC_POSE` convention): `[Δx, Δy, Δz] / 0.05 m`, `[Δrx, Δry, Δrz] / 0.5 rad` (axis-angle, base frame), gripper (−1 open, +1 close) |
 | State | `float32[8]` = end-effector position (3), end-effector axis-angle (3), finger joint positions (2) |
 | Cameras | `observation.images.agentview` (third person, looking at the table from the front), `observation.images.eye_in_hand` (wrist); 256×256 RGB |
 | Rate | 20 Hz control and recording |
