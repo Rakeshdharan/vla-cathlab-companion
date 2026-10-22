@@ -11,14 +11,34 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 | Mitesh | [mitesh.md](mitesh.md) | DataEngine (synthetic data), env factory, new objects |
 | Akanksh | [akanksh.md](akanksh.md) | VLA research & selection, 04 Evaluate, VLM judge, benchmarking |
 
-## How to start (everyone)
+## Kickoff: start here (everyone)
 
-1. `git clone https://github.com/Rakeshdharan/vla-cathlab-companion && cd vla-cathlab-companion`
-2. `uv run pytest`. The foundation tests must pass. If `contracts/` is not merged yet, start with research/spikes until H2.
-3. `git checkout -b feat/<you>-<topic>`
-4. Give your agent the **Agent brief** from your file plus the spec, and ask it to write a TDD plan (superpowers:writing-plans) into `docs/plans/<date>-<you>-<topic>.md` before coding.
-5. Code only inside your own package directories. If you need a contract change, open a PR touching `contracts/` and tag Rakesh.
-6. Small PRs to `main`. Each package needs a `README.md` and at least one test that runs without GPU/Isaac (use `DummySim` / `RandomPolicy`).
+> **History was rewritten on 2026-10-22** to clean up commit authorship. If you cloned or pulled before then, run:
+> `git fetch && git reset --hard origin/main`
+
+**Step 1: Plan your work (now, before any coding)**
+
+1. Clone and enable the commit hook:
+   ```bash
+   git clone https://github.com/Rakeshdharan/vla-cathlab-companion && cd vla-cathlab-companion
+   git config core.hooksPath .githooks
+   ```
+2. Read [`AGENTS.md`](../../AGENTS.md) and your own task file (table above).
+3. In your agent, run `/start-workstream <your-name>`, or paste the **Agent brief** from your task file plus the spec. The agent writes a test-first plan (superpowers:writing-plans) for your first deliverable to `docs/plans/<date>-<you>-<topic>.md`.
+4. Push the plan on branch `feat/<you>-<topic>` and open a PR titled `plan(<you>): <topic>`, so we can review all plans together.
+5. **Plan review sync in about 1 h.** Rakesh checks every plan against the spec and the shared interfaces (gaps, name mismatches, overlaps) before anyone starts implementing.
+
+**Step 2: Build (after your plan is approved)**
+
+6. Until `contracts/` is merged (target H2), stick to research and quick experiments. After that, `uv sync && uv run pytest` must be green before you start.
+7. Code only inside your own package directories. If you need a contract change, open a dedicated PR touching `contracts/` and tag Rakesh.
+8. Small PRs to `main`. Each package needs a `README.md` and at least one test that runs without GPU/Isaac (use `DummySim` / `RandomPolicy`). Fill in the PR template checklist.
+9. Commits carry **your name only**, with no AI `Co-authored-by` lines (the hook strips them). Log non-obvious choices in [`docs/decisions.md`](../decisions.md) (`/log-decision`).
+
+**Next gates:**
+- Plan review in about 1 h.
+- H2: contracts merged.
+- H6: Akanksh freezes the VLA shortlist and Mitesh freezes the data-engine choice.
 
 ## Integration checkpoints (15-min syncs)
 

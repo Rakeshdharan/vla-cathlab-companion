@@ -18,6 +18,8 @@
 
 ## Quick start
 
+> **Team: start with the [Kickoff steps](docs/tasks/README.md#kickoff-start-here-everyone)** — plan first, then build.
+
 ```bash
 git clone https://github.com/Rakeshdharan/vla-cathlab-companion && cd vla-cathlab-companion
 git config core.hooksPath .githooks   # strips AI co-author trailers from commits
