@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Strip Co-authored-by trailers that credit AI agents/assistants; commits are authored by humans only.
+# Enable once per clone: git config core.hooksPath .githooks
+msg_file="$1"
+tmp="$(mktemp)"
+grep -viE '^co-authored-by:.*(copilot|claude|anthropic|openai|codex|chatgpt|cursor|gemini|devin|aider|\[bot\])' "$msg_file" > "$tmp" || true
+cat "$tmp" > "$msg_file"
+rm -f "$tmp"
