@@ -1,5 +1,7 @@
 # CathLab Companion — Autonomous Robot Learning Loop (Design Spec)
 
+> **Update (H6.5):** the robot, scene, DataEngine, models and eval suite are superseded by [the simulation framework design](2026-10-22-sim-framework-design.md): single-arm Franka Panda, our own table scene in Isaac Sim + robosuite, LIBERO-compatible I/O, task "Hand me the {bottle | vial | syringe}". The architecture, contracts, stages, loop, versioning and awareness below still apply.
+
 *Siemens Healthineers Hackathon 2026, Challenge C2 · Team: Rakesh (lead), Navneet, Mitesh, Akanksh, Sharan · 36 h, agent-assisted*
 
 ## 1. Goal
