@@ -26,3 +26,4 @@ videos/
 
 # Generated rollout videos/raw eval dumps; curated reports (*.md, *.json) stay tracked
 reports/**/raw/
+mine_task_desciptiom.md
