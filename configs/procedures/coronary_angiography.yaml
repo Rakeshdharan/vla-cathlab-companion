@@ -1,0 +1,8 @@
+procedure_id: coronary_angiography
+steps:
+  - {step_id: access_prep, description: "Clinician preps and drapes the access site and prepares local anaesthetic", tools: [vial]}
+  - {step_id: anaesthetic_injection, description: "Clinician injects local anaesthetic at the access site", tools: [syringe]}
+  - {step_id: sheath_insertion, description: "Clinician inserts the introducer sheath into the artery", tools: []}
+  - {step_id: catheter_advance, description: "Clinician advances the guidewire and tracks the catheter to the coronary ostium", tools: []}
+  - {step_id: contrast_injection, description: "Clinician injects contrast from the bottle with a syringe for imaging", tools: [bottle, syringe]}
+  - {step_id: closure, description: "Clinician removes devices and applies pressure to close the access site", tools: []}
