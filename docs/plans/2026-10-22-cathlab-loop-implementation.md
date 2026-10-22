@@ -664,7 +664,7 @@ The detailed workstream tasks live in [`docs/tasks/`](../tasks/README.md). Each 
 |---|---|
 | 3.1 Contracts | Tasks 1–3 |
 | 01 Ingest, 03 Fine-tune, Loop controller, Isaac backend, RoboSimStudio sim2sim, demo | [`rakesh.md`](../tasks/rakesh.md) |
-| 02 Dataset Intelligence, 05 Version & Serve, literature review / option catalogue | [`sharanrajapur.md`](../tasks/sharanrajapur.md) |
+| 02 Dataset Intelligence, 05 Version & Serve, literature review / option catalogue | [`sharan.md`](../tasks/sharan.md) |
 | 04 Evaluate, VLM judge, model selection, benchmark | Task 4 + [`akanksh.md`](../tasks/akanksh.md) |
 | DataEngine, env factory, new objects | [`mitesh.md`](../tasks/mitesh.md) |
 | Awareness, voice | [`navneet.md`](../tasks/navneet.md) |

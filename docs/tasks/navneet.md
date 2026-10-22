@@ -23,7 +23,7 @@
 
 ## Interfaces
 
-- **Consumes:** `TaskSpec` (object vocabulary), `serve.client.PolicyClient` (Sharanrajapur) or a direct `PolicyAdapter`; scene frames from a `SimBackend.render()`.
+- **Consumes:** `TaskSpec` (object vocabulary), `serve.client.PolicyClient` (Sharan) or a direct `PolicyAdapter`; scene frames from a `SimBackend.render()`.
 - **Produces:** `AwarenessState`, `Assistant.run(stream) -> Iterator[str]` (instructions).
 
 ## Acceptance

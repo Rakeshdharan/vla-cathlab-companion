@@ -32,7 +32,7 @@
 ## Interfaces
 
 - **Consumes:**
-  - `GapSpec` (from Sharanrajapur's coverage map / Rakesh's loop);
+  - `GapSpec` (from Sharan's coverage map / Rakesh's loop);
   - `SceneSpec`, `TaskSpec`, `DatasetManifest`;
   - `IsaacBackend` (Rakesh) to run generation;
   - `configs/robots/fr3_duo.yaml`.
