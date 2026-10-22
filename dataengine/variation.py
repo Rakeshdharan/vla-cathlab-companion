@@ -152,3 +152,13 @@ def eval_configs(spec: VariationSpec, tier: str, seeds: list[int]) -> list[Episo
             out.append(EpisodeConfig(object=obj, layout_id=lay[s % len(lay)], obj_color_id=oc[s % len(oc)],
                                      table_color_id=tc[s % len(tc)], seed=s, tier=tier, **_continuous(spec, rng)))
     return out
+
+
+def generation_order(spec: VariationSpec, cfgs: list[EpisodeConfig], seed: int = 0) -> list[EpisodeConfig]:
+    """Order configs for generation: objects interleaved (bottle, vial, syringe, ...), each object's configs in a fixed
+    seeded permutation. Any window or shard of this list is object-balanced and mixes layouts/colours, and every
+    simulator that uses it generates the same (paired) episodes."""
+    rng = np.random.default_rng(seed)
+    per_object = [[c for c in cfgs if c.object == o] for o in spec.objects]
+    per_object = [[group[i] for i in rng.permutation(len(group))] for group in per_object]
+    return [group[i] for i in range(max(map(len, per_object))) for group in per_object if i < len(group)]

@@ -1,7 +1,8 @@
 from pathlib import Path
 import numpy as np
 import pytest
-from dataengine.variation import TIERS, VariationSpec, eval_configs, layouts, object_poses, train_configs
+from dataengine.variation import (TIERS, VariationSpec, eval_configs, generation_order, layouts, object_poses,
+                                  train_configs)
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = VariationSpec.load(ROOT / "configs/variation/cathlab_v1.yaml")
@@ -56,3 +57,14 @@ def test_object_poses_rest_on_table():
     assert poses["bottle"][2] == pytest.approx(0.125)
     assert poses["syringe"][2] == pytest.approx(0.0075)
     assert all(abs(np.linalg.norm(p[3:]) - 1) < 1e-9 for p in poses.values())
+
+
+def test_generation_order_is_balanced_diverse_and_a_permutation():
+    cfgs = train_configs(SPEC)
+    ordered = generation_order(SPEC, cfgs)
+    assert sorted(c.seed for c in ordered) == sorted(c.seed for c in cfgs)
+    assert [c.object for c in ordered[:6]] == ["bottle", "vial", "syringe"] * 2
+    first = ordered[:24]
+    assert len({c.layout_id for c in first}) >= 6
+    assert len({c.obj_color_id for c in first}) == 4 and len({c.table_color_id for c in first}) == 4
+    assert generation_order(SPEC, cfgs) == ordered
