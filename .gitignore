@@ -1,0 +1,28 @@
+# Python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+
+# Secrets
+.env
+
+# Large artifacts: use HF Hub / W&B Artifacts instead
+data/
+datasets/
+outputs/
+checkpoints/
+wandb/
+videos/
+*.mp4
+*.parquet
+*.safetensors
+*.pt
+*.ckpt
+*.usd
+*.usdc
+
+# Generated rollout videos/raw eval dumps; curated reports (*.md, *.json) stay tracked
+reports/**/raw/
