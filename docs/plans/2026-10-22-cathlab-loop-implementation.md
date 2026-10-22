@@ -17,7 +17,7 @@
 ## Global Constraints
 
 - Robot: Franka FR3 Duo (bimanual); action/obs spec confirmed from provided docs in H0–2 and recorded in `configs/robots/fr3_duo.yaml`.
-- Provided dataset: 500 episodes, LeRobot format (parquet + mp4). Provided environment: Isaac Sim / USD.
+- Provided datasets: LeRobot v3.0, 16-D action/state, 3 cameras; box handover (94 eps, 30 fps) + cube stacking (490 eps, 6 fps). See `docs/data.md`. Provided environment: Isaac Sim / USD.
 - Every dataset carries a `manifest.yaml` with `source` ∈ {`provided`, `domain_rand`, `mimicgen`, `scripted`, `teleop`, `cosmos`}.
 - Task stages are exactly: `reach`, `grasp`, `lift`, `transport`, `place`.
 - Experiment tracking: Weights & Biases (project `cathlab-companion`).
