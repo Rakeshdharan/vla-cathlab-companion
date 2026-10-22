@@ -1,0 +1,2 @@
+# reports directory — EvalReport JSONs and benchmark artifacts land here
+# Large files (videos, checkpoints) are not tracked in git — use HF Hub / W&B Artifacts
