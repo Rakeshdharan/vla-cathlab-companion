@@ -14,14 +14,14 @@
 
 ## Deliverables
 
-| # | Deliverable | Path | Due |
-|---|---|---|---|
-| A1 | VLA shortlist + decision (top 2–3 to fine-tune, plus baselines) with reasoning and adapter notes for Rakesh | `docs/research/vla_selection.md`, `docs/decisions.md` | H6 |
-| A2 | Eval suite config: tiers, seeds, objects, episode budget (sized so a full eval takes <30 min per model) | `configs/eval/suite_v1.yaml` | H8 |
-| A3 | `eval/cli.py`: `python -m eval.cli --policy <adapter\|url> --sim <backend> --suite suite_v1` → `EvalReport` + videos + W&B logging | `eval/cli.py`, `eval/metrics.py` | H10 |
-| A4 | VLM judge: `judge(video_path, instruction) -> Verdict(success, failed_stage, explanation)`; agreement % vs ground truth reported | `eval/judge.py` | H18 |
-| A5 | Benchmark: {ScriptedExpert, ACT, SmolVLA, 1–2 frontier VLAs} × {v0 provided, v1 + synthetic, v2 + loop} × {Isaac, RoboSimStudio} → table + plots (success w/ CI, stage failures, latency) | `eval/benchmark.py`, `reports/benchmark.md` | H20 (v1), H28 (final) |
-| A6 | Failure analysis feeding the loop: cluster failed episodes into candidate `GapSpec`s | `eval/failures.py` | H22 |
+| # | Deliverable | Path | Due | Status |
+|---|---|---|---|---|
+| A1 | VLA shortlist + decision (top 2–3 to fine-tune, plus baselines) with reasoning and adapter notes for Rakesh | `docs/research/vla_selection.md`, `docs/decisions.md`, `docs/research/adapter_notes_for_rakesh.md` | H6 | ✅ **Locked (LeRobot-native)** |
+| A2 | Eval suite config: tiers, seeds, objects, episode budget (sized so a full eval takes <30 min per model) | `configs/eval/suite_v1.yaml` | H8 | Ready |
+| A3 | `eval/cli.py`: `python -m eval.cli --policy <adapter\|url> --sim <backend> --suite suite_v1` → `EvalReport` + videos + W&B logging | `eval/cli.py`, `eval/metrics.py` | H10 | Ready |
+| A4 | VLM judge: `judge(video_path, instruction) -> Verdict(success, failed_stage, explanation)`; agreement % vs ground truth reported | `eval/judge.py` | H18 | Ready |
+| A5 | Benchmark: {ScriptedExpert, ACT, SmolVLA, 1–2 frontier VLAs} × {v0 provided, v1 + synthetic, v2 + loop} × {Isaac, RoboSimStudio} → table + plots (success w/ CI, stage failures, latency) | `eval/benchmark.py`, `reports/benchmark.md` | H20 (v1), H28 (final) | Ready |
+| A6 | Failure analysis feeding the loop: cluster failed episodes into candidate `GapSpec`s | `eval/failures.py` | H22 | Ready |
 
 ## Interfaces
 
