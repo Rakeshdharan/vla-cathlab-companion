@@ -1,6 +1,6 @@
 # AGENTS.md — CathLab Companion
 
-Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in Isaac Sim + robosuite, LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka FR3 Duo hands cathlab instruments to a clinician ("Hand me the guidewire"). 36 h, 5 people, each working with coding agents in this one repo.
+Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in Isaac Sim + robosuite, LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"). 36 h, 5 people, each working with coding agents in this one repo.
 
 Read these before non-trivial work:
 - Design spec: [docs/specs/2026-10-22-cathlab-learning-loop-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md)
