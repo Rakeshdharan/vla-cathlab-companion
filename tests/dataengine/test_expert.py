@@ -112,3 +112,21 @@ def test_record_callback_gets_every_step():
     seen = []
     r = run_expert_episode(FakeExpertSim(SPEC), SPEC, CFG, record=lambda o, a: seen.append((o["state"].shape, a.shape)))
     assert len(seen) == r.steps and seen[0] == ((8,), (7,))
+
+
+class _StuckRetreatSim(FakeExpertSim):
+    """Places successfully but cannot rise after opening (like a TCP stalled near the reach limit)."""
+
+    def step(self, action):
+        if not self.closed and self.released_in_tray:
+            action = np.array([0, 0, 0, 0, 0, 0, action[6]], dtype=np.float32)
+        return super().step(action)
+
+
+def test_episode_ends_retreat_steps_after_success():
+    params = ExpertParams(retreat_steps=5)
+    r = run_expert_episode(_StuckRetreatSim(SPEC), SPEC, CFG, params)
+    assert r.success and r.steps < params.max_steps
+    assert r.trace[-1] == "open"
+    full = run_expert_episode(FakeExpertSim(SPEC), SPEC, CFG, params)
+    assert full.success and full.trace[-1] == "retreat"
