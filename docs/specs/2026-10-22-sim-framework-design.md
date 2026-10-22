@@ -68,7 +68,8 @@ Objects start as **primitive composites** with identical dimensions in USD and M
 ```
 EpisodeConfig ─► sim.reset(cfg) ─► obj_pose = sim.get_object_pose(target)   (privileged)
                ─► grasp = template[class](obj_pose)                         (phase 2: GraspGen ranks candidates)
-               ─► waypoints: pre_grasp → grasp → close → lift → above_tray → lower → open → retreat
+               ─► waypoints: [rise] → approach → pre_grasp → grasp → close → lift → above_tray → lower → open → retreat
+                  (horizontal moves at ≥ transit_height 0.32 m; episode ends shortly into the retreat once successful)
                ─► each step: action = clip(K·(waypoint − ee_pose)), gripper cmd ─► sim.step(action)
                ─► success = target in tray, at rest, gripper open  → keep episode, else discard + log
 ```
@@ -76,8 +77,8 @@ EpisodeConfig ─► sim.reset(cfg) ─► obj_pose = sim.get_object_pose(target
 | Class | Grasp template |
 |---|---|
 | bottle | Side grasp at 0.4 × height, approaching from −y, fingers horizontal |
-| vial | Top-down grasp at centroid, yaw = object yaw |
-| syringe | Top-down grasp at barrel midpoint, fingers perpendicular to the barrel axis |
+| vial | Top-down grasp at centroid, yaw = current gripper yaw (round object, so no wrist rotation) |
+| syringe | Top-down grasp at the object centre (on the barrel), fingers perpendicular to the barrel axis; of the two symmetric yaws the one nearer the current gripper yaw |
 
 The sim adapter interface (each simulator implements it):
 
