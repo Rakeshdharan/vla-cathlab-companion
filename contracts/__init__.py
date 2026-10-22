@@ -1,11 +1,28 @@
-from contracts.specs import STAGES, Stage, DataSource, TaskSpec, SceneSpec, DatasetManifest, load_yaml, save_yaml
-from contracts.policy import PolicyAdapter, PolicyMeta, RandomPolicy
-from contracts.sim import SimBackend, StepInfo, DummySim
-from contracts.reports import EpisodeResult, EvalReport, ModelCard
+from pydantic import BaseModel
 
-__all__ = [
-    "STAGES", "Stage", "DataSource", "TaskSpec", "SceneSpec", "DatasetManifest", "load_yaml", "save_yaml",
-    "PolicyAdapter", "PolicyMeta", "RandomPolicy",
-    "SimBackend", "StepInfo", "DummySim",
-    "EpisodeResult", "EvalReport", "ModelCard",
-]
+# GapSpec represents a scenario where the robot is struggling.
+# It tells our data generator exactly what kind of practice data to create.
+class GapSpec(BaseModel):
+    object: str   # The object the robot is struggling with (e.g., "guidewire")
+    region: str   # Where it's happening (e.g., "table")
+    clutter: str  # How messy the environment is (e.g., "high")
+    stage: str    # What part of the task is failing (e.g., "grasp")
+
+# DatasetManifest is the "receipt" or summary of the data we just generated.
+class DatasetManifest(BaseModel):
+    source: str       # Which method created this data (e.g., "domain_rand")
+    num_episodes: int # How many practice examples were created
+
+# SceneSpec defines the layout of the virtual practice room.
+class SceneSpec(BaseModel):
+    name: str
+    items: list[str]
+
+# PolicyAdapter is the standard shape that any robot "brain" (whether AI or scripted) must follow.
+class PolicyAdapter:
+    def load(self):
+        pass
+    def predict(self, obs, instruction):
+        return (None, None)
+    def meta(self):
+        return {}

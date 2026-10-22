@@ -1,5 +1,12 @@
 # Akanksh — Frontier VLA Research, Evaluation Design, Benchmarking
 
+> **Update (H6.5):** see the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
+> - **Models:** SmolVLA (v0/v1/v2), ACT (v0/v1), and ONE frontier model, π0.5 or X-VLA. Decide by **H10**, all starting from public **LIBERO** checkpoints.
+> - **Eval suite → `configs/eval/suite_v2.yaml`:** per simulator, 3 objects × 5 tiers × 4 seeds = 60 episodes. Generate the configs with `dataengine.variation.eval_configs(spec, tier, seeds)` and `TIERS` (in_distribution, held_out_layout, held_out_obj_color, held_out_table_color, all_held_out), with seeds ≥ 5000.
+> - **Backends:** `IsaacBackend` (Mitesh), `RobosuiteBackend` (Rakesh), `FakeExpertSim` for tests.
+> - **Report** trained vs held-out cells, the Isaac↔robosuite gap, and wrong-object as a failure class.
+> - **Benchmark:** {expert, SmolVLA v0/v1/v2, ACT v0/v1, frontier v1} × {Isaac, robosuite} × {trained, held-out}.
+
 ## Agent brief (paste to your agent)
 
 > You are helping build the CathLab Companion learning loop (spec: `docs/specs/2026-10-22-cathlab-learning-loop-design.md`, §4 "04 Evaluate", §6, §8.2).

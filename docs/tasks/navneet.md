@@ -1,5 +1,9 @@
 # Navneet — Awareness (Proactive Assist) and Voice
 
+> **Update (H6.5):** the task objects are now **bottle, vial, syringe** (`configs/tasks/cathlab_pick.yaml`).
+> - Map procedure steps to these, e.g. access prep → vial (local anaesthetic), contrast → bottle, flush/injection → syringe.
+> - `validate_against(task)` should use `cathlab_pick.yaml`.
+
 ## Agent brief (paste to your agent)
 
 > You are helping build the CathLab Companion learning loop (spec: `docs/specs/2026-10-22-cathlab-learning-loop-design.md`, §5.1).
