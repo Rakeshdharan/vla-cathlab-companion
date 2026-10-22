@@ -7,6 +7,7 @@ Read these before non-trivial work:
 - Foundation plan: [docs/plans/2026-10-22-cathlab-loop-implementation.md](docs/plans/2026-10-22-cathlab-loop-implementation.md)
 - Workstreams and owners: [docs/tasks/README.md](docs/tasks/README.md) (one file per person)
 - Decisions log: [docs/decisions.md](docs/decisions.md)
+- Provided datasets, HF repos and schema: [docs/data.md](docs/data.md)
 
 ## Architecture
 
