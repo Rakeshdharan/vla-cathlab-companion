@@ -32,6 +32,7 @@
 | SmolVLA-ManiSkill | 28.4 GB | 0.78 (AMP) | 8,500 (= v1) | 18:57 → ✅ 20:52 |
 | X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ✅ 22:03 |
 | X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ✅ 22:40 |
+| **X-VLA-Genesis** → `Rakeshdharan56/xvla_panda_genesis_v1` | ~34 GB | 1.03 | 7,500 (= v1 recipe) on `pick_genesis@v1` (383 eps, 66k frames) | 23:02 → ~01:10 (after freeze; checkpoints every 2,500 steps) |
 
 `train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
