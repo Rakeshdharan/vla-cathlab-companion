@@ -6,10 +6,89 @@ agents:
     description: "GitHub Copilot CLI (headless). Needs `copilot` logged in on the host."
     argv: [copilot, -C, "{workdir}", -p, "{prompt}", --allow-all-tools, --deny-tool, "shell(git push)",
            --deny-tool, "shell(git commit)", --output-format, json]
+    env_allow:
+      - PATH
+      - HOME
+      - USER
+      - LANG
+      - LC_*
+      - TERM
+      - SHELL
+      - TMPDIR
+      - XDG_*
+      - GIT_*
+      - SSH_AUTH_SOCK
+      - CONDA_*
+      - MAMBA_*
+      - UV_*
+      - COPILOT_*
+      - GH_*
+      - GITHUB_TOKEN
+      - ANTHROPIC_*
+      - CLAUDE_*
+      - OPENAI_*
+      - MUJOCO_GL
+      - PYOPENGL_PLATFORM
+      - CUDA_*
+      - NVIDIA_*
+      - LD_LIBRARY_PATH
   claude:
     description: "Claude Code (optional). Needs `claude` installed and logged in."
     argv: [bash, -c, 'cd "$0" && claude -p "$(cat "$1")" --dangerously-skip-permissions --output-format stream-json --verbose',
            "{workdir}", "{prompt_file}"]
+    env_allow:
+      - PATH
+      - HOME
+      - USER
+      - LANG
+      - LC_*
+      - TERM
+      - SHELL
+      - TMPDIR
+      - XDG_*
+      - GIT_*
+      - SSH_AUTH_SOCK
+      - CONDA_*
+      - MAMBA_*
+      - UV_*
+      - COPILOT_*
+      - GH_*
+      - GITHUB_TOKEN
+      - ANTHROPIC_*
+      - CLAUDE_*
+      - OPENAI_*
+      - MUJOCO_GL
+      - PYOPENGL_PLATFORM
+      - CUDA_*
+      - NVIDIA_*
+      - LD_LIBRARY_PATH
   codex:
     description: "OpenAI Codex CLI (optional). Needs `codex` installed and logged in."
     argv: [codex, exec, --full-auto, -C, "{workdir}", "{prompt}"]
+    env_allow:
+      - PATH
+      - HOME
+      - USER
+      - LANG
+      - LC_*
+      - TERM
+      - SHELL
+      - TMPDIR
+      - XDG_*
+      - GIT_*
+      - SSH_AUTH_SOCK
+      - CONDA_*
+      - MAMBA_*
+      - UV_*
+      - COPILOT_*
+      - GH_*
+      - GITHUB_TOKEN
+      - ANTHROPIC_*
+      - CLAUDE_*
+      - OPENAI_*
+      - MUJOCO_GL
+      - PYOPENGL_PLATFORM
+      - CUDA_*
+      - NVIDIA_*
+      - LD_LIBRARY_PATH
+

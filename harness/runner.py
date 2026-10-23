@@ -3,9 +3,11 @@
 State order: created, worktree, agent_running, guard, checks, ready_for_review, then pushed | discarded,
 or failed (with `error`) at any step.
 """
+import os
 import threading
 import time
 import uuid
+from fnmatch import fnmatch
 from pathlib import Path
 from pydantic import BaseModel, Field
 from harness import gitops
@@ -57,16 +59,21 @@ class Harness:
     def __init__(self, settings: HarnessSettings, templates: dict[str, TaskTemplate], agents: AgentsConfig):
         self.s, self.templates, self.agents = settings, templates, agents
         self._lock = threading.Lock()
+        self._threads: dict[str, threading.Thread] = {}
 
     # persistence ---------------------------------------------------------
     def job_dir(self, job_id: str) -> Path:
         return self.s.var_dir / "agent" / job_id
 
     def _save(self, job: AgentJob) -> AgentJob:
-        job.updated = time.time()
-        d = self.job_dir(job.id)
-        d.mkdir(parents=True, exist_ok=True)
-        (d / "job.json").write_text(job.model_dump_json(indent=2))
+        with self._lock:
+            job.updated = time.time()
+            d = self.job_dir(job.id)
+            d.mkdir(parents=True, exist_ok=True)
+            tmp_path = d / "job.json.tmp"
+            final_path = d / "job.json"
+            tmp_path.write_text(job.model_dump_json(indent=2))
+            os.replace(tmp_path, final_path)
         return job
 
     def get(self, job_id: str) -> AgentJob:
@@ -86,6 +93,11 @@ class Harness:
     def _note(self, job: AgentJob, text: str) -> None:
         with open(self.job_dir(job.id) / "run.log", "a") as f:
             f.write(f"\n=== [harness] {text}\n")
+
+    def _filtered_env(self, agent_name: str) -> dict[str, str]:
+        """Build environment dict with only allowed vars (filtered by env_allow patterns)."""
+        agent_cfg = self.agents.get(agent_name)
+        return {k: v for k, v in os.environ.items() if any(fnmatch(k, p) for p in agent_cfg.env_allow)}
 
     # lifecycle -----------------------------------------------------------
     def create(self, task_id: str, params: dict, extra: str = "", agent: str | None = None) -> AgentJob:
@@ -122,15 +134,25 @@ class Harness:
             job.base_sha = gitops.create_worktree(self.s.repo, wt, job.branch, self.s.base_ref,
                                                   fetch=self.s.fetch, remote=self.s.remote)
 
+            # Disable push and enable worktree config
+            gitops.git(["config", "extensions.worktreeConfig", "true"], wt)
+            gitops.git(["config", "--worktree", "remote.origin.pushurl", "DISABLED-BY-CATHLAB-HARNESS"], wt)
+
             job.state = "agent_running"
             self._save(job)
             prompt_file = d / "prompt.md"
             argv = build_argv(self.agents.get(job.agent), wt, prompt_file.read_text(), prompt_file)
             self._note(job, f"agent {job.agent}: {argv[0]} ...")
+            env = self._filtered_env(job.agent)
             state = start_process(argv, d / "run.log", cwd=wt, timeout_s=template.timeout_min * 60,
-                                  append=True).wait()
+                                  append=True, inherit_env=False, env=env).wait()
             if state != "done":
                 return self._fail(job, f"agent process ended with state '{state}'")
+
+            # Check if agent created commits (it must not)
+            head_sha = gitops.git(["rev-parse", "HEAD"], wt).strip()
+            if head_sha != job.base_sha:
+                return self._fail(job, "agent created commits; agents must not commit")
 
             job.state = "guard"
             job.changed_files = gitops.stage_all(wt)
@@ -145,7 +167,9 @@ class Harness:
             self._save(job)
             for check in checks_for(template, job.params):
                 self._note(job, f"check '{check.name}': {check.cmd}")
-                st = start_process(check.cmd, d / "run.log", cwd=wt, timeout_s=check.timeout_s, append=True).wait()
+                env = self._filtered_env(job.agent)
+                st = start_process(check.cmd, d / "run.log", cwd=wt, timeout_s=check.timeout_s, append=True,
+                                   inherit_env=False, env=env).wait()
                 job.checks.append(CheckResult(name=check.name, ok=st == "done", state=st))
                 self._save(job)
             failed = [c.name for c in job.checks if not c.ok]
@@ -162,6 +186,8 @@ class Harness:
 
     def start(self, job_id: str) -> threading.Thread:
         t = threading.Thread(target=self.run, args=(job_id,), daemon=True)
+        with self._lock:
+            self._threads[job_id] = t
         t.start()
         return t
 
@@ -173,16 +199,24 @@ class Harness:
         job = self.get(job_id)
         if job.state != "ready_for_review":
             raise HarnessError(f"job is '{job.state}', only 'ready_for_review' can be pushed")
-        gitops.push(Path(job.worktree), job.branch, self.s.remote)
+        # Get the real URL from the main repo
+        url = gitops.git(["config", "--get", "remote.origin.url"], self.s.repo).strip()
+        gitops.push(Path(job.worktree), job.branch, self.s.remote, url=url)
         gitops.remove_worktree(self.s.repo, Path(job.worktree), job.branch, delete_branch=False)
         job.state = "pushed"
         self._note(job, f"pushed {job.branch}")
         return self._save(job)
 
-    def discard(self, job_id: str) -> AgentJob:
+    def discard(self, job_id: str, force: bool = False) -> AgentJob:
         job = self.get(job_id)
-        if job.state in ("agent_running", "checks", "worktree", "guard"):
+        if not force and job.state in ("agent_running", "checks", "worktree", "guard"):
             raise HarnessError(f"job is still '{job.state}'")
+        if force:
+            # Check if a thread is still alive for this job
+            with self._lock:
+                thread = self._threads.get(job_id)
+            if thread is not None and thread.is_alive():
+                raise HarnessError(f"job thread is still running for state '{job.state}'")
         gitops.remove_worktree(self.s.repo, Path(job.worktree), job.branch, delete_branch=True)
         job.state = "discarded"
         self._note(job, "discarded")

@@ -84,12 +84,13 @@ class ProcessHandle:
 def start_process(cmd: list[str] | str, log_path: str | Path, cwd: str | Path | None = None,
                   env: dict[str, str] | None = None, timeout_s: float | None = None,
                   on_exit: Callable[[int, str], None] | None = None, append: bool = False,
-                  kill_grace_s: float = 5.0) -> ProcessHandle:
+                  kill_grace_s: float = 5.0, inherit_env: bool = True) -> ProcessHandle:
     """Start `cmd` (argv list, or a shell string) with stdout+stderr appended to `log_path`."""
     log_path = Path(log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log = open(log_path, "ab" if append else "wb")
-    proc = subprocess.Popen(cmd, shell=isinstance(cmd, str), cwd=cwd, env={**os.environ, **(env or {})},
+    child_env = {**os.environ, **(env or {})} if inherit_env else (env or {})
+    proc = subprocess.Popen(cmd, shell=isinstance(cmd, str), cwd=cwd, env=child_env,
                             stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
     log.close()
     return ProcessHandle(proc, log_path, timeout_s, on_exit, kill_grace_s)
