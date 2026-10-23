@@ -2,6 +2,25 @@
 
 *From the master session, 2026-10-23 ~08:20 (≈H17). Owner: Rakesh. On the GPU PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-training-gpu-session.md`".*
 
+## Status (2026-10-23 13:05)
+
+| Model | State | Steps | Final loss | HF model repo | ETA |
+|---|---|---|---|---|---|
+| SmolVLA | ✅ done, on HF | 8,500 / 8,500 | 0.009 | `Rakeshdharan56/smolvla_panda_pick_v1` | — |
+| ACT | ✅ done, on HF | 50,000 / 50,000 | 0.023 | `Rakeshdharan56/act_panda_pick_v1` | — |
+| X-VLA | ⏳ training (1.16 steps/s) | 2,944 / 7,500 | 0.028 | `Rakeshdharan56/xvla_panda_pick_v1` (auto-push) | ~14:10 |
+| π0.5 | queued (`chain` tmux) | 200-step smoke, then ≤ 3 h / ≤ 10k steps | — | `Rakeshdharan56/pi05_panda_pick_v1` | ~17:30 |
+| MolmoAct2 | not started | after π0.5 | — | `Rakeshdharan56/molmoact2_panda_pick_v1` | evening |
+
+- GPU PC paths: status `outputs/logs/status.txt` (refreshed every 10 min), chain log `outputs/logs/chain.log`.
+- The `chain` tmux session runs after X-VLA ends:
+  1. push X-VLA and check it loads from the Hub;
+  2. run a π0.5 smoke test (batch 16; one retry with `torch.compile` off);
+  3. check π0.5's actions are 7-D;
+  4. launch π0.5's full run.
+  If both π0.5 smoke attempts fail, the chain stops and logs why.
+- Next on the GPU PC: closed-loop robosuite eval script, starting with SmolVLA. Its scores (`EvalReport`) feed the Plan B Eval/Rollout stage and the model registry.
+
 ## Goal of this session
 
 Fine-tune four strong VLAs plus one non-VLA baseline on our own synthetic data, evaluate all of them closed-loop in robosuite, and publish them. In order:
