@@ -29,7 +29,7 @@ def test_repo_engines_load_and_robosuite_is_ready_for_data():
     rs = load_engines()["robosuite"]
     assert rs.worker == "robosuite" and rs.entry == "engines.robosuite.cli"
     assert rs.io_profile.action_dim == 7 and rs.io_profile.obs_shapes["state"] == (8,)
-    for cap in ("preview", "expert.analytic", "generate", "convert"):
+    for cap in ("preview", "expert.analytic", "generate", "convert", "eval", "rollout"):
         assert rs.status(cap) == "ready", cap
 
 

@@ -56,6 +56,18 @@ def test_convert(tmp_path, capsys):
         main(["convert", "--out", str(tmp_path), "--dry-run"])          # --dataset is required
 
 
+def test_eval_and_rollout_dry_run(tmp_path, capsys):
+    run = tmp_path / "run.yaml"
+    run.write_text("selection: {objects: [vial, bottle]}\n")
+    ev = argv_of(capsys, "eval", "--out", str(tmp_path), "--run", str(run), "--tiers", "in_distribution",
+                 "--max-seeds", "1")
+    assert ev["stage"] == "eval" and ev["policy_arg"] == "expert" and ev["objects"] == "['vial', 'bottle']"
+    assert ev["tiers"] == "['in_distribution']" and ev["max_seeds"] == "1"
+    assert ev["suite_path"] == str(ROOT / "configs/eval/suite_v2.yaml")
+    ro = argv_of(capsys, "rollout", "--out", str(tmp_path), "--run", str(run), "--instruction", "Pass the vial")
+    assert ro["obj"] == "vial" and ro["seed"] == "5000" and ro["instruction"] == "Pass the vial"
+
+
 def test_help_works_without_robosuite(capsys):
     with pytest.raises(SystemExit) as e:
         main(["--help"])

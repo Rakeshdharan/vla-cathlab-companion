@@ -1,0 +1,9 @@
+# Eval suite v2 (spec P9): 3 objects × 5 variation tiers × 4 seeds = 60 episodes per engine and model.
+# Seeds >= 5000 never overlap the training grid; the same seed is the same episode in every engine.
+suite_id: suite_v2
+task: configs/tasks/cathlab_pick.yaml
+objects: [bottle, vial, syringe]
+tiers: [in_distribution, held_out_layout, held_out_obj_color, held_out_table_color, all_held_out]
+seeds: [5000, 5001, 5002, 5003]
+max_steps: 400
+latency_budget_ms_p95: 200.0

@@ -5,6 +5,7 @@
 
 Only stage functions live here; robosuite and lerobot are imported by the wrapped scripts or lazily.
 """
+import json
 from engines.cli_base import Flag, Stage, run_cli
 
 ENGINE = "robosuite"
@@ -54,6 +55,35 @@ def convert(args, ctx):
     return ctx.run_script(argv)
 
 
+def _dry(ctx, stage: str, **kwargs) -> bool:
+    if ctx.dry_run:
+        print(json.dumps({"stage": stage, **{k: str(v) for k, v in kwargs.items()}}), flush=True)
+    return ctx.dry_run
+
+
+def eval_(args, ctx):
+    kwargs = dict(suite_path=ctx.path(args.suite), policy_arg=args.policy, out=ctx.out, spec_path=_spec(args, ctx),
+                  task_path=ctx.path(ctx.manifest.task), model_version=args.model_version,
+                  objects=_objects(args, ctx).split(",") if _objects(args, ctx) else None,
+                  tiers=args.tiers.split(",") if args.tiers else None, max_seeds=args.max_seeds, video=args.video)
+    if _dry(ctx, "eval", **kwargs):
+        return 0
+    from engines.robosuite.evaluate import run_eval
+    run_eval(**kwargs)
+
+
+def rollout(args, ctx):
+    obj = args.object or (ctx.objects[0] if ctx.objects else "vial")
+    kwargs = dict(policy_arg=args.policy, out=ctx.out, spec_path=_spec(args, ctx),
+                  task_path=ctx.path(ctx.manifest.task), obj=obj, seed=args.seed, tier=args.tier,
+                  instruction=args.instruction or None, max_steps=args.max_steps)
+    if _dry(ctx, "rollout", **kwargs):
+        return 0
+    from engines.robosuite.evaluate import run_rollout
+    result = run_rollout(**kwargs)
+    return 0 if result["video"] else 1
+
+
 STAGES = {
     "preview": Stage(preview, "grid.png of n train configs + 1 all-held-out (agentview after settle)",
                      (Flag("--n", int, 8, "train configs in the grid"), SPEC)),
@@ -68,6 +98,18 @@ STAGES = {
     "convert": Stage(convert, "raw shards -> LeRobot v3 dataset in --out/lerobot (run in the lerobot env)",
                      (Flag("--dataset", required=True, help="the generate stage's --out folder"),
                       Flag("--repo-id", help="default: dataset_id from the shard manifests"))),
+    "eval": Stage(eval_, "closed-loop eval over suite tiers x objects x seeds -> eval_report.json + failure videos",
+                  (Flag("--suite", default="configs/eval/suite_v2.yaml"),
+                   Flag("--policy", default="expert", help="expert | random | url:<policy server>"),
+                   Flag("--model-version", help="label in the report (default: the policy)"),
+                   Flag("--tiers", help="comma-separated tiers (default: all in the suite)"),
+                   Flag("--max-seeds", int, None, help="seeds per tier (default: all)"),
+                   Flag("--video", default="failures", help="none | failures | all"), OBJECTS, SPEC)),
+    "rollout": Stage(rollout, "one live episode -> rollout.mp4/gif + rollout.json",
+                     (Flag("--policy", default="expert"), Flag("--object", help="default: first run object, else vial"),
+                      Flag("--seed", int, 5000), Flag("--tier", default="in_distribution"),
+                      Flag("--instruction", help="override, e.g. from the ASSIST panel"),
+                      Flag("--max-steps", int, 400), SPEC)),
 }
 
 
