@@ -1,0 +1,6 @@
+# Workers the control plane talks to (dev defaults: native processes on this machine).
+# Docker / remote GPU: point CATHLAB_WORKERS at another file, or edit the URLs.
+workers:
+  - {name: robosuite, url: "http://127.0.0.1:8711"}
+  - {name: lerobot, url: "http://127.0.0.1:8712"}
+  - {name: isaac, url: "http://127.0.0.1:8713"}
