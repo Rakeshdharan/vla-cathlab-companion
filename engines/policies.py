@@ -12,4 +12,8 @@ def make_policy(spec: str, action_dim: int, seed: int = 0) -> PolicyAdapter:
         except ImportError as e:
             raise RuntimeError("policy server client not available yet (serve/policy_client.py, Sharan's S2)") from e
         return PolicyClient(spec[len("url:"):])
-    raise ValueError(f"unknown --policy '{spec}': use expert, random or url:<policy-server-url>")
+    if spec.startswith("lerobot:"):
+        from train.lerobot_adapter import LeRobotPolicyAdapter   # lazy: needs lerobot + torch
+        return LeRobotPolicyAdapter(ckpt=spec[len("lerobot:"):], action_dim=action_dim)
+    raise ValueError(f"unknown --policy '{spec}': use expert, random, url:<policy-server-url> or "
+                     "lerobot:<hf-repo-or-path>")

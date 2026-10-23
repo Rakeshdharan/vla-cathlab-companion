@@ -52,3 +52,11 @@ def test_suite_v2_is_valid():
     suite = load_suite(ROOT / "configs/eval/suite_v2.yaml")
     assert suite["tiers"] == list(TIERS) and suite["objects"] == ["bottle", "vial", "syringe"]
     assert len(suite["seeds"]) == 4 and min(suite["seeds"]) >= 5000
+
+
+def test_lerobot_policy_scheme_loads_the_checkpoint(monkeypatch):
+    import train.lerobot_adapter as la
+    loaded = []
+    monkeypatch.setattr(la.LeRobotPolicyAdapter, "load", lambda self, ckpt: loaded.append(ckpt))
+    policy = make_policy("lerobot:Rakeshdharan56/act_panda_pick_v1", action_dim=7)
+    assert isinstance(policy, la.LeRobotPolicyAdapter) and loaded == ["Rakeshdharan56/act_panda_pick_v1"]
