@@ -23,7 +23,7 @@
 | SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ✅ [`smolvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_maniskill_v1), 8,500 × 32 (v1 recipe), 1 h 54 m, loss 0.011 | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
 | X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1`, **2,500 × 32** (time-boxed, v1: 7,500), **ETA ~22:40** | ⏳ `Rakeshdharan56/xvla_fr3_pick_v1`, from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, RTX 6000 Ada, **ETA ~22:05** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
-| **Panda v2** (co-training) | ⬜ optional: `pick_panda_v2` = merged robosuite + ManiSkill (753 eps) → `smolvla_panda_pick_v2` | | — |
+| **Panda v2** (co-training) | ❌ dropped at H28.5 (no more SmolVLA training; GPU queue is X-VLA only until freeze) | | — |
 
 **ACT is dropped for the new datasets** (it stays as the robosuite-trained baseline). FR3 checkpoints are evaluated by Aravind in Newton + MuJoCo. The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Smokes and schedule (RTX 6000 Ada, 48 GB; runs are sequential because no two fit together):
 
