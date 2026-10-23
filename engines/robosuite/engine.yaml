@@ -1,0 +1,23 @@
+# robosuite engine plugin. Contract: docs/EXTENDING.md and harness/gates/engine.yaml.
+id: robosuite
+label: "robosuite 1.5 (MuJoCo 3.3): Panda, cathlab table scene"
+env: {kind: conda, name: robosuite}
+worker: robosuite
+embodiments: [panda]
+io: panda_libero
+variation: configs/variation/cathlab_v1.yaml
+task: configs/tasks/cathlab_pick.yaml
+capabilities:                    # ready | in_progress | planned
+  preview: ready
+  objects: {primitive: ready, mjcf: planned}
+  randomize: ready
+  expert: {analytic: ready, graspgen: planned}
+  generate: ready
+  convert: ready
+  eval: in_progress              # flipped to ready in Task 4
+  rollout: in_progress
+entry: engines.robosuite.cli
+backend: "sim.robosuite.backend:RobosuiteBackend"
+credits:
+  - {name: robosuite, url: "https://github.com/ARISE-Initiative/robosuite", license: MIT}
+  - {name: MuJoCo, url: "https://github.com/google-deepmind/mujoco", license: Apache-2.0}
