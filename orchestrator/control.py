@@ -4,15 +4,16 @@ Start (dev): python -m orchestrator.control --port 8700   ->  open http://localh
 """
 import argparse
 import os
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import httpx
 import yaml
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from engines.registry import ENGINES_DIR, load_engines
 from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
+from orchestrator.pipeline import Pipeline, PipelineError, worker_request
 from orchestrator.store import Store
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +22,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class SelectionBody(BaseModel):
     selection: dict
     note: str = ""
+
+
+class StageStart(BaseModel):
+    params: dict = Field(default_factory=dict)
 
 
 class WorkerEntry(BaseModel):
@@ -37,21 +42,10 @@ def load_workers(path: str | Path) -> WorkersConfig:
     return WorkersConfig.model_validate(yaml.safe_load(p.read_text())) if p.exists() else WorkersConfig()
 
 
-def worker_health(entry: WorkerEntry, timeout: float = 0.5) -> dict:
-    try:
-        headers = {}
-        if token := os.environ.get("CATHLAB_WORKER_TOKEN"):
-            headers["X-Cathlab-Token"] = token
-        r = httpx.get(entry.url.rstrip("/") + "/health", timeout=timeout, headers=headers)
-        r.raise_for_status()
-        return {"name": entry.name, "url": entry.url, "healthy": True, **r.json(), "error": ""}
-    except Exception as e:  # noqa: BLE001 - any failure means "offline"
-        return {"name": entry.name, "url": entry.url, "healthy": False, "capabilities": [], "error": str(e)[:200]}
-
-
 def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None = None,
                        catalog_path: str | Path | None = None, workers_path: str | Path | None = None,
-                       frontend_dir: str | Path | None = None, harness=None, bind_host: str | None = None) -> FastAPI:
+                       frontend_dir: str | Path | None = None, harness=None, bind_host: str | None = None,
+                       engines_dir: str | Path | None = None, worker_http=None) -> FastAPI:
     repo_root = Path(repo_root)
     var_dir = Path(var_dir) if var_dir else repo_root / "var"
     catalog_path = Path(catalog_path or repo_root / "configs/catalog.yaml")
@@ -60,6 +54,28 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     store = Store(var_dir / "control.db")
     app = protect(FastAPI(title="CathLab Control Station"), bind_host)
     app.state.store = store
+    engines_dir = Path(engines_dir or ENGINES_DIR)
+    pipeline = Pipeline(store, var_dir, repo_root, workers_fn=lambda: load_workers(workers_path).workers,
+                        engines_fn=lambda: load_engines(engines_dir), http=worker_http or worker_request)
+    app.state.pipeline = pipeline
+
+    def run_or_404(run_id: str):
+        r = store.get_run(run_id)
+        if r is None:
+            raise HTTPException(404, f"unknown run {run_id}")
+        return r
+
+    def job_or_404(job_id: str):
+        j = store.get_job(job_id)
+        if j is None:
+            raise HTTPException(404, f"unknown job {job_id}")
+        return j
+
+    def pipeline_call(fn, *args):
+        try:
+            return fn(*args)
+        except PipelineError as e:
+            raise HTTPException(e.status, str(e)) from e
 
     @app.get("/api/health")
     def health() -> dict:
@@ -90,10 +106,7 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
 
     @app.get("/api/runs/{run_id}")
     def run(run_id: str) -> dict:
-        r = store.get_run(run_id)
-        if r is None:
-            raise HTTPException(404, f"unknown run {run_id}")
-        return r.model_dump()
+        return run_or_404(run_id).model_dump()
 
     @app.get("/api/jobs")
     def jobs(kind: str | None = None, run_id: str | None = None) -> list[dict]:
@@ -101,17 +114,39 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
 
     @app.get("/api/jobs/{job_id}")
     def job(job_id: str) -> dict:
-        j = store.get_job(job_id)
-        if j is None:
-            raise HTTPException(404, f"unknown job {job_id}")
-        return j.model_dump()
+        return pipeline.refresh(job_or_404(job_id)).model_dump()
 
     @app.get("/api/workers")
     def workers() -> list[dict]:
-        entries = load_workers(workers_path).workers
-        with ThreadPoolExecutor(max_workers=max(1, len(entries))) as executor:
-            results = list(executor.map(worker_health, entries))
-        return results
+        return pipeline.workers()
+
+    @app.get("/api/engines")
+    def engines() -> list[dict]:
+        return [m.model_dump() for m in load_engines(engines_dir).values()]
+
+    @app.get("/api/runs/{run_id}/stages")
+    def run_stages(run_id: str) -> list[dict]:
+        return pipeline.stages(run_or_404(run_id))
+
+    @app.post("/api/runs/{run_id}/stages/{stage_id}")
+    def start_stage(run_id: str, stage_id: str, body: StageStart) -> dict:
+        return pipeline_call(pipeline.start, run_or_404(run_id), stage_id, body.params).model_dump()
+
+    @app.get("/api/jobs/{job_id}/log")
+    def job_log(job_id: str, offset: int = 0) -> dict:
+        return pipeline.log(job_or_404(job_id), offset)
+
+    @app.post("/api/jobs/{job_id}/cancel")
+    def job_cancel(job_id: str) -> dict:
+        return pipeline_call(pipeline.cancel, job_or_404(job_id)).model_dump()
+
+    @app.get("/api/jobs/{job_id}/files")
+    def job_files(job_id: str) -> list[dict]:
+        return pipeline_call(pipeline.files, job_or_404(job_id))
+
+    @app.get("/api/jobs/{job_id}/file")
+    def job_file(job_id: str, path: str):
+        return FileResponse(pipeline_call(pipeline.file, job_or_404(job_id), path))
 
     if harness is not None:
         from harness.api import create_agent_router
