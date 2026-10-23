@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 from engines.registry import ENGINES_DIR, load_engines
 from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
+from orchestrator.loop import create_loop_router
+from serve.registry import Registry
 from orchestrator.pipeline import Pipeline, PipelineError, worker_request
 from orchestrator.store import Store
 
@@ -45,7 +47,8 @@ def load_workers(path: str | Path) -> WorkersConfig:
 def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None = None,
                        catalog_path: str | Path | None = None, workers_path: str | Path | None = None,
                        frontend_dir: str | Path | None = None, harness=None, bind_host: str | None = None,
-                       engines_dir: str | Path | None = None, worker_http=None) -> FastAPI:
+                       engines_dir: str | Path | None = None, worker_http=None,
+                       eval_roots: list | None = None) -> FastAPI:
     repo_root = Path(repo_root)
     var_dir = Path(var_dir) if var_dir else repo_root / "var"
     catalog_path = Path(catalog_path or repo_root / "configs/catalog.yaml")
@@ -55,8 +58,11 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     app = protect(FastAPI(title="CathLab Control Station"), bind_host)
     app.state.store = store
     engines_dir = Path(engines_dir or ENGINES_DIR)
+    registry = Registry(var_dir / "registry", repo_root=repo_root)
+    app.state.registry = registry
     pipeline = Pipeline(store, var_dir, repo_root, workers_fn=lambda: load_workers(workers_path).workers,
-                        engines_fn=lambda: load_engines(engines_dir), http=worker_http or worker_request)
+                        engines_fn=lambda: load_engines(engines_dir), http=worker_http or worker_request,
+                        resolve_policy=registry.policy_for)
     app.state.pipeline = pipeline
 
     def run_or_404(run_id: str):
@@ -151,6 +157,9 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     if harness is not None:
         from harness.api import create_agent_router
         app.include_router(create_agent_router(harness), prefix="/api/agent")
+
+    roots = [Path(p) for p in eval_roots] if eval_roots else [repo_root / "reports", var_dir / "runs"]
+    app.include_router(create_loop_router(store, registry, var_dir, repo_root, catalog_path, roots), prefix="/api")
 
     if frontend_dir.exists():
         app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
