@@ -1,0 +1,23 @@
+# Genesis engine plugin. Contract: docs/EXTENDING.md and harness/gates/engine.yaml.
+id: genesis
+label: "Genesis 1.4.5 (own GPU rigid solver): Panda, cathlab table scene"
+env: {kind: venv, name: ~/venvs/genesis}
+worker: genesis
+embodiments: [panda]
+io: panda_libero
+variation: configs/variation/cathlab_v1.yaml
+task: configs/tasks/cathlab_pick.yaml
+capabilities:                    # ready | in_progress | planned
+  preview: ready
+  objects: {primitive: ready, mjcf: planned}
+  randomize: ready
+  expert: {analytic: ready, graspgen: planned}
+  generate: in_progress          # smoke-tested (3 episodes); full 384 not run yet
+  convert: in_progress           # scripts/npz_to_lerobot.py, not run here (no lerobot env on this machine)
+  eval: in_progress              # smoke-tested with the expert
+  rollout: in_progress
+entry: engines.genesis.cli
+backend: "sim.genesis.backend:GenesisBackend"
+credits:
+  - {name: Genesis, url: "https://github.com/Genesis-Embodied-AI/Genesis", license: Apache-2.0}
+  - {name: MuJoCo Menagerie Franka Panda, url: "https://github.com/google-deepmind/mujoco_menagerie/tree/main/franka_emika_panda", license: Apache-2.0}
