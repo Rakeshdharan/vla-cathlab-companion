@@ -1,4 +1,6 @@
-# Navneet — Isaac Sim Engine + Awareness (Proactive Assist) and Voice
+# Navneet — Awareness (Proactive Assist) and Voice
+
+> **Update (2026-10-23 H24): Isaac Sim is dropped** (no working run after a day). Engines now: robosuite and ManiSkill3 (Panda), Genesis planned, FR3 Duo via Aravind's MuJoCo/Newton track. Isaac items below are historical.
 
 > **Update (2026-10-23): Navneet owns the Isaac Sim engine**, built on the RTX 4090 PC: follow [`docs/handoffs/2026-10-23-isaac-engine-session.md`](../handoffs/2026-10-23-isaac-engine-session.md) (Isaac as an engine plugin: preview → check-expert → generate → convert → eval → rollout, FR3 Duo right arm, Siemens 16-D schema). It runs in parallel with the awareness work below. In Part B, awareness feeds the Control Station's ASSIST panel ([spec](../specs/2026-10-23-multi-engine-platform-design.md) P11).
 

@@ -11,7 +11,6 @@ CathLab Companion builds on these projects. Thank you to their authors. Each is 
 | LeRobot | Dataset format (v3), training, policies | https://github.com/huggingface/lerobot | Apache-2.0 |
 | SmolVLA | Baseline vision-language-action policy (via LeRobot) | https://huggingface.co/lerobot/smolvla_base | Apache-2.0 |
 | ACT | Non-language baseline policy (via LeRobot) | https://github.com/tonyzhaozh/act | MIT |
-| NVIDIA Isaac Sim / Isaac Lab | Provided FR3 Duo clinical scene | https://github.com/isaac-sim/IsaacLab | BSD-3-Clause (Isaac Lab); Isaac Sim under NVIDIA licence |
 | Hugging Face Hub | Dataset and model hosting | https://huggingface.co | - |
 | FastAPI, uvicorn, Starlette | Control plane and worker HTTP APIs | https://github.com/fastapi/fastapi | MIT / BSD-3-Clause |
 | pydantic | Configs, contracts, API models | https://github.com/pydantic/pydantic | MIT |

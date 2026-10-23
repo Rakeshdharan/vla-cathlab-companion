@@ -5,7 +5,7 @@
     MUJOCO_GL=egl python scripts/robosuite_generate.py --n 384 --out data/pick_robosuite --shard 0 --num-shards 4
 
 Configs follow dataengine.variation.generation_order (objects interleaved, seeded shuffle per object), so any
---start/--n window and every shard is object-balanced and varied, the same window is generated in Isaac, and
+--start/--n window and every shard is object-balanced and varied, the same window is generated in every engine, and
 --n 384 covers the whole train grid. Each shard writes <out>/raw/shard_<i>-of-<k>/ with
 episodes/*.npz, meta/episodes_extra.jsonl and manifest.yaml. Only successful expert episodes are kept.
 """

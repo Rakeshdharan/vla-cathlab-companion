@@ -2,7 +2,7 @@ from contracts import GapSpec
 from dataengine.registry import GenerationReceipt
 from dataengine.registry import register_method
 
-# This file handles MimicGen (or Isaac Lab Mimic).
+# This file handles MimicGen.
 # Its job is to take human demonstrations (like a person moving a VR controller)
 # and "translate" those movements so they work on the robot's specific body,
 # even if the robot's starting position or the objects have moved slightly.

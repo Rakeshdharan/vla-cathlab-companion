@@ -6,13 +6,13 @@ description: >
 catalog_target: simulator
 gate: engine
 params:
-  - {name: sim, type: choice, choices: [isaac, mujoco], help: "package sim/<sim>/"}
+  - {name: sim, type: choice, choices: [mujoco, newton, genesis], help: "package sim/<sim>/"}
   - {name: embodiment, type: str, default: fr3_duo}
   - {name: notes, type: text, required: false, help: "scene file, env name, known constraints"}
 context:
   - AGENTS.md
   - docs/specs/2026-10-22-sim-framework-design.md
-  - docs/handoffs/2026-10-22-isaac-fr3-session.md
+  - docs/handoffs/2026-10-23-aravind-newton-fr3-session.md
   - contracts/sim.py
   - dataengine/expert.py
   - dataengine/variation.py

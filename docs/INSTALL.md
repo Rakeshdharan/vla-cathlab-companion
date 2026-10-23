@@ -85,5 +85,4 @@ and check `test -f configs/new.txt`, then Start agent → DIFF → PUSH BRANCH.
 | 8711 | robosuite worker |
 | 8714 | ManiSkill3 worker |
 | 8712 | lerobot worker |
-| 8713 | isaac worker |
 | 8790 | standalone agent worker (`make agent`) |

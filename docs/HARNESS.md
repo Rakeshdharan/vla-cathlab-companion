@@ -41,7 +41,7 @@ uv run python -m harness push <job_id>        # or: discard <job_id>
 | `add_object` | Add a pickable object (new versioned spec `cathlab_v2`, scene, task, catalog) | core tests, robosuite tests, expert ≥ 80 % on the new object |
 | `extend_dataset` | Generate more episodes for a window of configs, convert, preview, push to HF | dataset + manifest exist |
 | `add_variation_axis` | Add a randomization axis (camera jitter, distractors, …) | core + robosuite tests, expert ≥ 80 % |
-| `add_sim_backend` | Build an Isaac or MuJoCo backend against `ExpertSim` / `SimBackend` | core tests |
+| `add_sim_backend` | Build a MuJoCo, Newton or Genesis backend against `ExpertSim` / `SimBackend` | core tests |
 | `add_policy_adapter` | Wrap a new model (adapter + training recipe) | core tests |
 | `add_expert` | Add a grasp source such as GraspGen | core + robosuite tests |
 | `free_task` | Anything else: your goal, your allowed paths, your check | your command |

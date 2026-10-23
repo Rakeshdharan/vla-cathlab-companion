@@ -13,7 +13,7 @@ You are the integration reviewer for the CathLab Companion hackathon repo. Your 
 ## Checks
 1. **Contract breaks:** any change under `contracts/` that removes or renames fields, changes signatures or return shapes, or adds heavy imports. List the affected implementers (`grep -rn "PolicyAdapter\|SimBackend\|DatasetManifest\|EvalReport\|ModelCard"`).
 2. **Boundary violations:** imports of another workstream's internals instead of `contracts` or that package's public `__init__` (owners are in `AGENTS.md`).
-3. **Test hygiene:** `uv run pytest` must pass. Look for tests that need a GPU, Isaac, the network or real datasets without `@pytest.mark.gpu`, and for heavy imports at module top level.
+3. **Test hygiene:** `uv run pytest` must pass. Look for tests that need a GPU, a simulator, the network or real datasets without `@pytest.mark.gpu`, and for heavy imports at module top level.
 4. **Artifacts and secrets:** datasets, checkpoints, videos or large USD files added to git; API keys or `.env` content.
 5. **Data/model rules:** missing `manifest.yaml` or `ModelCard`, unversioned dataset IDs, eval numbers produced outside `eval.runner`.
 6. **Commit authorship:** `git log main..HEAD --format='%an%n%b'` must show no `Co-authored-by:` trailers for AI agents.

@@ -1,4 +1,6 @@
-# Mitesh — Isaac Sim Track (Isaac Lab): Scene, Randomizer, Expert Adapter, Data
+# Mitesh — ManiSkill3 Engine (formerly the Isaac Sim track)
+
+> **Update (2026-10-23 H24): Isaac Sim is dropped** (no working run after a day). Engines now: robosuite and ManiSkill3 (Panda), Genesis planned, FR3 Duo via Aravind's MuJoCo/Newton track. Isaac items below are historical.
 
 > **Update (2026-10-23): Mitesh is no longer on the Isaac track.** **Navneet** owns Isaac (engine plugin, [`docs/handoffs/2026-10-23-isaac-engine-session.md`](../handoffs/2026-10-23-isaac-engine-session.md)), and the content below is kept for history only. Mitesh's current work is agreed with Rakesh in the team chat.
 

@@ -27,8 +27,8 @@ def test_catalog_and_selection_check(tmp_path):
     assert "simulator" in cat["sections"] and cat["defaults"]["model"] == "smolvla"
     ok = c.post("/api/selection/check", json={"selection": cat["defaults"]}).json()
     assert ok["problems"] == []
-    bad = c.post("/api/selection/check", json={"selection": {**cat["defaults"], "simulator": "isaac"}}).json()
-    assert any(p["harness_task"] == "add_sim_backend" for p in bad["problems"])
+    bad = c.post("/api/selection/check", json={"selection": {**cat["defaults"], "simulator": "mujoco"}}).json()
+    assert any(p["harness_task"] == "add_engine" for p in bad["problems"])
 
 
 def test_runs_are_frozen_to_disk_and_blocked_when_not_runnable(tmp_path):

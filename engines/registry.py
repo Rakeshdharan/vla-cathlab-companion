@@ -25,14 +25,14 @@ IO_PROFILES: dict[str, IOProfile] = {
         description="7-D normalized EEF delta [dpos, drot, gripper], 8-D state, agentview + eye_in_hand 256², 20 Hz"),
     "fr3_duo_16d": IOProfile(
         id="fr3_duo_16d", action_dim=16, fps=30,
-        description="Siemens FR3 Duo schema: 16-D joint targets, 30 Hz (see the Isaac engine handoff)"),
+        description="Siemens FR3 Duo schema: 16-D joint targets, 30 Hz (provided datasets; FR3 Duo MuJoCo/Newton track)"),
 }
 
 
 class EngineEnv(BaseModel):
     kind: Literal["conda", "venv", "command"]
     name: str | None = None     # conda env name or venv path
-    python: str | None = None   # interpreter command for kind=command, e.g. "${ISAAC_PYTHON}"
+    python: str | None = None   # interpreter command for kind=command, e.g. "${ENGINE_PYTHON}"
 
 
 class Credit(BaseModel):

@@ -22,7 +22,7 @@ def generate_domain_rand_data(gap: GapSpec | None, n: int) -> GenerationReceipt:
         print("No specific gap provided. Using general random settings.")
 
     # 2. Set up the random parameters (poses, clutter, lighting, distractors, camera jitter).
-    # (Placeholder: In the real implementation, we will pass these to the Isaac Sim backend)
+    # (Placeholder: In the real implementation, we will pass these to the engine's randomizer)
     randomization_config = {
         "lighting_variations": True,
         "add_distractor_objects": True,

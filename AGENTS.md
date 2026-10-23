@@ -1,6 +1,6 @@
 # AGENTS.md — CathLab Companion
 
-Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in Isaac Sim + robosuite, LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"). 36 h, 5 people, each working with coding agents in this one repo.
+Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in robosuite + ManiSkill3 (engine plugins under `engines/`; Isaac Sim was dropped at H24), LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"). 36 h, 5 people, each working with coding agents in this one repo.
 
 Read these before non-trivial work:
 - Design spec: [docs/specs/2026-10-22-cathlab-learning-loop-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md)
@@ -20,14 +20,15 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
   - `EvalReport`, `ModelCard`.
 - Every model is a `PolicyAdapter` and every simulator is a `SimBackend`. Never import another workstream's internals; import from `contracts` or that package's public `__init__`.
 - Stages exchange **versioned artifacts**, not in-memory objects: LeRobot datasets + `manifest.yaml`, `EvalReport` JSON, `ModelCard` YAML.
-- `DummySim` and `RandomPolicy` exist so every package can be built and tested without Isaac Sim or a GPU.
+- `DummySim` and `RandomPolicy` exist so every package can be built and tested without a simulator or a GPU.
 
 | Package | Owner |
 |---|---|
 | `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
 | `dataset_intel/`, `serve/`, `report/`, `docker/`, `compose.yaml`, `.github/workflows/`, `configs/{serve,intel,workers.docker}.yaml`, `docs/research/` | Sharan |
 | `awareness/` | Navneet |
-| `sim/isaac/`, `engines/isaac/`, `configs/variation/cathlab_fr3_isaac.yaml` | Navneet |
+| `sim/maniskill/`, `engines/maniskill/` | Mitesh (Rakesh built v1) |
+| `sim/genesis/`, `engines/genesis/` | Akanksh |
 | `assets/` | Rakesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
 | `orchestrator/`, `harness/`, `frontend/`, `configs/{catalog,workers,agents}.yaml` | Rakesh |
@@ -36,11 +37,11 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 
 ```bash
 uv sync                 # install core + dev deps
-uv run pytest           # must stay green on main; tests must not need GPU/Isaac/network
+uv run pytest           # must stay green on main; tests must not need GPU/simulators/network
 uv sync --extra train   # LeRobot + W&B (training machines only)
 ```
 
-Heavy dependencies (Isaac Sim, LeRobot, GraspGen, cuRobo, ElevenLabs) are optional extras or lazy imports. Never import them at module top level in code that the tests reach.
+Heavy dependencies (simulators, LeRobot, GraspGen, cuRobo, ElevenLabs) are optional extras or lazy imports. Never import them at module top level in code that the tests reach.
 
 ## Conventions
 

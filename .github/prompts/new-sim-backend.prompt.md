@@ -1,6 +1,6 @@
 ---
-description: "Scaffold a new SimBackend (Isaac Sim, RoboSimStudio, MuJoCo, ...) with stage flags and a contract test."
-argument-hint: "backend name, e.g. isaac, robosimstudio, mujoco"
+description: "Scaffold a new SimBackend (MuJoCo, Newton, Genesis, ...); prefer the engine plugin flow in docs/EXTENDING.md with stage flags and a contract test."
+argument-hint: "backend name, e.g. mujoco, newton, genesis"
 agent: "agent"
 ---
 Add a `SimBackend` for `${input:backend}`.

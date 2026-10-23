@@ -59,13 +59,6 @@ def _make_sim(sim_arg: str, scene):
     from contracts import DummySim
     if sim_arg == "dummy":
         return DummySim()
-    if sim_arg == "isaac":
-        try:
-            from sim.isaac import IsaacBackend  # type: ignore
-            return IsaacBackend()
-        except ImportError:
-            print("WARNING: IsaacBackend not available, falling back to DummySim.", file=sys.stderr)
-            return DummySim()
     if sim_arg == "robosimstudio":
         try:
             from sim.robosimstudio import RoboSimStudioBackend  # type: ignore
@@ -94,7 +87,7 @@ def _attach_judge_verdicts(episodes, judge, use_vlm: bool):
 def run_cli(args: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="CathLab eval harness")
     parser.add_argument("--policy", required=True, help="Policy: 'random', ws://..., or adapter path")
-    parser.add_argument("--sim", default="dummy", help="Simulator backend: dummy|isaac|robosimstudio")
+    parser.add_argument("--sim", default="dummy", help="Simulator backend: dummy|robosimstudio (engines: python -m engines.<id>.cli eval)")
     parser.add_argument("--suite", default="suite_v1", help="Eval suite config name (without .yaml)")
     parser.add_argument("--model-version", default="unknown@v0", help="Model version string for report")
     parser.add_argument("--dataset-versions", nargs="*", default=[], help="Dataset version strings")

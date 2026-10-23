@@ -1,5 +1,7 @@
 # Sharan — Research, Dataset Intelligence, Version & Serve
 
+> **Update (2026-10-23 H24): Isaac Sim is dropped** (no working run after a day). Engines now: robosuite and ManiSkill3 (Panda), Genesis planned, FR3 Duo via Aravind's MuJoCo/Newton track. Isaac items below are historical.
+
 > **Current work (2026-10-23, H21): follow [`docs/handoffs/2026-10-23-sharan-serve-intel-session.md`](../handoffs/2026-10-23-sharan-serve-intel-session.md).** In priority order: S1 policy server, S2 policy client, S3 model registry with promote/rollback, S4 CI, S5 dataset intelligence, S6 failure report (stretch), S7 Docker + compose. That file replaces the older scope below, which is kept for history.
 
 > **Update (H6.5):** see the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
