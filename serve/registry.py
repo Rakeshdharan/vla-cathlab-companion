@@ -12,6 +12,7 @@ Storage (git-ignored): <root>/<name>/<version>.yaml and <root>/<name>/production
 import argparse
 import json
 import sys
+import threading
 import time
 from pathlib import Path
 import yaml
@@ -59,6 +60,7 @@ class Registry:
     def __init__(self, root: str | Path = "var/registry", repo_root: str | Path | None = None):
         self.root = Path(root)
         self.repo_root = Path(repo_root) if repo_root else ROOT
+        self._lock = threading.RLock()
 
     # storage -----------------------------------------------------------------------------------
     def _dir(self, name: str) -> Path:
@@ -90,17 +92,18 @@ class Registry:
 
     # versions ----------------------------------------------------------------------------------
     def register(self, card: ModelCard, eval_reports: dict[str, str]) -> RegisteredModel:
-        if self._path(card.model_name, card.version).exists():
-            raise FileExistsError(f"{card.model_name}@{card.version} is already registered")
-        for engine, path in eval_reports.items():
-            if not self.abs_path(path).is_file():
-                raise FileNotFoundError(f"eval report for {engine} not found: {path}")
-        if not card.eval_report_path and eval_reports:
-            card = card.model_copy(update={"eval_report_path": next(iter(eval_reports.values()))})
-        m = RegisteredModel(card=card.model_copy(update={"promoted": False}), eval_reports=eval_reports,
-                            registered=time.time())
-        self._save(m)
-        return m
+        with self._lock:
+            if self._path(card.model_name, card.version).exists():
+                raise FileExistsError(f"{card.model_name}@{card.version} is already registered")
+            for engine, path in eval_reports.items():
+                if not self.abs_path(path).is_file():
+                    raise FileNotFoundError(f"eval report for {engine} not found: {path}")
+            if not card.eval_report_path and eval_reports:
+                card = card.model_copy(update={"eval_report_path": next(iter(eval_reports.values()))})
+            m = RegisteredModel(card=card.model_copy(update={"promoted": False}), eval_reports=eval_reports,
+                                registered=time.time())
+            self._save(m)
+            return m
 
     def list_versions(self, name: str) -> list[RegisteredModel]:
         models = [RegisteredModel.model_validate(yaml.safe_load(p.read_text()))
@@ -147,55 +150,59 @@ class Registry:
 
     def promote(self, name: str, version: str, rule: PromotionRule | None = None,
                 force: bool = False) -> PromotionDecision:
-        rule = rule or PromotionRule()
-        cand = self.get(name, version)
-        if rule.primary_engine not in cand.eval_reports:
-            return PromotionDecision(promoted=False, reason=f"no eval on {rule.primary_engine}",
-                                     candidate_rate=0.0, candidate_ci=(0.0, 0.0))
-        rep = self.report(cand, rule.primary_engine)
-        rate, ci = rep.success_rate(), rep.wilson_ci()
-        p95 = latency_summary(rep)["p95_ms"]
-        base = self.production(name)
-        decision = dict(candidate_rate=rate, candidate_ci=ci, p95_ms=p95,
-                        baseline_version=base.card.version if base else None)
-        if len(rep.episodes) < rule.min_episodes:
-            return PromotionDecision(promoted=False, reason=f"insufficient eval on {rule.primary_engine}: "
-                                     f"{len(rep.episodes)} < {rule.min_episodes} episodes", **decision)
-        if p95 > rule.latency_budget_ms_p95:
-            return PromotionDecision(promoted=False, reason=f"latency p95 {p95:.0f} ms > budget "
-                                     f"{rule.latency_budget_ms_p95:.0f} ms", **decision)
-        base_rate = None
-        if base is not None and base.card.version != version:
-            if rule.primary_engine not in base.eval_reports:
-                base_rate = 0.0
+        with self._lock:
+            rule = rule or PromotionRule()
+            cand = self.get(name, version)
+            if rule.primary_engine not in cand.eval_reports:
+                return PromotionDecision(promoted=False, reason=f"no eval on {rule.primary_engine}",
+                                         candidate_rate=0.0, candidate_ci=(0.0, 0.0))
+            rep = self.report(cand, rule.primary_engine)
+            rate, ci = rep.success_rate(), rep.wilson_ci()
+            p95 = latency_summary(rep)["p95_ms"]
+            base = self.production(name)
+            decision = dict(candidate_rate=rate, candidate_ci=ci, p95_ms=p95,
+                            baseline_version=base.card.version if base else None)
+            if len(rep.episodes) < rule.min_episodes:
+                return PromotionDecision(promoted=False, reason=f"insufficient eval on {rule.primary_engine}: "
+                                         f"{len(rep.episodes)} < {rule.min_episodes} episodes", **decision)
+            if p95 > rule.latency_budget_ms_p95:
+                return PromotionDecision(promoted=False, reason=f"latency p95 {p95:.0f} ms > budget "
+                                         f"{rule.latency_budget_ms_p95:.0f} ms", **decision)
+            base_rate = None
+            if base is not None and base.card.version != version:
+                if rule.primary_engine not in base.eval_reports:
+                    base_rate = 0.0
+                else:
+                    base_rate = self.report(base, rule.primary_engine).success_rate()
+            decision["baseline_rate"] = base_rate
+            if base is not None and base.card.version == version:
+                return PromotionDecision(promoted=False, reason=f"{version} is already production", **decision)
+            if force:
+                reason = "forced by user"
+            elif base_rate is None:
+                reason = "first production version"
+            elif ci[0] > base_rate:
+                reason = f"CI low {ci[0]:.0%} > production {base.card.version} {base_rate:.0%}"
             else:
-                base_rate = self.report(base, rule.primary_engine).success_rate()
-        decision["baseline_rate"] = base_rate
-        if force:
-            reason = "forced by user"
-        elif base_rate is None:
-            reason = "first production version" if base is None else "already production"
-        elif ci[0] > base_rate:
-            reason = f"CI low {ci[0]:.0%} > production {base.card.version} {base_rate:.0%}"
-        else:
-            return PromotionDecision(promoted=False, reason=f"does not beat production {base.card.version}: "
-                                     f"CI low {ci[0]:.0%} <= {base_rate:.0%}", **decision)
-        self._set_current(name, version, "promote", reason)
-        return PromotionDecision(promoted=True, reason=reason, **decision)
+                return PromotionDecision(promoted=False, reason=f"does not beat production {base.card.version}: "
+                                         f"CI low {ci[0]:.0%} <= {base_rate:.0%}", **decision)
+            self._set_current(name, version, "promote", reason)
+            return PromotionDecision(promoted=True, reason=reason, **decision)
 
     def rollback(self, name: str) -> RegisteredModel | None:
         """Make the previously promoted version production again; None (no production) if there is none."""
-        prod = self._prod(name)
-        stack: list[str] = []                       # replay history: promote pushes, rollback pops
-        for h in prod["history"]:
-            if h["action"] == "promote":
-                stack.append(h["version"])
-            elif stack:
-                stack.pop()
-        current = stack.pop() if stack else None
-        previous = stack[-1] if stack else None
-        self._set_current(name, previous, "rollback", f"rolled back from {current}")
-        return self.get(name, previous) if previous else None
+        with self._lock:
+            prod = self._prod(name)
+            stack: list[str] = []                       # replay history: promote pushes, rollback pops
+            for h in prod["history"]:
+                if h["action"] == "promote":
+                    stack.append(h["version"])
+                elif stack:
+                    stack.pop()
+            current = stack.pop() if stack else None
+            previous = stack[-1] if stack else None
+            self._set_current(name, previous, "rollback", f"rolled back from {current}")
+            return self.get(name, previous) if previous else None
 
 
 def main(argv: list[str] | None = None) -> int:

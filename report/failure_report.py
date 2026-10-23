@@ -17,7 +17,6 @@ from contracts import STAGES, EvalReport
 from dataengine.variation import TIERS, VariationSpec, eval_configs
 from eval.metrics import wilson_ci
 
-GENERATE_STAGES = ("reach", "grasp", "place")
 EXPERT_STAGES = ("lift", "transport")
 COLOUR_TIERS = ("held_out_obj_color", "held_out_table_color")
 

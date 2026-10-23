@@ -1,5 +1,6 @@
 import json
 import pytest
+import yaml
 from contracts import EpisodeResult, EvalReport, ModelCard
 from serve.registry import MODEL_NAME, PromotionRule, Registry, main, policy_string
 
@@ -80,6 +81,47 @@ def test_rollback_and_history(reg, tmp_path):
     assert reg.production(MODEL_NAME).card.version == "v1" and not reg.get(MODEL_NAME, "v2").card.promoted
     assert [h["action"] for h in reg.history(MODEL_NAME)] == ["promote", "promote", "rollback"]
     assert reg.rollback(MODEL_NAME) is None and reg.production(MODEL_NAME) is None
+
+
+def test_repromoting_production_is_a_noop(reg, tmp_path):
+    reg.register(card("v1"), {"robosuite": report(tmp_path, "a", 20)})
+    d1 = reg.promote(MODEL_NAME, "v1")
+    assert d1.promoted
+    d2 = reg.promote(MODEL_NAME, "v1")
+    assert not d2.promoted and "already production" in d2.reason
+    assert [h["action"] for h in reg.history(MODEL_NAME)] == ["promote"]
+    assert reg.rollback(MODEL_NAME) is None
+    assert reg.production(MODEL_NAME) is None
+
+
+def test_concurrent_register_and_promote_is_consistent(reg, tmp_path):
+    import threading
+
+    errors: list[Exception] = []
+
+    def worker(i: int) -> None:
+        try:
+            v = f"v{i + 1}"
+            reg.register(card(v), {"robosuite": report(tmp_path, v, 20 + i)})
+            reg.promote(MODEL_NAME, v, force=True)
+        except Exception as e:  # pragma: no cover - surfaced via errors list
+            errors.append(e)
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert not errors
+    history = reg.history(MODEL_NAME)
+    promotions = [h for h in history if h["action"] == "promote"]
+    assert len(history) == len(promotions) == 10
+    for m in reg.list_versions(MODEL_NAME):
+        p = reg._path(MODEL_NAME, m.card.version)
+        assert yaml.safe_load(p.read_text()) is not None
+    prod_path = reg._dir(MODEL_NAME) / "production.yaml"
+    assert yaml.safe_load(prod_path.read_text()) is not None
 
 
 def test_resolve_and_policy_string(reg, tmp_path):

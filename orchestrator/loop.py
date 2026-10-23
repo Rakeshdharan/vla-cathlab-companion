@@ -15,7 +15,7 @@ from orchestrator.store import Store, new_id
 from report.failure_report import build_report, write_outputs
 from serve.registry import MODEL_NAME, PromotionRule, Registry
 
-VERSION_RE = re.compile(r"^v(\d+)$")
+VERSION_RE = re.compile(r"^v([1-9]\d*)$")
 REPORT_ID_RE = re.compile(r"^rep-[A-Za-z0-9-]+$")
 
 

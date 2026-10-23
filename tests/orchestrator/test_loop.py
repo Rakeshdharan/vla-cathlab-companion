@@ -54,6 +54,7 @@ def test_register_promote_rollback(env, tmp_path):
     outside.write_text("{}")
     assert c.post("/api/registry/register", json={"ckpt_uri": "u", "eval_reports": {"robosuite": str(outside)}}).status_code == 400
     assert c.post("/api/registry/register", json={"adapter": "lerobot", "ckpt_uri": "", "eval_reports": {"robosuite": a}}).status_code == 400
+    assert c.post("/api/registry/register", json={"version": "v01", "ckpt_uri": "u", "eval_reports": {"robosuite": a}}).status_code == 400
     assert c.post("/api/registry/promote", json={"version": "v1"}).json()["promoted"]
     d = c.post("/api/registry/promote", json={"version": "v2"}).json()
     assert not d["promoted"] and "does not beat" in d["reason"]
