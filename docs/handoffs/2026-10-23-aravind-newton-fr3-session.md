@@ -1,5 +1,7 @@
 # Session Handover: Aravind: FR3 Duo in Newton → synthetic data at scale
 
+> **Status 2026-10-23 17:30: done** ([dataset](https://huggingface.co/datasets/aravindsuresh16/cathlab_fr3_newton_v1), [report](https://github.com/aravinds1610/mujoco_cathlab_vla/blob/main/docs/NEWTON_REPORT.md)). **Continue with [part 2](2026-10-23-aravind-part2-mujoco-and-training.md):** FR3 MuJoCo task dataset + FR3 model training on a cloud GPU.
+
 *From the master session, 2026-10-23 ~14:30 (≈H23). Owner: **Aravind**, in **his own repo** [`aravinds1610/mujoco_cathlab_vla`](https://github.com/aravinds1610/mujoco_cathlab_vla). The output is a dataset on HF. Paste this file into your agent as the first message.*
 
 ## 1. Why this, why now
