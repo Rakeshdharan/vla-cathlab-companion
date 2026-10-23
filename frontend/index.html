@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CathLab Control Station</title>
+  <link rel="stylesheet" href="css/station.css">
+</head>
+<body>
+  <header class="bar top">
+    <div class="brand">CATHLAB&nbsp;CS</div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="project" class="active">PROJECT</button>
+      <button data-tab="pipeline">PIPELINE</button>
+      <button data-tab="data">DATA</button>
+      <button data-tab="models">MODELS</button>
+      <button data-tab="agent">AGENT</button>
+      <button data-tab="log">LOG</button>
+    </nav>
+    <div class="workers" id="workers" title="Worker health"></div>
+  </header>
+
+  <main>
+    <!-- PROJECT: catalog tree + section editor -->
+    <section class="tab" id="tab-project">
+      <aside class="tree">
+        <div class="panel-title">PROJECT TREE</div>
+        <ul id="tree"></ul>
+        <div class="panel-title">CURRENT RUN</div>
+        <div class="kv mono" id="current-run">none</div>
+      </aside>
+      <div class="pane">
+        <div class="panel-title" id="section-title">SECTION</div>
+        <div id="section-items" class="items"></div>
+        <div id="section-add"></div>
+        <div class="panel-title">SELECTION CHECK</div>
+        <div id="problems" class="problems"></div>
+        <div class="row">
+          <input id="run-note" class="field" placeholder="Run note (optional)">
+          <button class="btn primary" id="btn-create-run">CREATE RUN</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE: stage strip -->
+    <section class="tab hidden" id="tab-pipeline">
+      <div class="strip" id="strip"></div>
+      <div class="pane">
+        <div class="panel-title" id="stage-title">STAGE</div>
+        <div id="stage-detail" class="muted">Select a stage.</div>
+      </div>
+    </section>
+
+    <section class="tab hidden" id="tab-data">
+      <div class="pane">
+        <div class="panel-title">DATASETS</div>
+        <div class="muted">No datasets registered yet. Generate and Intel stages populate this view.</div>
+      </div>
+    </section>
+
+    <section class="tab hidden" id="tab-models">
+      <div class="pane">
+        <div class="panel-title">MODEL REGISTRY</div>
+        <div class="muted">No model versions registered yet. Train, Eval and Promote populate this view.</div>
+      </div>
+    </section>
+
+    <!-- AGENT: harness -->
+    <section class="tab hidden" id="tab-agent">
+      <aside class="tree">
+        <div class="panel-title">TASK TEMPLATES</div>
+        <ul id="templates"></ul>
+        <div class="panel-title">AGENT JOBS</div>
+        <ul id="agent-jobs"></ul>
+      </aside>
+      <div class="pane">
+        <div id="agent-form-wrap">
+          <div class="panel-title" id="agent-form-title">NEW AGENT TASK</div>
+          <div class="muted" id="agent-form-desc">Pick a template on the left.</div>
+          <form id="agent-form" class="form"></form>
+        </div>
+        <div id="agent-job-wrap" class="hidden">
+          <div class="panel-title" id="agent-job-title">AGENT JOB</div>
+          <div class="kv mono" id="agent-job-meta"></div>
+          <div class="row" id="agent-job-actions">
+            <button class="btn" id="btn-view-prompt">PROMPT</button>
+            <button class="btn" id="btn-view-diff">DIFF</button>
+            <button class="btn ok" id="btn-push">PUSH BRANCH</button>
+            <button class="btn danger" id="btn-discard">DISCARD</button>
+          </div>
+          <pre class="console" id="agent-console"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG -->
+    <section class="tab hidden" id="tab-log">
+      <div class="pane">
+        <div class="panel-title">JOBS</div>
+        <table class="grid" id="jobs-table">
+          <thead><tr><th>ID</th><th>KIND</th><th>NAME</th><th>STATE</th><th>UPDATED</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bar bottom">
+    <button class="btn run" id="btn-run" disabled title="Pipeline stages arrive with Plan B">&#9654; RUN PIPELINE</button>
+    <button class="btn stop" id="btn-stop" disabled>&#9632; STOP</button>
+    <div class="status mono" id="status">READY</div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
