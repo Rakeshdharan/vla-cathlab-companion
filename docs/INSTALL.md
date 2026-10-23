@@ -64,6 +64,10 @@ conda run -n lerobot python -m orchestrator.worker --name lerobot --capabilities
 ```
 
 The control plane sends the token automatically when the env var is set where `make dev` runs.
+
+Servers only answer requests addressed to `localhost`/`127.0.0.1` (this blocks DNS-rebinding attacks from web pages).
+Workers started with a token accept any host name, because the token protects them. If you open the UI or a tokenless
+service by a LAN name or IP, list it: `export CATHLAB_ALLOWED_HOSTS=my-pc,10.0.0.5`.
 Then point the `lerobot` entry in `configs/workers.yaml` (or your own file passed with `CATHLAB_WORKERS=...`) at
 `http://<gpu-box>:8712`. Use an SSH tunnel (`ssh -N -L 8712:localhost:8712 <gpu-box>`) if the port isn't reachable.
 

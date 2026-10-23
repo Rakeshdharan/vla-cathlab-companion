@@ -65,3 +65,4 @@ To add a template, drop a YAML file in `harness/tasks/` (the file name must equa
 - The first job sets `extensions.worktreeConfig=true` in the repo's shared git config. This is required by git for per-worktree settings and is harmless for other checkouts.
 - Stuck jobs after a crash: run `python -m harness discard <id> --force`, or send `?force=true` to the API `/discard` endpoint.
 - Template identifier params are pattern-checked and check commands shell-quote parameter values.
+- The control plane, agent worker and tokenless workers reject requests whose `Host` isn't local or in `CATHLAB_ALLOWED_HOSTS`, so a malicious web page can't start jobs on your machine through DNS rebinding.

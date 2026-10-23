@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from orchestrator.catalog import load_catalog, selection_problems
+from orchestrator.hosts import protect
 from orchestrator.store import Store
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,14 +51,14 @@ def worker_health(entry: WorkerEntry, timeout: float = 0.5) -> dict:
 
 def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None = None,
                        catalog_path: str | Path | None = None, workers_path: str | Path | None = None,
-                       frontend_dir: str | Path | None = None, harness=None) -> FastAPI:
+                       frontend_dir: str | Path | None = None, harness=None, bind_host: str | None = None) -> FastAPI:
     repo_root = Path(repo_root)
     var_dir = Path(var_dir) if var_dir else repo_root / "var"
     catalog_path = Path(catalog_path or repo_root / "configs/catalog.yaml")
     workers_path = Path(workers_path or os.environ.get("CATHLAB_WORKERS", repo_root / "configs/workers.yaml"))
     frontend_dir = Path(frontend_dir or repo_root / "frontend")
     store = Store(var_dir / "control.db")
-    app = FastAPI(title="CathLab Control Station")
+    app = protect(FastAPI(title="CathLab Control Station"), bind_host)
     app.state.store = store
 
     @app.get("/api/health")
@@ -133,7 +134,7 @@ def main() -> None:
     if not args.no_agent:
         from harness.factory import default_harness
         harness = default_harness(ROOT)
-    uvicorn.run(create_control_app(ROOT, harness=harness), host=args.host, port=args.port)
+    uvicorn.run(create_control_app(ROOT, harness=harness, bind_host=args.host), host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

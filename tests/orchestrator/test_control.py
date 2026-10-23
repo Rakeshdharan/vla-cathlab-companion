@@ -94,3 +94,10 @@ def test_workers_probed_concurrently(tmp_path):
     assert [w["name"] for w in ws] == ["offline1", "offline2", "offline3", "offline4"]
     assert elapsed < 1.5, f"Worker probes took {elapsed:.2f}s, expected < 1.5s (serial would take ~2s)"
 
+
+
+def test_control_rejects_foreign_host_header(tmp_path):
+    c = client(tmp_path)
+    assert c.get("/api/health", headers={"Host": "localhost:8700"}).status_code == 200
+    assert c.get("/api/health", headers={"Host": "attacker.example:8700"}).status_code == 400
+    assert c.post("/api/runs", json={"selection": {}}, headers={"Host": "attacker.example"}).status_code == 400
