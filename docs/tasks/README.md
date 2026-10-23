@@ -7,7 +7,7 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 | Owner | File | Stages / modules |
 |---|---|---|
 | Rakesh (lead) | [rakesh.md](rakesh.md) | Contracts, shared sim core (`dataengine/`), **robosuite track**, 01 Ingest, 03 training, Loop, RoboSimStudio showcase, integration |
-| Sharan | [sharan.md](sharan.md) | **Serving + registry + CI + dataset intelligence + failure report + Docker** ([handoff](../handoffs/2026-10-23-sharan-serve-intel-session.md)) |
+| Sharan | [sharan.md](sharan.md) | **Out (H27): serving, registry, intel, failure report move to Rakesh; CI + Docker proposed for Mitesh.** Was: Serving + registry + CI + dataset intelligence + failure report + Docker** ([handoff](../handoffs/2026-10-23-sharan-serve-intel-session.md)) |
 | Navneet | [navneet.md](navneet.md) | Awareness / proactive assist, ElevenLabs voice (Isaac Sim dropped at H24) |
 | Mitesh | [mitesh.md](mitesh.md) | **ManiSkill3 engine** on the RTX 4090 ([handoff](../handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md)) |
 | Akanksh | [akanksh.md](akanksh.md) | VLA research & selection, 04 Evaluate, VLM judge, benchmarking, **Genesis engine** ([handoff](../handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md)) |
