@@ -125,13 +125,6 @@ async function createRun() {
   }
 }
 
-// ---- PIPELINE tab (stage strip) ---------------------------------------------------
-
-function renderStrip() {
-  const strip = $("#strip");
-  strip.innerHTML = "";
-}
-
 // ---- workers + LOG --------------------------------------------------------------------------
 async function refreshWorkers() {
   try {
@@ -175,7 +168,6 @@ async function boot() {
   state.section = Object.keys(state.catalog.sections)[0];
   renderTree();
   renderSection();
-  renderStrip();
   await checkSelection();
   $("#btn-create-run").addEventListener("click", createRun);
   await initAgent();
