@@ -1,0 +1,34 @@
+id: add_policy_adapter
+title: Add a policy model adapter
+description: >
+  Wrap a model so the pipeline can train it and serve it through the policy server: a contracts.PolicyAdapter plus
+  the training command, registered in the catalog.
+catalog_target: model
+params:
+  - {name: model_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "catalog id, e.g. pi05"}
+  - {name: lerobot_policy_type, type: str, required: false, help: "e.g. pi05 / diffusion; empty if not LeRobot-native"}
+  - {name: notes, type: text, required: false}
+context:
+  - AGENTS.md
+  - contracts/policy.py
+  - docs/research/vla_selection.md
+  - docs/research/adapter_notes_for_rakesh.md
+  - docs/specs/2026-10-23-control-station-design.md
+  - configs/catalog.yaml
+prompt: |
+  Add model `{model_id}` (LeRobot policy type: "{lerobot_policy_type}"). Notes: {notes}
+  1. `train/adapters/{model_id}.py`: a contracts.PolicyAdapter that loads a checkpoint and returns an action chunk for
+     the robosuite Panda I/O (8-D state, 7-D normalized EEF-delta action, agentview + eye_in_hand 256x256). Import the
+     model library lazily.
+  2. `train/recipes/{model_id}.yaml`: the training command/arguments (lerobot-train flags) with sensible defaults for a
+     40 GB GPU and a small smoke setting.
+  3. A GPU-free test in tests/train/ that checks the adapter's meta() and argument building without loading weights.
+  4. Set the catalog item `{model_id}` in section `model` to ready (add it if missing).
+allowed_paths:
+  - train/
+  - tests/train/
+  - configs/catalog.yaml
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 45

@@ -1,0 +1,37 @@
+id: add_expert
+title: Add an expert controller variant (e.g. GraspGen)
+description: >
+  Add an alternative grasp source for the scripted expert (e.g. GraspGen candidate ranking), selectable by name,
+  without changing the default analytic expert's behaviour.
+catalog_target: expert
+params:
+  - {name: expert_id, type: str, pattern: "^[a-z][a-z0-9_]*$", default: graspgen}
+  - {name: notes, type: text, required: false, help: "install notes, model weights location, GPU needs"}
+context:
+  - AGENTS.md
+  - dataengine/expert.py
+  - dataengine/variation.py
+  - sim/robosuite/expert_sim.py
+  - sim/robosuite/params.py
+  - scripts/robosuite_expert_check.py
+  - configs/catalog.yaml
+prompt: |
+  Add the expert variant `{expert_id}`. Notes: {notes}
+  1. `dataengine/experts/{expert_id}.py`: a grasp provider returning (tcp_position, tcp_quat, approach) like
+     dataengine.expert.grasp_pose, using the simulator's object pose/point cloud. Heavy dependencies are imported lazily.
+  2. Let run_expert_episode / plan_waypoints accept an optional grasp provider; default stays the analytic templates
+     (all existing tests must pass unchanged).
+  3. `--expert {expert_id}` option in scripts/robosuite_expert_check.py and scripts/robosuite_generate.py.
+  4. Tests in tests/dataengine/ with a fake provider. Catalog item `{expert_id}` in section `expert`: in_progress until
+     the robosuite expert check reaches 80 % with it, then ready. One row in docs/decisions.md with the measured rate.
+allowed_paths:
+  - dataengine/
+  - scripts/robosuite_expert_check.py
+  - scripts/robosuite_generate.py
+  - tests/
+  - configs/catalog.yaml
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+  - {name: robosuite-tests, cmd: "conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python -m pytest -q tests/sim"}
+timeout_min: 60

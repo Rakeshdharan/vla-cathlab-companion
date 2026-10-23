@@ -1,0 +1,20 @@
+id: free_task
+title: Free task (your own prompt and paths)
+description: >
+  Any development task in this repo. You write the goal and list the paths the agent may change; the default
+  acceptance check is the GPU-free core test suite.
+catalog_target: ""
+params:
+  - {name: goal, type: text, help: "what to build or fix, with done-criteria"}
+  - {name: paths, type: str, help: "comma-separated allowed paths, e.g. 'eval/, tests/eval/, docs/decisions.md'"}
+  - {name: check, type: command, default: "uv run pytest -q", help: "acceptance command"}
+context:
+  - AGENTS.md
+  - docs/specs/2026-10-23-control-station-design.md
+prompt: |
+  {goal}
+allowed_paths:
+  - "{paths}"
+acceptance:
+  - {name: check, cmd: "{check}"}
+timeout_min: 45
