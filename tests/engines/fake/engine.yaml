@@ -1,0 +1,14 @@
+id: fake
+label: Fake engine for pipeline tests
+env: {kind: conda, name: core}
+worker: fake
+embodiments: [panda]
+io: panda_libero
+variation: configs/variation/cathlab_v1.yaml
+task: configs/tasks/cathlab_pick.yaml
+capabilities:
+  preview: ready
+  expert: {analytic: ready}
+  generate: ready
+  eval: planned
+entry: tests.engines.fake_engine_cli
