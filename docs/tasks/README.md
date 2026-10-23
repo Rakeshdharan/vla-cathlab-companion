@@ -2,6 +2,7 @@
 
 Spec: [`../specs/2026-10-22-cathlab-learning-loop-design.md`](../specs/2026-10-22-cathlab-learning-loop-design.md)
 Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans/2026-10-22-cathlab-loop-implementation.md)
+**Live status (datasets, checkpoints, engines, next steps): [`../STATUS.md`](../STATUS.md)**
 
 | Owner | File | Stages / modules |
 |---|---|---|
