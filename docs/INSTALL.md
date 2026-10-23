@@ -51,7 +51,13 @@ make worker-lerobot     # :8712 (or start it on the GPU box, see below)
 
 The worker lamps in the UI header turn green when a worker answers on its URL (`configs/workers.yaml`).
 
-**Remote GPU box:** clone the repo there, create the `lerobot` env, and set a shared token on both machines:
+The **PIPELINE** tab runs a run's stages on these workers: `make worker-robosuite` (or `make worker-maniskill`) for
+the engine's `preview`/`check-expert`/`generate`/`eval`/`rollout` stages, `make worker-lerobot` for `convert`. A
+stage that can't start shows *why* (no online worker with the needed capability, or a prior stage hasn't finished).
+
+**Remote GPU box:** clone the repo there, create the `lerobot` env, and set a shared token on both machines. A remote
+worker must see the **same repo path and `var/`** (same clone location, or a shared mount), because stage commands
+use absolute paths under the control plane's `var/runs/`.
 
 ```bash
 # On the control machine (where you run make dev):
