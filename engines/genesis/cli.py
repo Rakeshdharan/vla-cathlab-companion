@@ -12,6 +12,8 @@ from engines.cli_base import Flag, Stage, run_cli
 ENGINE = "genesis"
 SPEC = Flag("--spec", help="variation spec (default: the manifest's variation)")
 OBJECTS = Flag("--objects", help="comma-separated objects (default: the run's objects, else all)")
+NO_AXES = Flag("--no-genesis-axes", action="store_true",
+               help="disable the Genesis-only camera jitter + light direction (on by default for preview/generate)")
 
 
 def _spec(args, ctx) -> str:
@@ -22,9 +24,13 @@ def _objects(args, ctx) -> str | None:
     return args.objects or (",".join(ctx.objects) if ctx.objects else None)
 
 
+def _no_axes(args) -> list[str]:
+    return ["--no-genesis-axes"] if args.no_genesis_axes else []
+
+
 def preview(args, ctx):
     return ctx.run_script(["-m", "engines.genesis.variation_grid", "--out", ctx.out / "grid.png", "--n", args.n,
-                           "--spec", _spec(args, ctx)])
+                           "--spec", _spec(args, ctx), *_no_axes(args)])
 
 
 def check_expert(args, ctx):
@@ -45,7 +51,7 @@ def generate(args, ctx):
             "--spec", _spec(args, ctx), "--task", ctx.path(ctx.manifest.task)]
     if args.created_by:
         argv += ["--created-by", args.created_by]
-    return ctx.run_script(argv)
+    return ctx.run_script(argv + _no_axes(args))
 
 
 def convert(args, ctx):
@@ -87,7 +93,7 @@ def rollout(args, ctx):
 
 STAGES = {
     "preview": Stage(preview, "grid.png of n train configs + 1 all-held-out (agentview after settle)",
-                     (Flag("--n", int, 8, "train configs in the grid"), SPEC)),
+                     (Flag("--n", int, 8, "train configs in the grid"), SPEC, NO_AXES)),
     "check-expert": Stage(check_expert, "scripted expert success per object -> expert_check.json",
                           (Flag("--n", int, 20, "episodes per object"), Flag("--split", default="train"), OBJECTS,
                            Flag("--param", action="append", help="ExpertParams override k=v (repeatable)"), SPEC)),
@@ -95,7 +101,7 @@ STAGES = {
                       (Flag("--split", default="train"), Flag("--start", int, 0, "first config of the window"),
                        Flag("--n", int, 30, "configs in the window (all shards)"), Flag("--shard", int, 0),
                        Flag("--num-shards", int, 1), Flag("--dataset-id", default="cathlab/pick_genesis"),
-                       Flag("--version", default="v1"), Flag("--created-by"), SPEC)),
+                       Flag("--version", default="v1"), Flag("--created-by"), SPEC, NO_AXES)),
     "convert": Stage(convert, "raw shards -> LeRobot v3 dataset in --out/lerobot (run in the lerobot env)",
                      (Flag("--dataset", required=True, help="the generate stage's --out folder"),
                       Flag("--repo-id", help="default: dataset_id from the shard manifests"))),
