@@ -6,7 +6,8 @@ ROBOSUITE_ENV ?= robosuite
 LEROBOT_ENV ?= lerobot
 MANISKILL_ENV ?= maniskill
 
-.PHONY: install test dev worker-robosuite worker-maniskill worker-lerobot agent demo-ui harness-list
+.PHONY: install test dev worker-robosuite worker-maniskill worker-lerobot agent demo-ui harness-list \
+	conformance-robosuite conformance-maniskill
 
 install:            ## core env (uv) with dev deps
 	uv sync
@@ -37,3 +38,9 @@ demo-ui:            ## UI with a throwaway repo and a fake agent (no Copilot log
 
 harness-list:       ## list agent task templates
 	uv run python -m harness list
+
+conformance-robosuite:  ## engine conformance test in the robosuite env
+	MUJOCO_GL=egl conda run -n $(ROBOSUITE_ENV) --no-capture-output python -m pytest -q tests/engines
+
+conformance-maniskill:  ## engine conformance test in the maniskill env
+	MUJOCO_GL=egl conda run -n $(MANISKILL_ENV) --no-capture-output python -m pytest -q tests/engines -k maniskill

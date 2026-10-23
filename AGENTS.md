@@ -32,6 +32,19 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | `assets/` | Rakesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
 | `orchestrator/`, `harness/`, `frontend/`, `configs/{catalog,workers,agents}.yaml` | Rakesh |
+| `engines/` (SDK: registry.py, cli_base.py, policies.py, expert_policy.py; robosuite plugin) | Rakesh |
+
+## Extending (any agent)
+
+- Start from [docs/EXTENDING.md](docs/EXTENDING.md): how the platform fits together, the stage-gate table, and how
+  to add an engine, object, data method, metric or report section.
+- Every extension point is a gate in `harness/gates/*.yaml`: contract, conformance command, allowed paths, reference
+  implementation.
+- Get a deterministic brief for anything the UI doesn't offer: `python -m harness brief "<request>" --stage <gate>`
+  (UI: **AGENT BRIEF** / **AGENT BRIEF FOR THIS STAGE**; API: `POST /api/agent/brief`).
+- A new or changed engine must pass its conformance test:
+  `python -m pytest -q tests/engines/test_conformance.py -k <engine>` (in the engine's env).
+- Or load the packaged skill: [.github/skills/cathlab-extend/SKILL.md](.github/skills/cathlab-extend/SKILL.md).
 
 ## Build and test
 

@@ -18,7 +18,9 @@ make demo-ui                   # try the UI with a throwaway repo and a fake age
 ```
 
 - **PROJECT:** pick simulator, embodiment, objects, expert, variation and model from the catalog. Anything not ready offers **Build with agent**.
+- **PIPELINE:** pick a run, run stages (preview → check expert → generate → convert → eval → rollout) on the workers, follow logs and outputs.
 - **AGENT:** run a task template with a coding agent (GitHub Copilot CLI by default) in an isolated git worktree, then review the diff and push the branch. See [docs/HARNESS.md](docs/HARNESS.md).
+- **AGENT BRIEF:** describe anything the UI doesn't offer; get a brief for any coding agent.
 - Install (native, remote GPU worker): [docs/INSTALL.md](docs/INSTALL.md) · Credits: [CREDITS.md](CREDITS.md).
 
 | Doc | What |

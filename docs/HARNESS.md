@@ -44,7 +44,27 @@ uv run python -m harness push <job_id>        # or: discard <job_id>
 | `add_sim_backend` | Build a MuJoCo, Newton or Genesis backend against `ExpertSim` / `SimBackend` | core tests |
 | `add_policy_adapter` | Wrap a new model (adapter + training recipe) | core tests |
 | `add_expert` | Add a grasp source such as GraspGen | core + robosuite tests |
+| `add_engine` | Add a simulation engine plugin (`harness/gates/engine.yaml`) | `tests/engines/test_conformance.py -k <id>` (engine env) |
+| `add_data_method` | Add a synthetic data method (`harness/gates/data_method.yaml`) | `tests/dataengine` |
+| `add_eval_metric` | Add an evaluation metric (`harness/gates/eval.yaml`) | `tests/test_metrics.py tests/test_runner.py tests/test_failures.py tests/engines` |
+| `add_object_importer` | Add an object importer (`harness/gates/objects.yaml`) | core tests, robosuite tests, expert >= 80 % |
+| `add_report_section` | Add a failure report section (`harness/gates/report.yaml`) | `tests/report` |
 | `free_task` | Anything else: your goal, your allowed paths, your check | your command |
+
+To add a template, drop a YAML file in `harness/tasks/` (the file name must equal its `id`).
+`tests/harness/test_templates.py` checks that it loads and renders.
+
+## Agent Brief
+
+A deterministic markdown brief for any coding agent, built from a plain-English request plus the stage gates it
+touches (`harness/gates/*.yaml`) and, for engine work, the engine's manifest.
+
+- **UI:** the **AGENT BRIEF** button (every tab), or **AGENT BRIEF FOR THIS STAGE** in **PIPELINE** — pre-ticks the
+  current stage's gate.
+- **CLI:** `uv run python -m harness brief "Add a MuJoCo engine" --stage engine --engine mujoco --out brief.md`.
+- **API:** `POST /api/agent/brief` with `{"request": ..., "stages": [...], "engines": [...]}`.
+- **RUN WITH AGENT:** in the AGENT BRIEF drawer, push the brief straight into `free_task` instead of copying it
+  into another agent.
 
 To add a template, drop a YAML file in `harness/tasks/` (the file name must equal its `id`).
 `tests/harness/test_templates.py` checks that it loads and renders.
