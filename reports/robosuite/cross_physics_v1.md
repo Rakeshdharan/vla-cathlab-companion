@@ -4,14 +4,14 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 
 ## Overall
 
-| Model | Trained on | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
-|---|---|---|---|
-| Scripted expert (`expert`) | — | 100% (94%–100%, n=60) | 100% (94%–100%, n=60) |
-| ACT (`act_panda_pick_v1`) | robosuite | 7% (3%–16%, n=60) **in-domain** | 2% (0%–9%, n=60) |
-| SmolVLA (`smolvla_panda_pick_v1`) | robosuite | 38% (27%–51%, n=60) **in-domain** | 0% (0%–6%, n=60) |
-| X-VLA (`xvla_panda_pick_v1`) | robosuite | 8% (4%–18%, n=60) **in-domain** | 0% (0%–6%, n=60) |
-| SmolVLA (`smolvla_panda_maniskill_v1`) | maniskill | 0% (0%–6%, n=60) | 43% (32%–56%, n=60) **in-domain** |
-| X-VLA (`xvla_panda_maniskill_v1`) | maniskill | 0% (0%–6%, n=60) | 8% (4%–18%, n=60) **in-domain** |
+| Model | Trained on | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) | eval Genesis |
+|---|---|---|---|---|
+| Scripted expert (`expert`) | — | 100% (94%–100%, n=60) | 100% (94%–100%, n=60) | 100% (94%–100%, n=60) |
+| ACT (`act_panda_pick_v1`) | robosuite | 7% (3%–16%, n=60) **in-domain** | 2% (0%–9%, n=60) | 0% (0%–6%, n=60) |
+| SmolVLA (`smolvla_panda_pick_v1`) | robosuite | 38% (27%–51%, n=60) **in-domain** | 0% (0%–6%, n=60) | 0% (0%–6%, n=60) |
+| X-VLA (`xvla_panda_pick_v1`) | robosuite | 8% (4%–18%, n=60) **in-domain** | 0% (0%–6%, n=60) | 2% (0%–9%, n=60) |
+| SmolVLA (`smolvla_panda_maniskill_v1`) | maniskill | 0% (0%–6%, n=60) | 43% (32%–56%, n=60) **in-domain** | 0% (0%–6%, n=60) |
+| X-VLA (`xvla_panda_maniskill_v1`) | maniskill | 0% (0%–6%, n=60) | 8% (4%–18%, n=60) **in-domain** | 0% (0%–6%, n=60) |
 
 ## Per tier: eval in robosuite (MuJoCo)
 
@@ -35,6 +35,17 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 | SmolVLA | maniskill | 67% (39%–86%, n=12) | 8% (1%–35%, n=12) | 75% (47%–91%, n=12) | 67% (39%–86%, n=12) | 0% (0%–24%, n=12) |
 | X-VLA | maniskill | 8% (1%–35%, n=12) | 0% (0%–24%, n=12) | 17% (5%–45%, n=12) | 17% (5%–45%, n=12) | 0% (0%–24%, n=12) |
 
+## Per tier: eval in Genesis
+
+| Model | Trained on | in_distribution | held_out_layout | held_out_obj_color | held_out_table_color | all_held_out |
+|---|---|---|---|---|---|---|
+| Scripted expert | — | 100% (76%–100%, n=12) | 100% (76%–100%, n=12) | 100% (76%–100%, n=12) | 100% (76%–100%, n=12) | 100% (76%–100%, n=12) |
+| ACT | robosuite | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) |
+| SmolVLA | robosuite | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) |
+| X-VLA | robosuite | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 8% (1%–35%, n=12) |
+| SmolVLA | maniskill | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) |
+| X-VLA | maniskill | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) |
+
 ## Failed stage (first stage not reached) and latency
 
 | Engine | Model | reach | grasp | lift | transport | place | latency p50 / p95 ms |
@@ -51,3 +62,9 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 | maniskill | X-VLA (robosuite) | 55 | 3 | 1 | 1 | 0 | 115 / 148 |
 | maniskill | SmolVLA (maniskill) | 20 | 10 | 4 | 0 | 0 | 172 / 201 |
 | maniskill | X-VLA (maniskill) | 46 | 6 | 2 | 1 | 0 | 78 / 96 |
+| genesis | Scripted expert (—) | 0 | 0 | 0 | 0 | 0 | 0 / 0 |
+| genesis | ACT (robosuite) | 60 | 0 | 0 | 0 | 0 | 22 / 29 |
+| genesis | SmolVLA (robosuite) | 60 | 0 | 0 | 0 | 0 | 251 / 332 |
+| genesis | X-VLA (robosuite) | 58 | 1 | 0 | 0 | 0 | 122 / 148 |
+| genesis | SmolVLA (maniskill) | 60 | 0 | 0 | 0 | 0 | 254 / 323 |
+| genesis | X-VLA (maniskill) | 57 | 2 | 1 | 0 | 0 | 121 / 144 |
