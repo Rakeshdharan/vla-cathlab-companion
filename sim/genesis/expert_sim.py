@@ -11,6 +11,18 @@ REACH_DIST = 0.05
 LIFT_HEIGHT = 0.05
 REST_LIN_VEL = 0.02
 REST_ANG_VEL = 0.5
+PI_CUSP_W = 1e-6
+
+
+def state_axis_angle(quat: np.ndarray) -> np.ndarray:
+    """quat_to_axis_angle with a deterministic tie-break at a rotation of exactly pi (|w| < PI_CUSP_W), where q and -q
+    give opposite vectors: the axis's dominant component is made positive. The Menagerie hand at HOME_QPOS sits exactly
+    there, and robosuite reports (+3.135, 0, +0.2) at home."""
+    q = np.asarray(quat, dtype=float)
+    if abs(q[0]) < PI_CUSP_W:
+        v = q[1:]
+        q = np.array([0.0, *(v if v[np.argmax(np.abs(v))] >= 0 else -v)])
+    return quat_to_axis_angle(q)
 
 
 class GenesisExpertSim:
@@ -92,5 +104,5 @@ class GenesisExpertSim:
         pos, quat = self.env.hand_pose()
         tcp = self.env.tcp_pose()
         q1, q2 = self.env.finger_qpos()
-        state = np.concatenate([tcp[:3], quat_to_axis_angle(quat), [q1, -q2]]).astype(np.float32)
+        state = np.concatenate([tcp[:3], state_axis_angle(quat), [q1, -q2]]).astype(np.float32)
         return {"state": state, **self.env.render()}

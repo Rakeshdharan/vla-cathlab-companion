@@ -12,7 +12,7 @@ from contracts import STAGES  # noqa: E402
 from dataengine.geometry import quat_conj, quat_mul, quat_to_axis_angle  # noqa: E402
 from dataengine.variation import VariationSpec, object_poses, train_configs  # noqa: E402
 from sim.genesis.env import _to_np  # noqa: E402
-from sim.genesis.expert_sim import GenesisExpertSim  # noqa: E402
+from sim.genesis.expert_sim import GenesisExpertSim, state_axis_angle  # noqa: E402
 from sim.genesis.randomize import (GENESIS_AXES, apply_episode_config, apply_genesis_axes, genesis_axes,  # noqa: E402
                                    kelvin_to_rgb)
 
@@ -157,3 +157,27 @@ def test_kelvin_to_rgb_is_warm_to_cool_and_normalised():
     warm, cool = kelvin_to_rgb(4000), kelvin_to_rgb(7500)
     assert warm.max() == pytest.approx(1.0) and cool.max() == pytest.approx(1.0)
     assert warm[0] > warm[2] and cool[2] > cool[0]
+
+
+def test_state_axis_angle_tie_break_at_pi():
+    # The Menagerie hand at HOME_QPOS is rotated exactly pi (w = 0); the sign of w is float noise (+0 on GPU, -eps on
+    # CPU) and must not flip the state's axis-angle away from robosuite's (+3.135, 0, +0.2).
+    v = np.array([0.99797, 0.0, 0.06361])
+    for w in (0.0, -1e-9, 1e-9):
+        for sign in (1, -1):
+            aa = state_axis_angle(sign * np.array([w, *v]))
+            np.testing.assert_allclose(aa, np.pi * v / np.linalg.norm(v), atol=1e-6)
+    q = np.array([0.3, -0.5, 0.4, 0.707])                       # away from the cusp: plain quat_to_axis_angle
+    np.testing.assert_allclose(state_axis_angle(q), quat_to_axis_angle(q))
+    np.testing.assert_allclose(state_axis_angle(-q), quat_to_axis_angle(q))
+
+
+def test_backend_from_env(monkeypatch):
+    from sim.genesis.env import BACKEND_ENV, genesis_backend
+    monkeypatch.delenv(BACKEND_ENV, raising=False)
+    assert genesis_backend() == "gpu"
+    monkeypatch.setenv(BACKEND_ENV, "CPU")
+    assert genesis_backend() == "cpu"
+    monkeypatch.setenv(BACKEND_ENV, "metal")
+    with pytest.raises(ValueError):
+        genesis_backend()

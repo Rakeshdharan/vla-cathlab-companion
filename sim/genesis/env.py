@@ -1,5 +1,7 @@
 """Genesis scene for the cathlab pick task: table, static tray, bottle/vial/syringe from a VariationSpec, Menagerie
 Panda with a delta-EE controller (IK + joint PD) that reproduces the robosuite OSC_POSE action convention."""
+import os
+
 import genesis as gs
 import numpy as np
 from dataengine.geometry import quat_mul, quat_rotate
@@ -49,13 +51,23 @@ EYE_IN_HAND = dict(pos=(0.05, 0.0, 0.0), fov=75.0)   # hand frame; looks along h
 KEY_LIGHT_DIR = (-0.3, 0.2, -1.0)
 
 _GS_READY = False
+BACKEND_ENV = "CATHLAB_GENESIS_BACKEND"
+
+
+def genesis_backend() -> str:
+    """'gpu' (default) or 'cpu'. One world is launch-bound on GPU: on a GPU shared with training, the CPU backend ran
+    an episode ~15x faster (docs/decisions.md)."""
+    name = os.environ.get(BACKEND_ENV, "gpu").lower()
+    if name not in ("gpu", "cpu"):
+        raise ValueError(f"{BACKEND_ENV} must be 'gpu' or 'cpu', got {name!r}")
+    return name
 
 
 def init_genesis() -> None:
     """gs.init exactly once per process."""
     global _GS_READY
     if not _GS_READY:
-        gs.init(backend=gs.gpu, logging_level="warning")
+        gs.init(backend=getattr(gs, genesis_backend()), logging_level="warning")
         _GS_READY = True
 
 

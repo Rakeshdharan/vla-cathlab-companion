@@ -45,8 +45,10 @@ def provenance(env) -> dict:
                                     cwd=ROOT, capture_output=True, text=True).stdout.strip())
     except (OSError, subprocess.CalledProcessError):
         commit, dirty = None, None
+    from sim.genesis.env import genesis_backend
     return {"engine": "genesis", "genesis": version("genesis-world"), "torch": torch.__version__,
             "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+            "backend": genesis_backend(),
             "python": platform.python_version(), "sim_dt": env.dt, "substeps": env.substeps,
             "control_hz": round(1.0 / env.control_dt), "git_commit": commit, "git_dirty": dirty}
 
