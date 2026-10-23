@@ -5,8 +5,8 @@ Genesis track for the cathlab pick task (Franka Panda, LIBERO I/O), mirroring `s
 | Module | What |
 |---|---|
 | `env.py` | `CathlabGenesisEnv`: table, static tray, bottle/vial/syringe from `VariationSpec`; Menagerie `panda_no_tendon.xml` at core (0, 0, 0.112), `HOME_QPOS`; `agentview` + `eye_in_hand` 256²; delta-EE controller (damped-LS IK at the TCP → joint PD), 20 Hz over 5 ms physics steps |
-| `randomize.py` | `apply_episode_config(env, spec, cfg)`: poses, object/table colours, mass, friction, lighting, always from nominal values |
-| `expert_sim.py` | `GenesisExpertSim`: the `dataengine.expert.ExpertSim` adapter (core frame, wxyz, latched stage flags) |
+| `randomize.py` | `apply_episode_config(env, spec, cfg)`: poses, object/table colours, mass, friction, lighting, always from nominal values. **Genesis-only axes** `genesis_axes(cfg)` / `apply_genesis_axes(env, axes)`: agentview eye and look-at jitter ±3 cm per axis, key-light direction (azimuth ±180°, elevation 50–85°), seeded by `cfg.seed` (configs stay paired with robosuite/ManiSkill) |
+| `expert_sim.py` | `GenesisExpertSim(spec, genesis_axes=False)`: the `dataengine.expert.ExpertSim` adapter (core frame, wxyz, latched stage flags); `self.axes` = the episode's Genesis axes or `None` |
 | `backend.py` | `GenesisBackend`: `contracts.SimBackend` for policy eval; `reset(scene, seed, obj)` → `eval_configs(spec, tier, [seed])` |
 | `params.py` | `GENESIS_EXPERT_PARAMS` (`release_height` 0.065, `min_grasp_tcp_z` 0.013) |
 
@@ -20,5 +20,19 @@ Deviations from robosuite (controller dynamics, physics step, lighting, randomis
 [docs/decisions.md](../../docs/decisions.md) (H25.5 rows).
 
 Requires `~/venvs/genesis` (Python 3.11, genesis-world 1.4.5, CUDA torch); run with `PYTHONPATH=<repo>`. Engine
-stages: `python -m engines.genesis.cli <stage>`. Tests in `tests/sim/test_genesis_env.py` skip without genesis.
-**One Genesis process per GPU at a time** (the RTX 4090 dropped off the PCIe bus twice under parallel simulator load).
+stages: `python -m engines.genesis.cli <stage>`. Tests in `tests/sim/test_genesis_env.py` skip without genesis
+(`make conformance-genesis` runs them). **One Genesis process per GPU at a time** (the RTX 4090 dropped off the PCIe
+bus twice under parallel simulator load).
+
+```bash
+uv venv ~/venvs/genesis --python 3.11
+uv pip install --python ~/venvs/genesis/bin/python "torch==2.9.1" "genesis-world==1.4.5" pydantic pyyaml numpy \
+    imageio imageio-ffmpeg pillow pytest fastapi uvicorn httpx       # PyPI torch 2.9.1 = CUDA 12.8 build
+```
+
+- **Backend:** `CATHLAB_GENESIS_BACKEND=gpu` (default) or `cpu`. A single world is kernel-launch-bound, so on a GPU
+  shared with training the CPU backend is ~15× faster (`make worker-genesis` / `conformance-genesis` default to cpu).
+  Rendering uses the same OpenGL rasterizer either way. The backend is recorded in each episode's provenance.
+- **Genesis axes:** on for `preview` and `generate` (`--no-genesis-axes` to turn off), off for `eval`/`rollout`
+  so cross-engine eval stays on the shared nominal scene. Each episode's values are in `episodes_extra.jsonl`
+  (`genesis_axes`).

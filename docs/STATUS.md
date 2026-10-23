@@ -12,7 +12,7 @@
 | [`Rakeshdharan56/pick_maniskill`](https://huggingface.co/datasets/Rakeshdharan56/pick_maniskill) `v1` | Panda, `panda_libero` | ManiSkill3 3.0.1 (**PhysX 5**) | 369 / 384 | 45,387 | ✅ public | Paired with robosuite episode for episode; expert bottle 100 / vial 90 / syringe 100 %. Raw: `pick_maniskill_raw`. [PR #10](https://github.com/Rakeshdharan/vla-cathlab-companion/pull/10) |
 | [`aravindsuresh16/cathlab_fr3_newton_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_fr3_newton_v1) `v1`, **`v1.0.1`** | FR3 Duo, `fr3_duo_16d` (16-D joint targets, 3 cams 224², 30 fps), right arm | Newton 1.6 (MuJoCo-Warp 3.12) | 384 | 159,568 | ✅ public | Expert 128/128 per object. **Use `v1.0.1` for π0.5 / QUANTILES models**: it widens q01/q99 of the idle left-arm columns (otherwise normalised to ±30). Same episodes as `v1`. [Report](https://github.com/aravinds1610/mujoco_cathlab_vla/blob/main/docs/NEWTON_REPORT.md) |
 | Newton "more episodes" (seeds 1, 2) | FR3 Duo, 16-D | Newton | 768 generated | — | ⏸ **not published** | Resampled physics/light + ±1 cm layout; 768/768 success. Publish as `v1.1` if FR3 models need more data |
-| `pick_genesis` | Panda | Genesis 1.4.5 | — | — | ⬜ not started | Handoff ready; optional (PhysX already gives cross-physics) |
+| [`Rakeshdharan56/pick_genesis`](https://huggingface.co/datasets/Rakeshdharan56/pick_genesis) `v1` | Panda, `panda_libero` | Genesis 1.4.5 (own rigid solver) | 383 / 384 | 66,447 | ✅ public | Paired with robosuite episode for episode, **plus Genesis-only camera jitter + light direction** (per-episode `genesis_axes` in `episodes_extra.jsonl`); expert bottle 127/128, vial 128/128, syringe 128/128. Raw shards local only |
 
 ## Model checkpoints
 
@@ -57,7 +57,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | robosuite | Panda | MuJoCo 3.3.7 | ✅ `engines/robosuite` | ✅ | ✅ expert; checkpoints blocked (see below) |
 | ManiSkill3 | Panda | PhysX 5 | ✅ `engines/maniskill` | ✅ | ✅ expert 60/60; checkpoints blocked |
 | Newton | FR3 Duo | MuJoCo-Warp | ⬜ Aravind's repo only ([`cathlab_sim/newton`](https://github.com/aravinds1610/mujoco_cathlab_vla/tree/main/cathlab_sim/newton)) | ✅ | expert 100 % all tiers, sim2sim vs MuJoCo 60/60 |
-| Genesis | Panda | Genesis 1.4.5 | 🟡 branch `feat/navneet-genesis-engine` (Navneet: plugin, tests, README, decisions), **PR + review pending** | ⬜ | ⬜ |
+| Genesis | Panda | Genesis 1.4.5 | ✅ `engines/genesis` (worker :8715, `make worker-genesis`) | ✅ | ✅ expert 60/60; checkpoints pending |
 | ~~Isaac Sim~~ | ~~FR3 Duo~~ | ~~PhysX~~ | removed (H24) | — | — |
 
 ## Codebase readiness (`main` 98303b7, H27)
@@ -73,7 +73,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | Engine SDK | `engines/{registry,cli_base,policies,expert_policy}.py` | ✅ | Manifests + I/O profiles (`panda_libero`, `fr3_duo_16d`), uniform CLI (6 stages, `--run`, `--dry-run`, one-line errors), expert-as-policy, conformance test | `url:` policies wait for `serve/policy_client.py`; `lerobot:<ckpt>` adapter is being built in the RTX 6000 ManiSkill session |
 | robosuite engine | `engines/robosuite`, `sim/robosuite` | ✅ | preview, check-expert, generate, convert, eval (suite_v2), rollout (GIF; no `imageio_ffmpeg` in the env) | trained-checkpoint eval (adapter) |
 | ManiSkill3 engine | `engines/maniskill`, `sim/maniskill` | ✅ | All 6 stages; expert 60/60 on suite_v2; worker :8714 (`make worker-maniskill`) | Env only on the RTX 6000 Ada (no `maniskill` env on this box) |
-| Genesis engine | branch `feat/navneet-genesis-engine` | 🟡 | Plugin + tests on the branch | PR, review, merge, dataset |
+| Genesis engine | `engines/genesis`, `sim/genesis` | ✅ | All 6 stages; expert 60/60 on suite_v2; `pick_genesis@v1` (383 eps); worker :8715; `CATHLAB_GENESIS_BACKEND=cpu` for a shared GPU | Trained-checkpoint eval (`--policy lerobot:<ckpt>`) |
 | Newton / MuJoCo FR3 | Aravind's repo | 🟡 | Data on HF, expert 100 %, sim2sim 60/60 | Not an engine plugin in this repo (optional) |
 | Control plane + workers | `orchestrator/` | ✅ | Catalog + selection rules, runs (`var/runs/<id>/run.yaml`), SQLite jobs, worker app (token auth, Host allow-list), **stage pipeline**: readiness with reasons, dispatch to workers, logs, cancel, outputs, no double dispatch | Train / version / promote stages not in `orchestrator/stages.py` yet |
 | Agent harness | `harness/` | ✅ | 12 templates, worktree jobs with path guard + checks + human review, env allow-list, 12 **stage gates**, deterministic **Agent Brief** (UI, CLI `python -m harness brief`, API) | Frozen-file deny-list (e.g. `cathlab_v1.yaml`) in the guard |
@@ -123,6 +123,6 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
    - eval of both + the expert in Newton + MuJoCo → FR3 table + sim2sim gap.
 4. **Version v1 → promote the best Panda model → rollout video → failure report → `next_run.json`.** Rakesh, after 1–2.
 5. **Panda v2:** merged robosuite + ManiSkill (753 episodes) plus the loop-targeted cells; SmolVLA first, then evaluate and promote if better. RTX 6000 Ada (T6 of the ManiSkill handoff).
-6. **Genesis:** Navneet opens a PR from `feat/navneet-genesis-engine`; master session reviews and merges (like PR #10).
+6. **Genesis:** ✅ merged with `pick_genesis@v1`. Next: evaluate the Panda checkpoints in Genesis (`engines.genesis.cli eval --policy lerobot:<ckpt>`, axes off) for the third physics column.
 7. **CI + Docker:** proposed for Mitesh (free).
 8. **Optional:** Newton `v1.1` (+768 episodes).

@@ -46,6 +46,7 @@ Check the robosuite env: `MUJOCO_GL=egl conda run -n robosuite python -m pytest 
 make dev                # control plane + UI + agent harness  -> http://localhost:8700
 make worker-robosuite   # :8711
 make worker-maniskill   # :8714 (conda env `maniskill`: see sim/maniskill/README.md, plus `pip install fastapi uvicorn httpx`)
+make worker-genesis     # :8715 (uv venv ~/venvs/genesis: see sim/genesis/README.md, plus `pip install fastapi uvicorn httpx`)
 make worker-lerobot     # :8712 (or start it on the GPU box, see below)
 ```
 
@@ -90,5 +91,6 @@ and check `test -f configs/new.txt`, then Start agent → DIFF → PUSH BRANCH.
 | 8700 | control plane + UI (+ agent harness in dev) |
 | 8711 | robosuite worker |
 | 8714 | ManiSkill3 worker |
+| 8715 | Genesis worker |
 | 8712 | lerobot worker |
 | 8790 | standalone agent worker (`make agent`) |
