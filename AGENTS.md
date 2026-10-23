@@ -27,7 +27,8 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
 | `dataset_intel/`, `serve/`, `docs/research/` | Sharan |
 | `awareness/` | Navneet |
-| `sim/isaac/`, `assets/` | Mitesh |
+| `sim/isaac/`, `engines/isaac/`, `configs/variation/cathlab_fr3_isaac.yaml` | Navneet |
+| `assets/` | Rakesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
 
 ## Build and test

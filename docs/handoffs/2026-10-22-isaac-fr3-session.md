@@ -70,7 +70,7 @@ A parallel session builds the same task in **robosuite with a Panda** (Rakesh). 
 
 Everyone keeps their main workstream; this is the shared Isaac push. Each task ends with a check (✅).
 
-**I0 — Setup and probe** (Mitesh, with Rakesh)
+**I0 — Setup and probe** (Navneet, with Rakesh)
 - Record the Isaac Sim version (4.5 uses `omni.isaac.*`, 5.x uses `isaacsim.*`) in `docs/decisions.md`.
 - Load the USD **headless** (`SimulationApp({"headless": True})`), step 100 frames, save one image from each of the 3 cameras.
 - **Reach probe:** with differential IK, move `right_tcp` to the 4 corners of a candidate pick zone on cart 01e and to the tray centre, at a grasp height of 5 cm above the cart top and with the gripper pointing down.
@@ -94,7 +94,7 @@ Everyone keeps their main workstream; this is the shared Isaac push. Each task e
 - Write `sim/isaac/frames.py` with `task_to_world(pose7)` and `world_to_task(pose7)`; quaternions are **wxyz**, as in USD (`Gf.Quatd`).
 - ✅ Test: a world→task→world round-trip is exact, and the `object_poses(spec, cfg)` layouts land inside the pick zone and don't overlap the tray.
 
-**I3 — Expert** (Mitesh lead, Rakesh helps)
+**I3 — Expert** (Navneet lead, Rakesh helps)
 - Right-arm pick and place:
   1. waypoints from the shared `dataengine.expert.plan_waypoints(spec, target, obj_pose)` (target TCP poses in the task frame: pre_grasp → grasp → close → lift → above_tray → lower → open → retreat);
   2. convert to world;

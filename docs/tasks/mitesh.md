@@ -1,6 +1,6 @@
 # Mitesh — Isaac Sim Track (Isaac Lab): Scene, Randomizer, Expert Adapter, Data
 
-> **Update (2026-10-23):** the Isaac work is now an engine plugin: follow [`docs/handoffs/2026-10-23-isaac-engine-session.md`](../handoffs/2026-10-23-isaac-engine-session.md).
+> **Update (2026-10-23): Mitesh is no longer on the Isaac track.** **Navneet** owns Isaac (engine plugin, [`docs/handoffs/2026-10-23-isaac-engine-session.md`](../handoffs/2026-10-23-isaac-engine-session.md)), and the content below is kept for history only. Mitesh's current work is agreed with Rakesh in the team chat.
 
 > **Superseded at H8 (scene part):** the Isaac track now runs in the **provided FR3 Duo scene** (right arm only), as a whole-team push. Follow [`docs/handoffs/2026-10-22-isaac-fr3-session.md`](../handoffs/2026-10-22-isaac-fr3-session.md); you lead I0 and I3. The Panda/own-scene instructions below no longer apply to Isaac.
 
