@@ -16,6 +16,8 @@
 
 All three checkpoints were trained on `pick_robosuite@v1`.
 
+**Next on this GPU PC: follow [`2026-10-23-maniskill-training-session.md`](2026-10-23-maniskill-training-session.md)** (ACT / SmolVLA / X-VLA on `pick_maniskill@v1`, the policy adapter, the cross-physics eval). The list below is kept for history.
+
 **Next on this GPU PC, in order:**
 1. **T6:** push `train/lerobot_adapter.py` to `main` (one adapter for all three models).
 2. **T7:** closed-loop eval of ACT / SmolVLA / X-VLA + the expert in **robosuite and ManiSkill** (`suite_v2`, seeds 5000–5003).

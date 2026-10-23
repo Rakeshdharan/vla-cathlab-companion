@@ -25,7 +25,8 @@ Excellent work. The Newton track is the best-documented engine in the project. W
 1. **Publish the FR3 MuJoCo dataset of the *team task*:** same task, objects, arm, grid and schema as the Newton set, physics = CPU MuJoCo. That gives the FR3 line a second engine's *data*, not only a second engine for checking outcomes.
 2. **Train FR3 models on a cloud GPU** and push the checkpoints to HF.
 3. **Evaluate them closed-loop** in Newton and CPU MuJoCo: the FR3 results table plus the FR3 sim2sim number.
-4. **Retire the legacy dataset** `cathlab_handover_mujoco_v1` (left arm, 6 instruments) so nobody trains on it by mistake.
+
+> The old `cathlab_handover_mujoco_v1` (left arm, 6 instruments) is **not part of the project**: it is out of the team's records and must not be used for training or eval. No action needed on it.
 
 ## 2. Decisions (don't re-open)
 
@@ -61,8 +62,6 @@ python -m cathlab_sim.newton.convert --raw datasets/mujoco_raw/v1 --out datasets
 - `convert.py` currently hard-codes `scene_id="cathlab_fr3_newton"` and the Newton dataset tags/notes. Make them follow the raw data's `engine` field (`cathlab_fr3_mujoco`, tags `fr3_duo`, `mujoco`), then re-check the Newton conversion is unchanged.
 - Apply the quantile widening (`floor_constant_stats`) **before** the first push, so `v1` is already right and needs no `v1.0.1`.
 - ✅ `LeRobotDataset("aravindsuresh16/cathlab_fr3_mujoco_v1", revision="v1")` loads: `action (16,)`, `state (16,)`, 3 × `(3, 224, 224)`, fps 30, `fr3_duo`. Preview GIF in the repo. Episode *i* has the same config as Newton episode *i* (check a few `episodes_extra` rows side by side).
-
-**D3: Retire the legacy dataset.** Put a banner at the top of `aravindsuresh16/cathlab_handover_mujoco_v1`'s README: "Legacy (pre-task): left arm, 6 instruments. For the team task use `cathlab_fr3_newton_v1` / `cathlab_fr3_mujoco_v1`." Same note in your repo README. Don't delete it: it is referenced in history.
 
 ## 4. What to do: training (cloud GPU)
 
@@ -111,7 +110,7 @@ Plus **the FR3 sim2sim gap:** the same checkpoint's success in Newton vs MuJoCo,
 
 | By | What |
 |---|---|
-| 18:30 | D1 + D2: `cathlab_fr3_mujoco_v1` on HF; D3 banner |
+| 18:30 | D1 + D2: `cathlab_fr3_mujoco_v1` on HF |
 | 19:00 | M1 SmolVLA training on the cloud GPU (smoke done) |
 | 20:30 | SmolVLA on HF; T1 eval for SmolVLA in both engines; message Rakesh with the numbers |
 | 22:00 | M2 (X-VLA) and M3 (ACT) on HF and evaluated if the budget allows; T2 tables in `NEWTON_REPORT.md` |

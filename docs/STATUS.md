@@ -11,21 +11,30 @@
 | [`Rakeshdharan56/pick_robosuite`](https://huggingface.co/datasets/Rakeshdharan56/pick_robosuite) `v1` | Panda, `panda_libero` (7-D EEF delta, 8-D state, 2 cams 256², 20 fps) | robosuite 1.5.2 (MuJoCo 3.3.7) | 384 | 69,191 | ✅ public | Full train grid, expert 100 %. Raw shards: `pick_robosuite_raw` |
 | [`Rakeshdharan56/pick_maniskill`](https://huggingface.co/datasets/Rakeshdharan56/pick_maniskill) `v1` | Panda, `panda_libero` | ManiSkill3 3.0.1 (**PhysX 5**) | 369 / 384 | 45,387 | ✅ public | Paired with robosuite episode for episode; expert bottle 100 / vial 90 / syringe 100 %. Raw: `pick_maniskill_raw`. [PR #10](https://github.com/Rakeshdharan/vla-cathlab-companion/pull/10) |
 | [`aravindsuresh16/cathlab_fr3_newton_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_fr3_newton_v1) `v1`, **`v1.0.1`** | FR3 Duo, `fr3_duo_16d` (16-D joint targets, 3 cams 224², 30 fps), right arm | Newton 1.6 (MuJoCo-Warp 3.12) | 384 | 159,568 | ✅ public | Expert 128/128 per object. **Use `v1.0.1` for π0.5 / QUANTILES models**: it widens q01/q99 of the idle left-arm columns (otherwise normalised to ±30). Same episodes as `v1`. [Report](https://github.com/aravinds1610/mujoco_cathlab_vla/blob/main/docs/NEWTON_REPORT.md) |
-| [`aravindsuresh16/cathlab_handover_mujoco_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_handover_mujoco_v1) `v3.0` | FR3 Duo, 16-D, **left arm**, his original 6 instruments (not our task) | MuJoCo 3.3.7 | 200 | 91,375 | ⚠️ legacy | Pre-task v1. Not our objects/arm; don't co-train with the above. Aravind adds a "legacy" banner |
-| `aravindsuresh16/cathlab_fr3_mujoco_v1` (team task, CPU twin of the Newton set) | FR3 Duo, 16-D | MuJoCo 3.12 (CPU) | 384 (planned) | — | ⏳ **Aravind, by 18:30** ([part-2 handoff](handoffs/2026-10-23-aravind-part2-mujoco-and-training.md)) | Same task/objects/grid/schema as Newton; episode *i* = Newton episode *i*. Replaces the legacy MuJoCo set |
+| `aravindsuresh16/cathlab_fr3_mujoco_v1` (team task, CPU twin of the Newton set) | FR3 Duo, 16-D | MuJoCo 3.12 (CPU) | 384 (planned) | — | ⏳ **Aravind, by 18:30** ([part-2 handoff](handoffs/2026-10-23-aravind-part2-mujoco-and-training.md)) | Same task/objects/grid/schema as Newton; episode *i* = Newton episode *i*. |
 | Newton "more episodes" (seeds 1, 2) | FR3 Duo, 16-D | Newton | 768 generated | — | ⏸ **not published** | Resampled physics/light + ±1 cm layout; 768/768 success. Publish as `v1.1` if FR3 models need more data |
 | `pick_genesis` | Panda | Genesis 1.4.5 | — | — | ⬜ not started | Handoff ready; optional (PhysX already gives cross-physics) |
 
 ## Model checkpoints
 
-| Model | Panda (`pick_robosuite@v1`, RTX 6000) | FR3 Duo (`cathlab_fr3_newton_v1@v1.0.1`, Aravind, cloud GPU) |
+| Model | Panda, robosuite data (`pick_robosuite@v1`) | Panda, ManiSkill data (`pick_maniskill@v1`, RTX 6000 Ada) | FR3 Duo (`cathlab_fr3_newton_v1@v1.0.1`, Aravind, cloud GPU) |
+|---|---|---|---|
+| Scripted expert (baseline) | ✅ robosuite | ✅ ManiSkill 60/60 on suite_v2 | ✅ Newton + MuJoCo 100 % on every tier |
+| ACT (from scratch) | ✅ [`act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1), 50,000 × 64 | ⏳ `Rakeshdharan56/act_panda_maniskill_v1` (same recipe) | ⏳ `aravindsuresh16/act_fr3_pick_v1` |
+| SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ⏳ `Rakeshdharan56/smolvla_panda_maniskill_v1` | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base` (first, by 20:30) |
+| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1` | ⏳ `aravindsuresh16/xvla_fr3_pick_v1` |
+| ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
+| **Panda v2** (co-training) | ⬜ optional: `pick_panda_v2` = merged robosuite + ManiSkill (753 eps) → `smolvla_panda_pick_v2` | | — |
+
+The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Add VRAM, steps/s and ETAs here as the runs start.
+
+**Cross-physics eval matrix (the headline, suite_v2, 60 episodes per cell):**
+
+| | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
 |---|---|---|
-| Scripted expert (baseline) | ✅ robosuite; ✅ ManiSkill 60/60 on suite_v2 | ✅ Newton + MuJoCo 100 % on every tier |
-| ACT (from scratch) | ✅ [`Rakeshdharan56/act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1), 50,000 × 64 | ⏳ `aravindsuresh16/act_fr3_pick_v1` |
-| SmolVLA | ✅ [`Rakeshdharan56/smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, ≥ 15k × 64 (first, on HF by 20:30) |
-| X-VLA | ✅ [`Rakeshdharan56/xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`action_mode=auto`) | ⏳ `aravindsuresh16/xvla_fr3_pick_v1`, from `xvla-base` (`auto`, 16-D) |
-| ~~π0.5~~, ~~MolmoAct2~~ | dropped (stop the π0.5 chain on the RTX 6000) | dropped |
-| **Panda v2** (all three) | ⬜ after eval: `pick_robosuite@v1` + `pick_maniskill@v1` (753 episodes) → `*_panda_pick_v2` | — |
+| expert | ⬜ | ✅ 60/60 |
+| ACT / SmolVLA / X-VLA trained on robosuite | ⬜ | ⬜ |
+| ACT / SmolVLA / X-VLA trained on ManiSkill | ⬜ | ⬜ |
 
 Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-10-23-training-gpu-session.md).
 
@@ -63,12 +72,12 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 
 ## Next (owner)
 
-1. **Unblock eval:** push `train/lerobot_adapter.py` to `main` (RTX 6000 session), then eval ACT / SmolVLA / X-VLA + the expert in robosuite and ManiSkill. **Rakesh.**
+1. **ManiSkill training + cross-physics eval** on the RTX 6000 Ada: ACT / SmolVLA / X-VLA on `pick_maniskill@v1`, the `lerobot:<ckpt>` policy adapter, and all 6 checkpoints + the expert evaluated in robosuite and ManiSkill. **Rakesh** ([handoff](handoffs/2026-10-23-maniskill-training-session.md)).
 2. **Serving + registry:** policy server/client (S1–S2), registry with promote/rollback (S3), failure report (S6). **Sharan.** Ask for an ETA; until it lands, eval runs in-process through the adapter.
 3. **FR3, Aravind** ([part-2 handoff](handoffs/2026-10-23-aravind-part2-mujoco-and-training.md)):
    - `cathlab_fr3_mujoco_v1` by 18:30;
    - SmolVLA → X-VLA → ACT on a cloud GPU from `cathlab_fr3_newton_v1@v1.0.1`;
    - eval in Newton + MuJoCo → FR3 table + sim2sim gap.
 4. **Version v1 → promote the best Panda model → rollout video → failure report → `next_run.json`.** Rakesh + Sharan, after 1–2.
-5. **Panda v2:** robosuite + ManiSkill (753 episodes) plus the loop-targeted cells, retrain the three models, evaluate, promote if better. RTX 6000.
+5. **Panda v2:** merged robosuite + ManiSkill (753 episodes) plus the loop-targeted cells; SmolVLA first, then evaluate and promote if better. RTX 6000 Ada (T6 of the ManiSkill handoff).
 6. **Optional:** Newton `v1.1` (+768 episodes); Genesis.
