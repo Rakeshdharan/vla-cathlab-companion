@@ -4,6 +4,7 @@ description: >
   Add a new pickable object (geometry, mass, grasp type, colours) to a NEW versioned variation spec, the robosuite
   scene builder, the task config and the catalog, so the scripted expert can pick it and episodes can be generated.
 catalog_target: objects
+gate: objects
 params:
   - {name: name, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "object id, snake_case, e.g. guidewire_hoop"}
   - {name: label, type: str, help: "UI label, e.g. 'Guidewire hoop (Ø120 mm)'"}

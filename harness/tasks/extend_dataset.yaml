@@ -4,6 +4,7 @@ description: >
   Run the scripted expert in robosuite for a window of variation configs, convert to LeRobot v3, preview, optionally
   push to the Hugging Face Hub, and log the result. Data lands OUTSIDE git under the given output folder.
 catalog_target: data
+gate: data_method
 params:
   - {name: spec, type: str, pattern: "^[a-z][a-z0-9_]*$", default: cathlab_v1, help: "variation spec name in configs/variation/"}
   - {name: split, type: choice, choices: [train, in_distribution, held_out_layout, held_out_obj_color, held_out_table_color, all_held_out], default: train}

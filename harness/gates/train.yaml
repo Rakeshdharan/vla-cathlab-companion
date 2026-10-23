@@ -1,0 +1,13 @@
+id: train
+title: Policy training
+status: partial
+owner: Rakesh
+extension_point: "train/recipes/<model>.yaml + a PolicyAdapter for the model (lerobot env, GPU worker)"
+contract:
+  - "contracts.PolicyAdapter: load(ckpt), predict(obs, instruction) -> (chunk, action_dim) float32, meta()"
+  - "Trained checkpoints go to the Hub as <owner>/<model>_<embodiment>_pick_v<N> with a contracts.ModelCard"
+conformance: "uv run pytest -q tests/test_contracts.py"
+paths: ["train/", "tests/", "configs/catalog.yaml", "docs/decisions.md", "CREDITS.md"]
+reference: [contracts/policy.py, docs/handoffs/2026-10-23-training-gpu-session.md]
+context: [AGENTS.md, docs/EXTENDING.md, contracts/reports.py]
+templates: [add_policy_adapter]

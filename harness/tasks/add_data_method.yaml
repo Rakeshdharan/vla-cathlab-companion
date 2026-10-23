@@ -1,0 +1,32 @@
+id: add_data_method
+title: Add a synthetic data method
+description: >
+  Add a data generation method (e.g. MimicGen augmentation, Cosmos transfer, teleop import) behind the generator
+  registry, writing raw shards in the shared format.
+catalog_target: ""
+gate: data_method
+params:
+  - {name: method_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "e.g. mimicgen, cosmos_transfer"}
+  - {name: notes, type: text, required: false, help: "paper/repo, GPU needs, inputs"}
+context:
+  - AGENTS.md
+  - docs/EXTENDING.md
+  - harness/gates/data_method.yaml
+  - dataengine/registry.py
+  - dataengine/generators.py
+  - dataengine/npz_sink.py
+  - docs/data.md
+prompt: |
+  Add the data method `{method_id}`. Notes: {notes}
+  Follow harness/gates/data_method.yaml: dataengine/{method_id}.py registered with @register_method("{method_id}"),
+  raw shards + DatasetManifest (source set correctly), only successful episodes, lazy heavy imports, tests in
+  tests/dataengine/ with the fake sim. CREDITS.md row for the method's paper/repo; docs/data.md section.
+allowed_paths:
+  - dataengine/
+  - tests/dataengine/
+  - docs/data.md
+  - docs/decisions.md
+  - CREDITS.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 60

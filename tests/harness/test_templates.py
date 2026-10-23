@@ -9,7 +9,8 @@ from orchestrator.catalog import load_catalog
 ROOT = Path(__file__).resolve().parents[2]
 TEMPLATES = load_templates(ROOT / "harness/tasks")
 EXPECTED = {"add_object", "extend_dataset", "add_variation_axis", "add_sim_backend", "add_policy_adapter",
-            "add_expert", "free_task"}
+            "add_expert", "free_task", "add_engine", "add_object_importer", "add_data_method", "add_eval_metric",
+            "add_report_section"}
 
 SAMPLE = {
     "add_object": {"name": "hoop", "label": "Hoop", "radius": 0.06, "length": 0.02, "mass": 0.05},
@@ -19,6 +20,11 @@ SAMPLE = {
     "add_policy_adapter": {"model_id": "pi05"},
     "add_expert": {},
     "free_task": {"goal": "fix it", "paths": "eval/, tests/eval/"},
+    "add_engine": {"engine_id": "newton", "label": "Newton 1.6 (Warp, GPU)"},
+    "add_object_importer": {"importer_id": "mesh"},
+    "add_data_method": {"method_id": "mimicgen"},
+    "add_eval_metric": {"metric_id": "wrong_object_rate", "definition": "episodes grasping the wrong object / total"},
+    "add_report_section": {"section_id": "sim2sim_gap", "definition": "success rate delta between engines"},
 }
 
 

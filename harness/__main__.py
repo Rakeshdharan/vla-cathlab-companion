@@ -43,6 +43,11 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8790)
+    brief = sub.add_parser("brief", help="print an Agent Brief for a request")
+    brief.add_argument("request")
+    brief.add_argument("--stage", action="append", default=[], help="gate id (repeatable)")
+    brief.add_argument("--engine", action="append", default=[], help="engine id (repeatable)")
+    brief.add_argument("--out", help="write the markdown here instead of stdout")
     args = ap.parse_args(argv)
 
     h = default_harness(args.repo, fetch=not args.no_fetch)
@@ -70,6 +75,16 @@ def main(argv: list[str] | None = None) -> int:
         import uvicorn
         from harness.server import create_agent_app
         uvicorn.run(create_agent_app(h, bind_host=args.host), host=args.host, port=args.port)
+    elif args.cmd == "brief":
+        from engines.registry import load_engines
+        from harness.brief import build_brief
+        from harness.gates import load_gates
+        md = build_brief(args.request, args.stage, args.engine, load_gates(), h.templates, load_engines())
+        if args.out:
+            Path(args.out).write_text(md)
+            print(f"wrote {args.out}")
+        else:
+            sys.stdout.write(md)
     return 0
 
 

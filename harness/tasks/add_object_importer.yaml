@@ -1,0 +1,30 @@
+id: add_object_importer
+title: Add an object importer
+description: >
+  Add an importer that turns a source (primitive dims, mesh file, Objaverse search) into an object package
+  assets/objects/<name>/ every engine can load.
+catalog_target: objects
+gate: objects
+params:
+  - {name: importer_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "e.g. mesh, objaverse"}
+  - {name: notes, type: text, required: false, help: "source format, libraries (trimesh, CoACD), limits"}
+context:
+  - AGENTS.md
+  - docs/EXTENDING.md
+  - harness/gates/objects.yaml
+  - configs/variation/cathlab_v1.yaml
+  - dataengine/expert.py
+prompt: |
+  Add the object importer `{importer_id}`. Notes: {notes}
+  Follow harness/gates/objects.yaml: assets/importers/{importer_id}.py producing assets/objects/<name>/ (object.yaml,
+  visual.obj, collision/*.obj, object.xml), validation (watertight warning, scale bounds, hull limit), refuse to
+  overwrite. Heavy libraries imported lazily. Tests in tests/assets/ with a tiny generated cube. CREDITS.md rows.
+allowed_paths:
+  - assets/
+  - tests/assets/
+  - pyproject.toml
+  - docs/decisions.md
+  - CREDITS.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 60

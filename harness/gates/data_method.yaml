@@ -1,0 +1,14 @@
+id: data_method
+title: Synthetic data method
+status: partial
+owner: "Rakesh (scripted), team (MimicGen, Cosmos, teleop)"
+extension_point: "dataengine/registry.py (@register_method) + dataengine/<method>.py; the engine's generate stage for engine-side methods"
+contract:
+  - "Raw output per shard: <out>/raw/shard_<i>-of-<k>/episodes/*.npz + meta/episodes_extra.jsonl + manifest.yaml (contracts.DatasetManifest with the right source)"
+  - "Episodes keep the io profile of their engine (panda_libero: action 7, state 8, agentview + eye_in_hand 256x256)"
+  - "Only successful episodes are kept; the episode's EpisodeConfig is stored in episodes_extra"
+conformance: "uv run pytest -q tests/dataengine"
+paths: ["dataengine/", "scripts/", "engines/", "tests/dataengine/", "configs/catalog.yaml", "docs/decisions.md", "docs/data.md", "CREDITS.md"]
+reference: [dataengine/registry.py, dataengine/generators.py, dataengine/mimicgen.py, dataengine/npz_sink.py, scripts/robosuite_generate.py]
+context: [AGENTS.md, docs/EXTENDING.md, docs/data.md, contracts/specs.py, docs/research]
+templates: [extend_dataset, add_data_method]

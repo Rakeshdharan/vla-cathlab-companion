@@ -11,7 +11,9 @@ sections:
       - {id: robosuite, label: "robosuite (MuJoCo)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz"}
       - {id: maniskill, label: "ManiSkill3 (SAPIEN / PhysX 5)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz; worker :8714"}
       - {id: isaac, label: "Isaac Sim", status: in_progress, harness_task: add_sim_backend, notes: "Provided FR3 Duo scene, right arm"}
-      - {id: mujoco, label: "MuJoCo (standalone)", status: planned, harness_task: add_sim_backend}
+      - {id: mujoco, label: "MuJoCo (standalone)", status: planned, harness_task: add_engine}
+      - {id: genesis, label: "Genesis 1.4 (own GPU rigid solver)", status: planned, harness_task: add_engine}
+      - {id: newton, label: "Newton 1.6 (Warp, GPU)", status: planned, harness_task: add_engine}
   embodiment:
     title: Embodiment
     multi: false

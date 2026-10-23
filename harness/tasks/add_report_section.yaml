@@ -1,0 +1,26 @@
+id: add_report_section
+title: Add a failure report section
+description: >
+  Add a section to the failure report (e.g. sim2sim gap, wrong-object grasps) with its recommendation for the next run.
+catalog_target: ""
+gate: report
+params:
+  - {name: section_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "e.g. sim2sim_gap"}
+  - {name: definition, type: text, help: "what it shows and which next-run cells it recommends"}
+context:
+  - AGENTS.md
+  - docs/EXTENDING.md
+  - harness/gates/report.yaml
+  - contracts/reports.py
+  - eval/failures.py
+prompt: |
+  Add the failure report section `{section_id}`: {definition}
+  Follow harness/gates/report.yaml: a function in report/ reading EvalReports, rendered into report.md/report.json,
+  contributing failing cells to next_run.json; tests in tests/report/ with hand-built reports.
+allowed_paths:
+  - report/
+  - tests/report/
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 45

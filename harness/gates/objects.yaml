@@ -1,0 +1,14 @@
+id: objects
+title: Objects on the table
+status: partial
+owner: Rakesh
+extension_point: "Primitive objects in a new VariationSpec version (objects: shape, dims, mass, grasp); mesh/Objaverse object packages assets/objects/<name>/ + assets/importers/ (Plan B-engines)"
+contract:
+  - "Every object has a grasp template the analytic expert understands (dataengine.expert.grasp_pose)"
+  - "Object packages: object.yaml + visual.obj + collision/*.obj + generated object.xml (MJCF) that every engine can load"
+  - "Importers validate meshes (watertight warning, scale bounds, hull count limit) and never overwrite an existing package"
+conformance: "MUJOCO_GL=egl conda run -n robosuite python -m engines.robosuite.cli check-expert --out var/check --n 20 --objects <name>   # rate >= 0.8"
+paths: ["configs/variation/", "assets/", "dataengine/", "sim/", "tests/", "configs/catalog.yaml", "docs/decisions.md", "CREDITS.md"]
+reference: [configs/variation/cathlab_v1.yaml, dataengine/expert.py, sim/robosuite/env.py]
+context: [AGENTS.md, docs/EXTENDING.md, docs/specs/2026-10-23-multi-engine-platform-design.md]
+templates: [add_object, add_object_importer]
