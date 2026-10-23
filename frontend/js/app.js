@@ -5,6 +5,7 @@ import { initPipeline, refreshRuns } from "./pipeline.js";
 import { initBrief } from "./brief.js";
 import { initModels } from "./models.js";
 import { initReport } from "./report.js";
+import { initAssist } from "./assist.js";
 
 // ---- tabs -------------------------------------------------------------------------------
 export function showTab(name) {
@@ -188,6 +189,7 @@ async function boot() {
   await initBrief();
   await initModels();
   await initReport();
+  await initAssist();
   refreshWorkers();
   refreshJobs();
   setInterval(refreshWorkers, 5000);

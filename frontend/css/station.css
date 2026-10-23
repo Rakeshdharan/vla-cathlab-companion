@@ -105,3 +105,4 @@ table.grid th { background: var(--panel-2); font-size: 12px; letter-spacing: .5p
 .tree select, .tree input { width: 100%; }
 #versions td .btn { margin-right: 4px; padding: 2px 8px; font-size: 11px; }
 #history div { padding: 2px 0; }
+#assist-proposal { white-space: pre-wrap; font-size: 15px; }

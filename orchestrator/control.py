@@ -14,6 +14,7 @@ from engines.registry import ENGINES_DIR, load_engines
 from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
 from orchestrator.loop import create_loop_router
+from orchestrator.assist import create_assist_router
 from serve.registry import Registry
 from orchestrator.pipeline import Pipeline, PipelineError, worker_request
 from orchestrator.store import Store
@@ -160,6 +161,7 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
 
     roots = [Path(p) for p in eval_roots] if eval_roots else [repo_root / "reports", var_dir / "runs"]
     app.include_router(create_loop_router(store, registry, var_dir, repo_root, catalog_path, roots), prefix="/api")
+    app.include_router(create_assist_router(store, pipeline, repo_root), prefix="/api/assist")
 
     if frontend_dir.exists():
         app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
