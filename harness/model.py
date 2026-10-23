@@ -28,6 +28,7 @@ class TaskTemplate(BaseModel):
     title: str
     description: str
     catalog_target: str = ""
+    gate: str = ""
     params: list[Param] = Field(default_factory=list)
     context: list[str] = Field(default_factory=list)
     prompt: str

@@ -2,6 +2,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
+from engines.registry import load_engines
+from harness.brief import brief_paths, build_brief
+from harness.gates import load_gates
 from harness.gitops import GitError
 from harness.model import ParamError
 from harness.runner import Harness, HarnessError
@@ -13,6 +16,12 @@ class JobCreate(BaseModel):
     extra: str = ""
     agent: str | None = None
     start: bool = True
+
+
+class BriefRequest(BaseModel):
+    request: str
+    stages: list[str] = Field(default_factory=list)
+    engines: list[str] = Field(default_factory=list)
 
 
 def create_agent_router(harness: Harness) -> APIRouter:
@@ -27,6 +36,19 @@ def create_agent_router(harness: Harness) -> APIRouter:
     @r.get("/tasks")
     def tasks() -> list[dict]:
         return [t.model_dump() for t in harness.templates.values()]
+
+    @r.get("/gates")
+    def gates() -> list[dict]:
+        return [g.model_dump() for g in load_gates().values()]
+
+    @r.post("/brief")
+    def brief(body: BriefRequest) -> dict:
+        gates = load_gates()
+        try:
+            md = build_brief(body.request, body.stages, body.engines, gates, harness.templates, load_engines())
+            return {"markdown": md, "paths": brief_paths(body.stages, gates)}
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from e
 
     @r.get("/agents")
     def agents() -> dict:

@@ -4,6 +4,7 @@ description: >
   Add an alternative grasp source for the scripted expert (e.g. GraspGen candidate ranking), selectable by name,
   without changing the default analytic expert's behaviour.
 catalog_target: expert
+gate: expert
 params:
   - {name: expert_id, type: str, pattern: "^[a-z][a-z0-9_]*$", default: graspgen}
   - {name: notes, type: text, required: false, help: "install notes, model weights location, GPU needs"}

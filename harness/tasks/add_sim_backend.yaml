@@ -4,6 +4,7 @@ description: >
   Implement the expert adapter (dataengine.expert.ExpertSim) and the eval backend (contracts.SimBackend) for a simulator,
   following the robosuite reference implementation, and register it in the catalog.
 catalog_target: simulator
+gate: engine
 params:
   - {name: sim, type: choice, choices: [isaac, mujoco], help: "package sim/<sim>/"}
   - {name: embodiment, type: str, default: fr3_duo}

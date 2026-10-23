@@ -1,0 +1,13 @@
+id: report
+title: Failure report and next run
+status: planned
+owner: Sharan
+extension_point: "report/failure_report.py (+ sections) reading EvalReports"
+contract:
+  - "report.md + report.json + next_run.json as defined in docs/handoffs/2026-10-23-sharan-serve-intel-session.md (S6)"
+  - "next_run.json lists exactly the failing cells (engine x tier x object x layout/colour) as a run selection the Control Station can create"
+conformance: "uv run pytest -q tests/report"
+paths: ["report/", "tests/report/", "docs/decisions.md"]
+reference: [eval/failures.py, docs/handoffs/2026-10-23-sharan-serve-intel-session.md]
+context: [AGENTS.md, docs/EXTENDING.md, contracts/reports.py, contracts/gaps.py]
+templates: [add_report_section]

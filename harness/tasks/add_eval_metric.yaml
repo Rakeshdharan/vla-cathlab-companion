@@ -1,0 +1,26 @@
+id: add_eval_metric
+title: Add an evaluation metric
+description: >
+  Add a metric computed from EvalReport JSON (any engine), shown in reports and usable by the promotion rule.
+catalog_target: ""
+gate: eval
+params:
+  - {name: metric_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "e.g. wrong_object_rate, time_to_grasp"}
+  - {name: definition, type: text, help: "exact definition, edge cases"}
+context:
+  - AGENTS.md
+  - docs/EXTENDING.md
+  - harness/gates/eval.yaml
+  - contracts/reports.py
+  - eval/metrics.py
+prompt: |
+  Add the metric `{metric_id}`: {definition}
+  Follow harness/gates/eval.yaml: a pure function in eval/metrics.py over contracts.EvalReport, tests in
+  tests/test_metrics.py with hand-built reports (including empty and all-failed), and a line in eval/README.md.
+allowed_paths:
+  - eval/
+  - tests/test_metrics.py
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 30

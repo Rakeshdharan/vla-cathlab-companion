@@ -1,0 +1,13 @@
+id: convert
+title: LeRobot conversion
+status: ready
+owner: Rakesh
+extension_point: "scripts/npz_to_lerobot.py (panda_libero) or the engine CLI's convert stage (runs in the lerobot env)"
+contract:
+  - "LeRobot v3 dataset in <out>/lerobot with the io profile's features and fps; episodes re-indexed from 0"
+  - "meta/episodes_extra.jsonl and manifest.yaml copied; tags v<N> + v3.0 when pushed to the Hub"
+conformance: "uv run pytest -q tests/dataengine/test_npz_sink.py tests/dataengine/test_lerobot_sink.py"
+paths: ["scripts/npz_to_lerobot.py", "dataengine/", "engines/", "tests/dataengine/", "docs/data.md"]
+reference: [scripts/npz_to_lerobot.py, dataengine/npz_sink.py, dataengine/lerobot_sink.py]
+context: [AGENTS.md, docs/data.md]
+templates: [extend_dataset]

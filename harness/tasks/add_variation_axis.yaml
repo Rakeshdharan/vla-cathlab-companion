@@ -4,6 +4,7 @@ description: >
   Add a new per-episode randomization (e.g. camera jitter, unseen distractors, table texture) to EpisodeConfig,
   the variation spec and the robosuite randomizer, and expose it in the catalog.
 catalog_target: variation
+gate: scene
 params:
   - {name: axis_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "snake_case, e.g. camera_jitter"}
   - {name: label, type: str, help: "UI label, e.g. 'Camera jitter ±2 cm / ±3°'"}

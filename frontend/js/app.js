@@ -88,6 +88,7 @@ function buildWithAgent(taskId, sectionKey, itemId) {
   if (taskId === "add_policy_adapter" && itemId) prefill.model_id = itemId;
   if (taskId === "add_expert" && itemId) prefill.expert_id = itemId;
   if (taskId === "add_variation_axis" && itemId) prefill.axis_id = itemId;
+  if (taskId === "add_engine" && itemId) prefill.engine_id = itemId;
   showTab("agent");
   openTemplate(taskId, prefill);
 }

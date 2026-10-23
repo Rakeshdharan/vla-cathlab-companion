@@ -4,6 +4,7 @@ description: >
   Wrap a model so the pipeline can train it and serve it through the policy server: a contracts.PolicyAdapter plus
   the training command, registered in the catalog.
 catalog_target: model
+gate: train
 params:
   - {name: model_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "catalog id, e.g. pi05"}
   - {name: lerobot_policy_type, type: str, required: false, help: "e.g. pi05 / diffusion; empty if not LeRobot-native"}

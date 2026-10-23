@@ -1,0 +1,42 @@
+id: add_engine
+title: Add a simulation engine plugin
+description: >
+  Add engines/<engine_id>/ (manifest + uniform CLI + SimBackend + ExpertSim adapter) so the Control Station can
+  preview, generate, evaluate and roll out in a new simulator, following the robosuite reference.
+catalog_target: simulator
+gate: engine
+params:
+  - {name: engine_id, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "folder name, e.g. mujoco, newton, maniskill"}
+  - {name: label, type: str, help: "human label, e.g. 'MuJoCo 3.3 standalone (Menagerie Panda)'"}
+  - {name: env, type: str, default: "", required: false, help: "conda env / venv to run it in"}
+  - {name: notes, type: text, required: false, help: "simulator version, robot asset source, known constraints"}
+context:
+  - AGENTS.md
+  - docs/EXTENDING.md
+  - harness/gates/engine.yaml
+  - engines/registry.py
+  - engines/cli_base.py
+  - engines/robosuite/engine.yaml
+  - engines/robosuite/cli.py
+  - engines/robosuite/evaluate.py
+  - sim/robosuite/expert_sim.py
+  - sim/robosuite/backend.py
+prompt: |
+  Add the engine plugin `{engine_id}` ({label}), env `{env}`. Notes: {notes}
+  Follow harness/gates/engine.yaml exactly and mirror engines/robosuite/:
+  1. engines/{engine_id}/engine.yaml (capabilities honest: only what works is `ready`), cli.py with the six stages
+     via engines.cli_base.run_cli, lazy simulator imports.
+  2. sim/{engine_id}/: ExpertSim adapter (core frame) and SimBackend (io profile panda_libero unless told otherwise).
+  3. tests/engines/: CLI dry-run tests runnable in the core env; the conformance test must pass in the engine's env.
+  4. Catalog item `{engine_id}` in section simulator; CREDITS.md rows; one docs/decisions.md row with the
+     conformance evidence.
+allowed_paths:
+  - "engines/{engine_id}/"
+  - "sim/{engine_id}/"
+  - tests/engines/
+  - configs/catalog.yaml
+  - docs/decisions.md
+  - CREDITS.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 90

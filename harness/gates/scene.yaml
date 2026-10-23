@@ -1,0 +1,14 @@
+id: scene
+title: Scene and variation axes
+status: ready
+owner: Rakesh
+extension_point: "A new versioned spec configs/variation/cathlab_v<N>.yaml + dataengine/variation.py axes + the engine's randomizer (sim/<engine>/randomize.py)"
+contract:
+  - "dataengine.variation.VariationSpec loads the spec; train_configs/eval_configs return EpisodeConfigs deterministically from seeds"
+  - "Eval tiers stay dataengine.variation.TIERS; a new axis gets held-out values for the all_held_out tier"
+  - "Never edit configs/variation/cathlab_v1.yaml (the published v1 dataset depends on it)"
+conformance: "uv run pytest -q tests/dataengine && MUJOCO_GL=egl conda run -n robosuite python scripts/robosuite_expert_check.py --n 20"
+paths: ["configs/variation/", "dataengine/variation.py", "sim/", "tests/dataengine/", "tests/sim/", "configs/catalog.yaml", "docs/decisions.md"]
+reference: [configs/variation/cathlab_v1.yaml, dataengine/variation.py, sim/robosuite/randomize.py]
+context: [AGENTS.md, docs/EXTENDING.md, docs/specs/2026-10-22-sim-framework-design.md]
+templates: [add_variation_axis]
