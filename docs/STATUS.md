@@ -37,6 +37,8 @@
 
 **Cross-physics eval matrix (the headline, suite_v2, 60 episodes per cell):**
 
+Remaining evals (ManiSkill-trained SmolVLA + X-VLA) moved to the **RTX 2000 Ada**: [`handoffs/2026-10-23-rtx2000-cross-eval-session.md`](handoffs/2026-10-23-rtx2000-cross-eval-session.md). The RTX 6000 Ada only trains. Raw reports: `reports/robosuite/eval_reports/`; table: [`reports/robosuite/cross_physics_v1.md`](../reports/robosuite/cross_physics_v1.md).
+
 | | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
 |---|---|---|
 | expert | ✅ 60/60 | ✅ 60/60 |
