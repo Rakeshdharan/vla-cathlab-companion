@@ -21,7 +21,7 @@
 | Scripted expert (baseline) | ✅ robosuite | ✅ ManiSkill 60/60 on suite_v2 | ✅ Newton + MuJoCo 100 % on every tier |
 | ACT (from scratch) | ✅ [`act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1), 50,000 × 64 (baseline) | dropped | dropped |
 | SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ✅ [`smolvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_maniskill_v1), 8,500 × 32 (v1 recipe), 1 h 54 m, loss 0.011 | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
-| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1`, **2,500 × 32** (time-boxed, v1: 7,500), **ETA ~22:40** | ✅ [`xvla_fr3_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_fr3_pick_v1), from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, 1 h 08 m, loss 0.001: **Aravind evaluates** |
+| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ✅ [`xvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_maniskill_v1), **2,500 × 32** (time-boxed, v1: 7,500), 36 m, loss 0.028 | ✅ [`xvla_fr3_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_fr3_pick_v1), from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, 1 h 08 m, loss 0.001: **Aravind evaluates** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
 | **Panda v2** (co-training) | ❌ dropped at H28.5 (no more SmolVLA training; GPU queue is X-VLA only until freeze) | | — |
 
@@ -31,7 +31,7 @@
 |---|---|---|---|---|
 | SmolVLA-ManiSkill | 28.4 GB | 0.78 (AMP) | 8,500 (= v1) | 18:57 → ✅ 20:52 |
 | X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ✅ 22:03 |
-| X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ~22:41 |
+| X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ✅ 22:40 |
 
 `train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
@@ -43,9 +43,9 @@ Remaining evals (ManiSkill-trained SmolVLA + X-VLA) moved to the **RTX 2000 Ada*
 |---|---|---|
 | expert | ✅ 60/60 | ✅ 60/60 |
 | ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (3–16) · **SmolVLA 38 % (27–51)** · X-VLA 8 % (4–18): in-domain | ACT 2 % (0–9) · SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) |
-| SmolVLA / X-VLA trained on ManiSkill | SmolVLA **0 % (0–6)**, 60/60 fail at reach (RTX 2000 Ada) · X-VLA ⏳ (2,500 × 32; evaluated here if on HF by 22:55) | ⛔ not evaluated: the RTX 2000 Ada is WSL2 without Vulkan; ManiSkill needs native Linux (in-domain cells pending) |
+| SmolVLA / X-VLA trained on ManiSkill | SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) | **SmolVLA 43 % (32–56)** · X-VLA 8 % (4–18): in-domain (RTX 6000 Ada; the RTX 2000 is WSL2 without Vulkan) |
 
-**Reading (22:15):** the cross-physics gap is **symmetric and total**. Robosuite-trained SmolVLA drops 38 % → 0 % in ManiSkill, and ManiSkill-trained SmolVLA scores 0 % in robosuite, failing at *reach*: it doesn't find the object in the other engine's images. The expert is 100 % in both, so the action/state plumbing is correct. The gap is visual (pedestal, floor, lighting) + dynamics, not an interface bug. Per-episode latency on the laptop GPU is ~0.9 s median with 5 parallel evals; this doesn't change success, since actions are open-loop chunks.
+**Reading (22:50, table complete, 12/12 cells):** the cross-physics gap is **symmetric and total**. Each policy works only in the engine it was trained in: SmolVLA 38 % in robosuite / 0 % in ManiSkill when trained on robosuite, and 43 % in ManiSkill / 0 % in robosuite when trained on ManiSkill. Failures in the other engine are at *reach* (55–60/60): the policy doesn't find the object in the other renderer's images. The expert is 100 % in both, so the action/state plumbing is correct. The gap is visual (pedestal, floor, lighting) + dynamics, not an interface bug. X-VLA is weak in-domain in both engines (8 %; the ManiSkill one had only 2,500 steps). **Implication for the loop:** co-train on both engines' data (and/or visual domain randomisation) before claiming sim2sim transfer. SmolVLA-ManiSkill-in-robosuite latency (917 ms p50) was measured on the RTX 2000 laptop with 5 parallel evals.
 
 Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-10-23-training-gpu-session.md).
 
@@ -58,8 +58,8 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 
 | Engine | Robot | Physics | Plugin on `main` | Data | Eval |
 |---|---|---|---|---|---|
-| robosuite | Panda | MuJoCo 3.3.7 | ✅ `engines/robosuite` | ✅ | ✅ expert; checkpoints blocked (see below) |
-| ManiSkill3 | Panda | PhysX 5 | ✅ `engines/maniskill` | ✅ | ✅ expert 60/60; checkpoints blocked |
+| robosuite | Panda | MuJoCo 3.3.7 | ✅ `engines/robosuite` | ✅ | ✅ expert + 5 checkpoints (`--policy lerobot:<ckpt>`) |
+| ManiSkill3 | Panda | PhysX 5 | ✅ `engines/maniskill` | ✅ | ✅ expert 60/60 + 5 checkpoints |
 | Newton | FR3 Duo | MuJoCo-Warp | ⬜ Aravind's repo only ([`cathlab_sim/newton`](https://github.com/aravinds1610/mujoco_cathlab_vla/tree/main/cathlab_sim/newton)) | ✅ | expert 100 % all tiers, sim2sim vs MuJoCo 60/60 |
 | Genesis | Panda | Genesis 1.4.5 | ✅ `engines/genesis` (worker :8715, `make worker-genesis`) | ✅ | ✅ expert 60/60; checkpoints pending |
 | ~~Isaac Sim~~ | ~~FR3 Duo~~ | ~~PhysX~~ | removed (H24) | — | — |
@@ -84,7 +84,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | UI | `frontend/` | ✅ | PROJECT (catalog, Build with agent), **PIPELINE** (6 stages, live log, outputs, video), **MODELS** (register, promote, rollback), **REPORT** (failure report, CREATE NEXT RUN), **ASSIST** (procedure step proposes the object, YES hands it over with the production model), AGENT, LOG, **AGENT BRIEF** drawer | DATA tab is a placeholder |
 | Eval metrics + judge | `eval/` | 🟡 | metrics, failure classes, VLM judge, `eval.cli` (DummySim/robosimstudio), tests | Benchmark table across models × engines; engine evals feed it once checkpoints can be loaded |
 | Awareness | `awareness/` | 🟡 | Procedure model, VLM step tracking, propose-confirm assistant (tests); **ASSIST panel wired** (instruction → rollout, YES hands over with the production model) | VLM step tracking not wired to the UI yet (ASSIST proposes from the procedure model, not live video), voice |
-| Training | `train/` | ⬜ | Recipes and checkpoints exist on the RTX 6000 / HF | `train/lerobot_adapter.py` (**the eval blocker**), recipes on `main`, Train stage in the UI |
+| Training | `train/` | 🟡 | `train/lerobot_adapter.py` (`--policy lerobot:<ckpt>`, also the policy server's default adapter), `train/cross_physics_report.py`, `train/model_card.py`; 5 Panda + 1 FR3 checkpoints on HF | Recipes as code (they live in the handoff), Train stage in the UI |
 | Serving + registry | `serve/` | ✅ | Registry (`serve/registry.py`: versions, promotion rule, rollback), policy server (`serve/policy_server.py`, `make policy-server` on :8720) + stdlib `PolicyClient` (`serve/policy_client.py`), codec (`serve/codec.py`) | — |
 | Dataset intelligence | `dataset_intel/` | ⬜ | Contract (S5) | Validators, coverage, readiness score; Rakesh |
 | Failure report → next run | `report/` | ✅ | `report/failure_report.py`: `build_report` sections (failing cells, sim2sim gap, stage histogram, recommendations) + `next_run.json` (train-split cells only); CREATE NEXT RUN in the REPORT tab | — |
@@ -107,7 +107,7 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 
 | Stage | What it produces | Owner | Code on `main` | State |
 |---|---|---|---|---|
-| **Eval** | `EvalReport` per model × engine × tier (suite_v2: 3 objects × 5 tiers × seeds 5000–5003 = 60 episodes); expert as reference | Rakesh (Panda), Aravind (FR3) | ✅ `engines/{robosuite,maniskill}/cli eval` (expert works); **needs a policy adapter** | ⛔ blocked on `train/lerobot_adapter.py` or `serve/policy_client.py` |
+| **Eval** | `EvalReport` per model × engine × tier (suite_v2: 3 objects × 5 tiers × seeds 5000–5003 = 60 episodes); expert as reference | Rakesh (Panda), Aravind (FR3) | ✅ `engines/{robosuite,maniskill}/cli eval` (expert works); **needs a policy adapter** | ✅ 12 cells (6 models × robosuite/ManiSkill): [`reports/robosuite/cross_physics_v1.md`](../reports/robosuite/cross_physics_v1.md) |
 | **Version** | Registry entry `cathlab-pick@vN` = ModelCard (checkpoint URI, dataset versions, eval report, W&B run, git SHA) | Rakesh (was Sharan, S3) | ✅ `serve/registry.py` | ✅ |
 | **Promote / rollback** | Production pointer moves only if the candidate beats production beyond the 95 % CI and p95 latency ≤ 500 ms (`configs/serve.yaml`) | Rakesh (was Sharan, S3) | ✅ `serve/registry.py` | ✅ |
 | **Deploy** | Policy server serving the production version (HTTP+JSON, token auth) + stdlib `PolicyClient` used by every engine | Rakesh (was Sharan, S1, S2) | ✅ `serve/policy_server.py`, `serve/policy_client.py` | ✅ |
@@ -116,7 +116,7 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 
 ## Blocker for every headline number
 
-**No trained checkpoint has been evaluated closed-loop yet.** Engine `eval --policy url:<server>` needs the policy server (`serve/`, now Rakesh), or the in-process `train/lerobot_adapter.py` from the training session. **Neither is on `main`.** Whichever lands first unblocks the eval matrix: 5 Panda checkpoints × {robosuite, ManiSkill} × suite_v2 tiers, plus FR3 checkpoints in Newton.
+~~No trained checkpoint has been evaluated closed-loop yet.~~ Done at H31: see the cross-physics matrix. Engine `eval --policy url:<server>` needs the policy server (`serve/`, now Rakesh), or the in-process `train/lerobot_adapter.py` from the training session. **Neither is on `main`.** Whichever lands first unblocks the eval matrix: 5 Panda checkpoints × {robosuite, ManiSkill} × suite_v2 tiers, plus FR3 checkpoints in Newton.
 
 ## Next (owner)
 
