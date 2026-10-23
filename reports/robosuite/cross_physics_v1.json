@@ -149,6 +149,81 @@
       "max_ms": 0.23393556475639335
     }
   },
+  "maniskill/smolvla_panda_maniskill_v1": {
+    "model": "smolvla_panda_maniskill_v1",
+    "engine": "maniskill",
+    "trained_on": "maniskill",
+    "overall": {
+      "success_rate": 0.43333333333333335,
+      "ci_low": 0.31572200394400635,
+      "ci_high": 0.5589678534530513,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.6666666666666666,
+        "ci_low": 0.3906175873976139,
+        "ci_high": 0.8618821601026385,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.75,
+        "ci_low": 0.46768966087934005,
+        "ci_high": 0.9110599603710386,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.6666666666666666,
+        "ci_low": 0.3906175873976139,
+        "ci_high": 0.8618821601026385,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.6,
+        "ci_low": 0.3865779423152061,
+        "ci_high": 0.7811960325858074,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.65,
+        "ci_low": 0.43285051021946463,
+        "ci_high": 0.8188104521320554,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 20,
+      "grasp": 10,
+      "lift": 4,
+      "transport": 0,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 172.38774616271257,
+      "p95_ms": 201.17872735718265,
+      "max_ms": 514.043598040007
+    }
+  },
   "maniskill/smolvla_panda_pick_v1": {
     "model": "smolvla_panda_pick_v1",
     "engine": "maniskill",
@@ -222,6 +297,81 @@
       "p50_ms": 241.4032492088154,
       "p95_ms": 312.79410988674465,
       "max_ms": 914.7653733612965
+    }
+  },
+  "maniskill/xvla_panda_maniskill_v1": {
+    "model": "xvla_panda_maniskill_v1",
+    "engine": "maniskill",
+    "trained_on": "maniskill",
+    "overall": {
+      "success_rate": 0.08333333333333333,
+      "ci_low": 0.03611992405048589,
+      "ci_high": 0.18069168468112481,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.16666666666666666,
+        "ci_low": 0.04696414761482223,
+        "ci_high": 0.44803635738467273,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.16666666666666666,
+        "ci_low": 0.04696414761482223,
+        "ci_high": 0.44803635738467273,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.2,
+        "ci_low": 0.0806563532712,
+        "ci_high": 0.41602172202575993,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 46,
+      "grasp": 6,
+      "lift": 2,
+      "transport": 1,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 77.95010914560407,
+      "p95_ms": 96.0748397896532,
+      "max_ms": 390.63805229961844
     }
   },
   "maniskill/xvla_panda_pick_v1": {
@@ -597,6 +747,81 @@
       "p50_ms": 234.87181379459798,
       "p95_ms": 270.5295428971294,
       "max_ms": 745.0287085026498
+    }
+  },
+  "robosuite/xvla_panda_maniskill_v1": {
+    "model": "xvla_panda_maniskill_v1",
+    "engine": "robosuite",
+    "trained_on": "maniskill",
+    "overall": {
+      "success_rate": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.06017393047793289,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 55,
+      "grasp": 5,
+      "lift": 0,
+      "transport": 0,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 76.54095988254994,
+      "p95_ms": 99.57385670859365,
+      "max_ms": 387.2529722284523
     }
   },
   "robosuite/xvla_panda_pick_v1": {
