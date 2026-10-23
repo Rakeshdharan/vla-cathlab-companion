@@ -1,5 +1,7 @@
 # Handover: Navneet's GPU machine (Isaac Sim) session
 
+> **Superseded (2026-10-23):** follow [`2026-10-23-isaac-engine-session.md`](2026-10-23-isaac-engine-session.md) on the RTX 4090 PC. The blockers listed below are resolved: the shared `dataengine/` code, `cathlab_pick.yaml` and the contracts exports are on `main`.
+
 *Written 2026-10-22 on Navneet's Mac, for the Claude Code session that will run on the GPU PC. Say "follow `docs/handoffs/2026-10-22-navneet-gpu-machine.md`" as the first message.*
 
 ## Context

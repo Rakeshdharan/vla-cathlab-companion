@@ -1,5 +1,7 @@
 # Session Handover: Isaac Sim Track (Provided FR3 Duo Scene) → Objects, Expert, Recording, Variation
 
+> **Superseded (2026-10-23):** follow [`2026-10-23-isaac-engine-session.md`](2026-10-23-isaac-engine-session.md): Isaac as an engine plugin with the uniform CLI. Keep this file for the verified USD facts in §1.
+
 *From the master session, 2026-10-22 ~22:15 (≈H8). For the whole team and your coding agents; Rakesh is helping. Paste this file into your agent as the first message, or say "follow docs/handoffs/2026-10-22-isaac-fr3-session.md".*
 
 ## Goal
