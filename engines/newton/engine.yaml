@@ -1,0 +1,26 @@
+# Newton engine plugin (MuJoCo-Warp, GPU): FR3 Duo, right arm, cathlab handover. Vendored FR3 track: sim/newton/README.md.
+id: newton
+label: "Newton 1.6 (MuJoCo-Warp, GPU): FR3 Duo, cathlab handover"
+env: {kind: venv, name: ~/venvs/newton}
+worker: newton
+embodiments: [fr3_duo]
+io: fr3_duo_16d
+variation: sim/newton/configs/variation/cathlab_fr3_newton.yaml
+task: configs/tasks/cathlab_pick.yaml
+capabilities:                    # ready | in_progress | planned  (evidence: docs/decisions.md H28.5)
+  preview: ready
+  objects: {primitive: ready, mjcf: planned}
+  randomize: ready
+  expert: {analytic: ready, graspgen: planned}
+  generate: ready
+  convert: in_progress           # vendored FR3 converter needs lerobot 0.6.1 (+ mujoco)
+  eval: ready
+  rollout: ready
+entry: engines.newton.cli
+backend: "sim.newton.backend:NewtonFR3Backend"
+credits:
+  - {name: Newton, url: "https://github.com/newton-physics/newton", license: Apache-2.0}
+  - {name: MuJoCo Warp, url: "https://github.com/google-deepmind/mujoco_warp", license: Apache-2.0}
+  - {name: "MuJoCo Menagerie franka_fr3_v2", url: "https://github.com/google-deepmind/mujoco_menagerie/tree/main/franka_fr3_v2", license: Apache-2.0}
+  - {name: "MuJoCo Menagerie robotiq_2f85", url: "https://github.com/google-deepmind/mujoco_menagerie/tree/main/robotiq_2f85", license: BSD-2-Clause}
+  - {name: "mujoco_cathlab_vla (Aravind Suresh): FR3 Duo scene + expert", url: "https://github.com/aravinds1610/mujoco_cathlab_vla", license: "team code, vendored @ fc019f8"}

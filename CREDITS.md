@@ -10,6 +10,10 @@ CathLab Companion builds on these projects. Thank you to their authors. Each is 
 | SAPIEN | Simulator/renderer under ManiSkill3 | https://github.com/haosulab/SAPIEN | MIT |
 | Genesis | GPU physics + rendering for the Genesis Panda engine | https://github.com/Genesis-Embodied-AI/Genesis | Apache-2.0 |
 | MuJoCo Menagerie (Franka Emika Panda) | Panda model (`panda_no_tendon.xml`) in the Genesis engine | https://github.com/google-deepmind/mujoco_menagerie/tree/main/franka_emika_panda | Apache-2.0 |
+| Newton | Third engine (FR3 Duo, GPU, parallel worlds) | https://github.com/newton-physics/newton | Apache-2.0 |
+| MuJoCo Warp | Newton's MuJoCo solver on the GPU | https://github.com/google-deepmind/mujoco_warp | Apache-2.0 |
+| MuJoCo Menagerie `franka_fr3_v2` / `robotiq_2f85` | FR3 arm and 2F-85 gripper models for the Newton engine | https://github.com/google-deepmind/mujoco_menagerie | Apache-2.0 / BSD-2-Clause |
+| mujoco_cathlab_vla (Aravind Suresh) | FR3 Duo scene, IK expert, Newton runner and FR3 converter, vendored in `sim/newton/fr3/` @ `fc019f8` | https://github.com/aravinds1610/mujoco_cathlab_vla | team code |
 | LeRobot | Dataset format (v3), training, policies | https://github.com/huggingface/lerobot | Apache-2.0 |
 | SmolVLA | Baseline vision-language-action policy (via LeRobot) | https://huggingface.co/lerobot/smolvla_base | Apache-2.0 |
 | ACT | Non-language baseline policy (via LeRobot) | https://github.com/tonyzhaozh/act | MIT |
