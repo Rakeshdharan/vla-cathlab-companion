@@ -1,4 +1,5 @@
 import itertools
+import json
 from pathlib import Path
 from typing import Literal
 import numpy as np
@@ -185,3 +186,45 @@ def generation_order(spec: VariationSpec, cfgs: list[EpisodeConfig], seed: int =
     per_object = [[c for c in cfgs if c.object == o] for o in spec.objects]
     per_object = [[group[i] for i in rng.permutation(len(group))] for group in per_object]
     return [group[i] for i in range(max(map(len, per_object))) for group in per_object if i < len(group)]
+
+
+TARGETED_SEED0 = 200_000   # targeted (next-run) episodes; never overlaps train (< 1e6 * 0 + grid) or eval (>= 5000) seeds
+
+
+def load_cells(path: str | Path) -> list[dict]:
+    """Cells of a next_run.json (report/failure_report.py)."""
+    return json.loads(Path(path).read_text())["cells"]
+
+
+def cell_configs(spec: VariationSpec, cells: list[dict]) -> list[EpisodeConfig]:
+    """k configs per failing cell: object, layout and colours fixed; mass, friction and light resampled."""
+    out = []
+    for ci, cell in enumerate(cells):
+        if cell["object"] not in spec.objects:
+            raise ValueError(f"unknown object {cell['object']!r} in cell {ci}")
+        for key, size in (("layout_id", spec.n_layouts), ("obj_color_id", len(spec.obj_colors)),
+                          ("table_color_id", len(spec.table_colors))):
+            if not 0 <= int(cell[key]) < size:
+                raise ValueError(f"cell {ci}: {key}={cell[key]} outside 0..{size - 1}")
+        for j in range(int(cell.get("k", 8))):
+            seed = TARGETED_SEED0 + 1000 * ci + j
+            rng = np.random.default_rng(seed)
+            out.append(EpisodeConfig(object=cell["object"], layout_id=int(cell["layout_id"]),
+                                     obj_color_id=int(cell["obj_color_id"]), table_color_id=int(cell["table_color_id"]),
+                                     seed=seed, tier="targeted", **_continuous(spec, rng)))
+    return out
+
+
+def select_configs(spec: VariationSpec, split: str, start: int, n: int, shard: int, num_shards: int,
+                   eval_seed0: int = 100_000) -> list[EpisodeConfig]:
+    """The configs a generate run works on, the same in every engine (episode i is paired across engines).
+    split: 'train', an eval tier, or 'cells:<next_run.json>' (targeted next run)."""
+    if split == "train":
+        cfgs = train_configs(spec)
+    elif split in TIERS:
+        cfgs = eval_configs(spec, split, list(range(eval_seed0, eval_seed0 + (start + n + 2) // 3 + 1)))
+    elif split.startswith("cells:"):
+        cfgs = cell_configs(spec, load_cells(split[len("cells:"):]))
+    else:
+        raise ValueError(f"--split must be 'train', one of {TIERS} or 'cells:<next_run.json>', got {split!r}")
+    return generation_order(spec, cfgs)[start:start + n][shard::num_shards]
