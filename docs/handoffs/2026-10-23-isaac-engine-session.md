@@ -1,6 +1,6 @@
 # Session Handover: Isaac Sim Engine (RTX 4090 PC): provided FR3 Duo scene → expert → data → eval → rollout
 
-*From the master session, 2026-10-23 ~10:30 (≈H20.5). **Supersedes** [`2026-10-22-isaac-fr3-session.md`](2026-10-22-isaac-fr3-session.md) and [`2026-10-22-navneet-gpu-machine.md`](2026-10-22-navneet-gpu-machine.md) (keep them for the verified USD facts). Lead: Navneet; Rakesh helps. On the RTX 4090 PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-isaac-engine-session.md`".*
+*From the master session, 2026-10-23 ~10:30 (≈H20.5). **Supersedes** [`2026-10-22-isaac-fr3-session.md`](2026-10-22-isaac-fr3-session.md) and [`2026-10-22-navneet-gpu-machine.md`](2026-10-22-navneet-gpu-machine.md) (keep them for the verified USD facts). **Owner: Navneet** (in parallel with his awareness work); Rakesh helps. On the RTX 4090 PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-isaac-engine-session.md`".*
 
 ## 1. Goal
 
