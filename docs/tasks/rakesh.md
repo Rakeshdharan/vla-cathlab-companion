@@ -14,7 +14,7 @@
 | R4 | `RobosuiteExpertSim` (`ExpertSim`) + `RobosuiteBackend` (`SimBackend`); expert ≥80% on 20 train configs | `sim/robosuite/expert_sim.py`, `sim/robosuite/backend.py` | H12 |
 | R5 | ✅ 384 train episodes in parallel shards → [`Rakeshdharan56/pick_robosuite@v1`](https://huggingface.co/datasets/Rakeshdharan56/pick_robosuite) | data on HF | H16 |
 | R6 | 01 Ingest: provided FR3 Duo datasets validated + reported (embodiment-agnostic demo); instruction paraphrases for the 3 objects | `ingest/` | H14 |
-| R7 | **Model set: ACT, SmolVLA, X-VLA + expert baseline** (π0.5, MolmoAct2 dropped). Panda v1 on `pick_robosuite@v1`: ✅ all three on HF. Next: adapter → eval in robosuite + ManiSkill → version/promote → Panda v2 (robosuite + ManiSkill). FR3: Aravind (cloud GPU). [Status](../STATUS.md) | `train/` | H18–H28 |
+| R7 | **Model set: ACT, SmolVLA, X-VLA + expert baseline.** ✅ all three on `pick_robosuite@v1` (HF). ⏳ all three on `pick_maniskill@v1` (RTX 6000 Ada, [handoff](../handoffs/2026-10-23-maniskill-training-session.md)) → adapter → cross-physics eval (robosuite ↔ ManiSkill) → version/promote → Panda v2 co-training. FR3: Aravind. [Status](../STATUS.md) | `train/` | H18–H28 |
 | R8 | Loop: failing grid cells → `eval_configs`-style configs for those cells → generate in both sims → v2 | `loop/` | H28 |
 | R9 *(stretch)* | RoboSimStudio: prompt → cathlab scene showcase; optional held-out eval with a Panda embodiment | `sim/robosimstudio/` | H30 |
 
