@@ -1,0 +1,23 @@
+# ManiSkill3 engine plugin (PhysX 5). Contract: docs/handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md §5.
+id: maniskill
+label: "ManiSkill3 3.0.1 (SAPIEN 3 / PhysX 5): Panda, cathlab table scene"
+env: {kind: conda, name: maniskill}
+worker: maniskill
+embodiments: [panda]
+io: panda_libero
+variation: configs/variation/cathlab_v1.yaml
+task: configs/tasks/cathlab_pick.yaml
+capabilities:                    # ready | in_progress | planned
+  preview: ready
+  objects: {primitive: ready, mjcf: planned}
+  randomize: ready
+  expert: {analytic: ready, graspgen: planned}
+  generate: ready
+  convert: ready
+  eval: ready
+  rollout: ready
+entry: engines.maniskill.cli
+backend: "sim.maniskill.backend:ManiSkillBackend"
+credits:
+  - {name: ManiSkill3, url: "https://github.com/haosulab/ManiSkill", license: Apache-2.0}
+  - {name: SAPIEN, url: "https://github.com/haosulab/SAPIEN", license: MIT}
