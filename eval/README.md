@@ -22,7 +22,7 @@ python -m eval.cli --policy random --sim dummy --suite suite_v1 --model-version 
 # Full eval on the GPU workstation
 python -m eval.cli \
   --policy ws://workstation:8765 \
-  --sim isaac \
+  --sim robosimstudio \
   --suite suite_v1 \
   --model-version smolvla@v0 \
   --dataset-versions "cathlab/handover@v0" \
@@ -98,4 +98,4 @@ uv run pytest tests/test_contracts.py tests/test_runner.py tests/test_metrics.py
               tests/test_judge.py tests/test_failures.py -v
 ```
 
-All tests use `DummySim` and `RandomPolicy`; no GPU, Isaac Sim, or API keys required.
+All tests use `DummySim` and `RandomPolicy`; no GPU, simulator, or API keys required.

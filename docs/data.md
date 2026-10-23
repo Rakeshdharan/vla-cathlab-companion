@@ -7,7 +7,7 @@ Source: the Siemens Healthineers hackathon file share (C2 "Teach the robot"). **
 | `Rakeshdharan56/fr3_duo_handover_10ep` | `FR3Duo_Handover_Dataset_lerobot3.zip` | 10 | 22,470 | 30 | "Hand the box from the left gripper to the right gripper and place it on the serving tray." |
 | `Rakeshdharan56/fr3_duo_handover_84ep` | `fr3_duo_handover_84_ep.zip` (`v9_night_84`) | 84 | 188,748 | 30 | same as above |
 | `Rakeshdharan56/fr3_duo_rand490` | `fr3_duo_rand500.zip` (+ `norm_stats.json`) | 490 | 172,526 | **6** | "stack the three cubes into one tower" |
-| `Rakeshdharan56/cathlab_env_isaac` | `Environment_Hackathon_2026.zip` | — | — | — | Isaac Sim / USD scene (also contains a copy of the 10-episode dataset) |
+| `Rakeshdharan56/cathlab_env_isaac` | `Environment_Hackathon_2026.zip` | — | — | — | Provided Isaac Sim / USD scene: **not used** (Isaac dropped at H24); also contains a copy of the 10-episode dataset |
 
 **Common schema (LeRobot v3.0, `robot_type: fr3_duo`):**
 - `action` and `observation.state`: `float32[16]` = `left_joint1..7, left_gripper, right_joint1..7, right_gripper`.

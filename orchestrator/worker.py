@@ -1,4 +1,4 @@
-"""Worker app: runs stage commands inside one Python environment (robosuite, lerobot, isaac, ...).
+"""Worker app: runs stage commands inside one Python environment (robosuite, maniskill, lerobot, ...).
 
 Start (localhost, no auth):
   python -m orchestrator.worker --name robosuite --capabilities generate,eval --port 8711

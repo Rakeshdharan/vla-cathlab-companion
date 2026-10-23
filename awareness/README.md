@@ -19,4 +19,4 @@ for instruction in assistant.run(frames):  # frames yield (t, HxWx3 uint8)
 
 `task` is anything with `instructions(obj) -> list[str]` (a `TaskSpec`). `confirm` and `speak` are plain callables, so voice (ElevenLabs) plugs in without changes here.
 
-Tests: `uv run pytest tests/test_awareness_*.py` (no network, GPU or Isaac).
+Tests: `uv run pytest tests/test_awareness_*.py` (no network, GPU or simulator).

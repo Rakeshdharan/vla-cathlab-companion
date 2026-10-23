@@ -1,5 +1,7 @@
 # Akanksh — Frontier VLA Research, Evaluation Design, Benchmarking
 
+> **Update (2026-10-23 H24): Isaac Sim is dropped** (no working run after a day). Engines now: robosuite and ManiSkill3 (Panda), Genesis planned, FR3 Duo via Aravind's MuJoCo/Newton track. Isaac items below are historical.
+
 > **Update (H6.5):** see the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
 > - **Models:** SmolVLA (v0/v1/v2), ACT (v0/v1), and ONE frontier model, π0.5 or X-VLA. Decide by **H10**, all starting from public **LIBERO** checkpoints.
 > - **Eval suite → `configs/eval/suite_v2.yaml`:** per simulator, 3 objects × 5 tiers × 4 seeds = 60 episodes. Generate the configs with `dataengine.variation.eval_configs(spec, tier, seeds)` and `TIERS` (in_distribution, held_out_layout, held_out_obj_color, held_out_table_color, all_held_out), with seeds ≥ 5000.

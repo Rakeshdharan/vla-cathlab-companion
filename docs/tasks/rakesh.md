@@ -1,5 +1,7 @@
 # Rakesh — Lead: Shared Sim Core, robosuite Track, Training, Loop, Integration
 
+> **Update (2026-10-23 H24): Isaac Sim is dropped** (no working run after a day). Engines now: robosuite and ManiSkill3 (Panda), Genesis planned, FR3 Duo via Aravind's MuJoCo/Newton track. Isaac items below are historical.
+
 > **Updated H6.5.** Single-arm Franka Panda, our own table scene in Isaac Sim + robosuite, LIBERO-compatible I/O. See the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
 
 ## Deliverables

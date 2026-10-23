@@ -7,9 +7,9 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 |---|---|---|
 | Rakesh (lead) | [rakesh.md](rakesh.md) | Contracts, shared sim core (`dataengine/`), **robosuite track**, 01 Ingest, 03 training, Loop, RoboSimStudio showcase, integration |
 | Sharan | [sharan.md](sharan.md) | **Serving + registry + CI + dataset intelligence + failure report + Docker** ([handoff](../handoffs/2026-10-23-sharan-serve-intel-session.md)) |
-| Navneet | [navneet.md](navneet.md) | **Isaac Sim engine** ([handoff](../handoffs/2026-10-23-isaac-engine-session.md)) + awareness / proactive assist, ElevenLabs voice |
-| Mitesh | [mitesh.md](mitesh.md) | Agreed with Rakesh (no longer on Isaac) |
-| Akanksh | [akanksh.md](akanksh.md) | VLA research & selection, 04 Evaluate, VLM judge, benchmarking |
+| Navneet | [navneet.md](navneet.md) | Awareness / proactive assist, ElevenLabs voice (Isaac Sim dropped at H24) |
+| Mitesh | [mitesh.md](mitesh.md) | **ManiSkill3 engine** on the RTX 4090 ([handoff](../handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md)) |
+| Akanksh | [akanksh.md](akanksh.md) | VLA research & selection, 04 Evaluate, VLM judge, benchmarking, **Genesis engine** ([handoff](../handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md)) |
 
 ## Kickoff: start here (everyone)
 
@@ -32,7 +32,7 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 
 6. Until `contracts/` is merged (target H2), stick to research and quick experiments. After that, `uv sync && uv run pytest` must be green before you start.
 7. Code only inside your own package directories. If you need a contract change, open a dedicated PR touching `contracts/` and tag Rakesh.
-8. Small PRs to `main`. Each package needs a `README.md` and at least one test that runs without GPU/Isaac (use `DummySim` / `RandomPolicy`). Fill in the PR template checklist.
+8. Small PRs to `main`. Each package needs a `README.md` and at least one test that runs without GPU/simulator (use `DummySim` / `RandomPolicy`). Fill in the PR template checklist.
 9. Commits carry **your name only**, with no AI `Co-authored-by` lines (the hook strips them). Log non-obvious choices in [`docs/decisions.md`](../decisions.md) (`/log-decision`).
 
 **Next gates:**
@@ -46,7 +46,7 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 |---|---|---|
 | H2 | Contracts merged, env + dataset open | `uv run pytest` green on `main` |
 | H6 | VLA shortlist frozen (Akanksh), data-engine choice frozen (Mitesh) | Decision recorded in `docs/decisions.md` |
-| H10 | **v0** trained + scored; end-to-end smoke with real Isaac backend | `EvalReport` for scripted expert and v0 in W&B |
+| H10 | **v0** trained + scored; end-to-end smoke with a real simulator backend | `EvalReport` for scripted expert and v0 in W&B |
 | H14 | First synthetic dataset passes 02 quality gate | `manifest.yaml` + readiness report |
 | H20 | **v1** benchmark table (≥2 VLAs) | Table in W&B report |
 | H24 | Voice + awareness emit instructions into policy server | Live demo in sim |

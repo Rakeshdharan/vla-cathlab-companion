@@ -1,14 +1,11 @@
 scene_id: cathlab_v1
-backend: isaac
-asset: assets/cathlab_table_v1.usd
+backend: robosuite
+asset: sim/robosuite/env.py
 objects:
-  guidewire: assets/objects/guidewire.usd
-  catheter: assets/objects/catheter.usd
-  sheath: assets/objects/sheath.usd
-  syringe: assets/objects/syringe.usd
-  scissors: assets/objects/scissors.usd
-  gauze: assets/objects/gauze.usd
-cameras: [head, wrist_left, wrist_right]
+  bottle: configs/variation/cathlab_v1.yaml
+  vial: configs/variation/cathlab_v1.yaml
+  syringe: configs/variation/cathlab_v1.yaml
+cameras: [agentview, eye_in_hand]
 randomization:
   object_pose_noise: [0.02, 0.02, 0.0]
   lighting_intensity: [0.8, 1.2]

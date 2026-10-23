@@ -19,14 +19,14 @@ def test_every_non_ready_item_points_to_a_harness_task():
 
 
 def test_not_ready_item_reports_harness_task():
-    sel = dict(CAT.defaults, simulator="isaac", embodiment="fr3_duo")
+    sel = dict(CAT.defaults, simulator="mujoco", embodiment="fr3_duo")
     kinds = {(p.item, p.kind): p.harness_task for p in selection_problems(CAT, sel)}
-    assert kinds[("isaac", "not_ready")] == "add_sim_backend"
+    assert kinds[("mujoco", "not_ready")] == "add_engine"
     assert ("fr3_duo", "not_ready") in kinds
 
 
-def test_requires_rule_blocks_panda_in_isaac():
-    sel = dict(CAT.defaults, simulator="isaac")
+def test_requires_rule_blocks_panda_in_mujoco():
+    sel = dict(CAT.defaults, simulator="mujoco")
     assert any(p.item == "panda" and p.kind == "requires" for p in selection_problems(CAT, sel))
 
 

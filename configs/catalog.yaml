@@ -10,7 +10,6 @@ sections:
     items:
       - {id: robosuite, label: "robosuite (MuJoCo)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz"}
       - {id: maniskill, label: "ManiSkill3 (SAPIEN / PhysX 5)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz; worker :8714"}
-      - {id: isaac, label: "Isaac Sim", status: in_progress, harness_task: add_sim_backend, notes: "Provided FR3 Duo scene, right arm"}
       - {id: mujoco, label: "MuJoCo (standalone)", status: planned, harness_task: add_engine}
       - {id: genesis, label: "Genesis 1.4 (own GPU rigid solver)", status: planned, harness_task: add_engine}
       - {id: newton, label: "Newton 1.6 (Warp, GPU)", status: planned, harness_task: add_engine}
@@ -18,8 +17,8 @@ sections:
     title: Embodiment
     multi: false
     items:
-      - {id: panda, label: "Franka Panda (single arm)", status: ready, requires: {simulator: [robosuite]}}
-      - {id: fr3_duo, label: "Franka FR3 Duo (right arm)", status: in_progress, harness_task: add_sim_backend, requires: {simulator: [isaac, mujoco]}}
+      - {id: panda, label: "Franka Panda (single arm)", status: ready, requires: {simulator: [robosuite, maniskill, genesis]}}
+      - {id: fr3_duo, label: "Franka FR3 Duo (right arm)", status: in_progress, harness_task: add_engine, requires: {simulator: [mujoco, newton]}, notes: "Aravind's MuJoCo/Newton FR3 Duo track"}
   objects:
     title: Objects
     multi: true
