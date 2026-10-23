@@ -1,5 +1,7 @@
 import threading
+import time
 from pathlib import Path
+import pytest
 import uvicorn
 from fastapi.testclient import TestClient
 from orchestrator.control import create_control_app
@@ -55,8 +57,11 @@ def test_workers_health_online_and_offline(tmp_path):
     server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=8799, log_level="error"))
     t = threading.Thread(target=server.run, daemon=True)
     t.start()
+    start = time.perf_counter()
     while not server.started:
-        pass
+        if time.perf_counter() - start > 5.0:
+            pytest.fail("worker test server did not start within 5 s")
+        time.sleep(0.01)
     try:
         c = client(tmp_path, "workers:\n  - {name: robosuite, url: 'http://127.0.0.1:8799'}\n"
                              "  - {name: lerobot, url: 'http://127.0.0.1:8798'}\n")
@@ -73,3 +78,19 @@ def test_frontend_served_and_agent_optional(tmp_path):
     assert "CathLab Control Station" in c.get("/").text
     assert c.get("/api/health").json()["agent"] is False
     assert c.get("/api/agent/tasks").status_code in (404, 405)
+
+
+def test_workers_probed_concurrently(tmp_path):
+    """Verify 4 offline workers respond in < 1.5s (concurrent, not serial)."""
+    workers_yaml = "workers:\n"
+    for i in range(1, 5):
+        workers_yaml += f"  - {{name: offline{i}, url: 'http://127.0.0.1:{i}'}}\n"
+    c = client(tmp_path, workers_yaml)
+    start = time.perf_counter()
+    ws = c.get("/api/workers").json()
+    elapsed = time.perf_counter() - start
+    assert len(ws) == 4
+    assert all(not w["healthy"] for w in ws)
+    assert [w["name"] for w in ws] == ["offline1", "offline2", "offline3", "offline4"]
+    assert elapsed < 1.5, f"Worker probes took {elapsed:.2f}s, expected < 1.5s (serial would take ~2s)"
+

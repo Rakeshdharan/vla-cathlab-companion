@@ -4,6 +4,7 @@ Start (dev): python -m orchestrator.control --port 8700   ->  open http://localh
 """
 import argparse
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import httpx
 import yaml
@@ -35,7 +36,7 @@ def load_workers(path: str | Path) -> WorkersConfig:
     return WorkersConfig.model_validate(yaml.safe_load(p.read_text())) if p.exists() else WorkersConfig()
 
 
-def worker_health(entry: WorkerEntry, timeout: float = 1.0) -> dict:
+def worker_health(entry: WorkerEntry, timeout: float = 0.5) -> dict:
     try:
         headers = {}
         if token := os.environ.get("CATHLAB_WORKER_TOKEN"):
@@ -106,7 +107,10 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
 
     @app.get("/api/workers")
     def workers() -> list[dict]:
-        return [worker_health(w) for w in load_workers(workers_path).workers]
+        entries = load_workers(workers_path).workers
+        with ThreadPoolExecutor(max_workers=max(1, len(entries))) as executor:
+            results = list(executor.map(worker_health, entries))
+        return results
 
     if harness is not None:
         from harness.api import create_agent_router
