@@ -23,6 +23,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--n", type=int, default=8, help="train configs (spread over the grid); 1 all_held_out is added")
     ap.add_argument("--spec", default=str(ROOT / "configs/variation/cathlab_v1.yaml"))
+    ap.add_argument("--no-genesis-axes", action="store_true", help="nominal camera + light (no Genesis-only axes)")
     args = ap.parse_args(argv)
 
     from PIL import Image, ImageDraw
@@ -30,14 +31,15 @@ def main(argv: list[str] | None = None) -> None:
 
     spec = VariationSpec.load(args.spec)
     cfgs = grid_configs(spec, args.n)
-    sim = GenesisExpertSim(spec)
+    sim = GenesisExpertSim(spec, genesis_axes=not args.no_genesis_axes)
     tiles = []
     try:
         for cfg in cfgs:
             img = Image.fromarray(sim.reset(cfg)["agentview"])
+            axes = f" sun{sim.axes.light_azimuth_deg:+.0f}/{sim.axes.light_elevation_deg:.0f}" if sim.axes else ""
             ImageDraw.Draw(img).text((4, 4), f"{cfg.tier} {cfg.object} L{cfg.layout_id} oc{cfg.obj_color_id} "
                                              f"tc{cfg.table_color_id}\n{cfg.light_temp_k:.0f}K "
-                                             f"x{cfg.light_intensity:.2f}", fill=(255, 0, 0))
+                                             f"x{cfg.light_intensity:.2f}{axes}", fill=(255, 0, 0))
             tiles.append(np.asarray(img))
     finally:
         sim.env.close()

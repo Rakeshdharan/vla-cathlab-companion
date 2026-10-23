@@ -3,9 +3,11 @@
     PYTHONPATH=. ~/venvs/genesis/bin/python -m engines.genesis.generate --n 20 --out var/genesis/pick_genesis
 
 Same windows and shards as scripts/robosuite_generate.py: `generation_order(spec, train_configs(spec))
-[start:start+n][shard::num_shards]`, so episode i is paired with robosuite's episode i. Each shard writes
-<out>/raw/shard_<i>-of-<k>/ with episodes/*.npz, meta/episodes_extra.jsonl (+ engine/physics versions and git
-commit per line) and manifest.yaml. Only successful expert episodes are kept.
+[start:start+n][shard::num_shards]`, so episode i is paired with robosuite's episode i (same EpisodeConfig). On top,
+the Genesis-only axes (agentview jitter + key-light direction, seeded by the config; sim/genesis/randomize.py) are on
+unless --no-genesis-axes. Each shard writes <out>/raw/shard_<i>-of-<k>/ with episodes/*.npz,
+meta/episodes_extra.jsonl (+ engine/physics versions, git commit and the episode's genesis_axes per line) and
+manifest.yaml. Only successful expert episodes are kept.
 """
 import argparse
 import getpass
@@ -13,6 +15,7 @@ import json
 import platform
 import subprocess
 import time
+from dataclasses import asdict
 from pathlib import Path
 
 from contracts import TaskSpec, load_yaml
@@ -48,10 +51,13 @@ def provenance(env) -> dict:
             "control_hz": round(1.0 / env.control_dt), "git_commit": commit, "git_dirty": dirty}
 
 
-def add_provenance(meta_path: Path, prov: dict) -> None:
-    """dataengine.generate writes fixed keys per episode; add `provenance` to each line of this shard."""
+def add_provenance(meta_path: Path, prov: dict, axes_on: bool = True) -> None:
+    """dataengine.generate writes fixed keys per episode; add `provenance` and the episode's `genesis_axes` (None when
+    disabled) to each line of this shard."""
+    from sim.genesis.randomize import genesis_axes
     lines = [json.loads(line) for line in meta_path.read_text().splitlines() if line.strip()]
-    meta_path.write_text("".join(json.dumps({**m, "provenance": prov}) + "\n" for m in lines))
+    meta_path.write_text("".join(json.dumps({**m, "provenance": prov, "genesis_axes": asdict(
+        genesis_axes(EpisodeConfig(**m["config"]))) if axes_on else None}) + "\n" for m in lines))
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -67,6 +73,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--created-by", default=getpass.getuser())
     ap.add_argument("--spec", default=str(ROOT / "configs/variation/cathlab_v1.yaml"))
     ap.add_argument("--task", default=str(ROOT / "configs/tasks/cathlab_pick.yaml"))
+    ap.add_argument("--no-genesis-axes", action="store_true", help="paired configs only, no camera/light axes")
     args = ap.parse_args(argv)
     if not 0 <= args.shard < args.num_shards:
         raise SystemExit("--shard must be in [0, --num-shards)")
@@ -81,13 +88,15 @@ def main(argv: list[str] | None = None) -> None:
     cfgs = select_configs(spec, args.split, args.start, args.n, args.shard, args.num_shards)
     shard_dir = Path(args.out) / "raw" / f"shard_{args.shard:03d}-of-{args.num_shards:03d}"
     sink = NpzSink(shard_dir)
-    sim = GenesisExpertSim(spec)
-    print(f"shard {args.shard}/{args.num_shards}: {len(cfgs)} configs -> {shard_dir}", flush=True)
+    sim = GenesisExpertSim(spec, genesis_axes=not args.no_genesis_axes)
+    print(f"shard {args.shard}/{args.num_shards}: {len(cfgs)} configs -> {shard_dir} "
+          f"(genesis axes {'off' if args.no_genesis_axes else 'on'})", flush=True)
     t0 = time.time()
     try:
         report, _ = generate_scripted(sim, spec, task, cfgs, sink, shard_dir, "genesis", args.dataset_id,
                                       args.version, args.created_by, params=GENESIS_EXPERT_PARAMS)
-        add_provenance(shard_dir / "meta" / "episodes_extra.jsonl", provenance(sim.env))
+        add_provenance(shard_dir / "meta" / "episodes_extra.jsonl", provenance(sim.env),
+                       axes_on=not args.no_genesis_axes)
     finally:
         sim.env.close()
     minutes = (time.time() - t0) / 60

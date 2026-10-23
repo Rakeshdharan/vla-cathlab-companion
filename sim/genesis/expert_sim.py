@@ -5,7 +5,7 @@ from dataengine.expert import Q_DOWN, grasp_pose
 from dataengine.geometry import quat_to_axis_angle
 from dataengine.variation import EpisodeConfig, VariationSpec
 from sim.genesis.env import CathlabGenesisEnv
-from sim.genesis.randomize import apply_episode_config
+from sim.genesis.randomize import GenesisAxes, apply_episode_config, apply_genesis_axes, genesis_axes
 
 REACH_DIST = 0.05
 LIFT_HEIGHT = 0.05
@@ -21,11 +21,13 @@ class GenesisExpertSim:
     State = TCP position, hand-link axis-angle, fingers [+q1, -q2] (robosuite signs)."""
 
     def __init__(self, spec: VariationSpec, env: CathlabGenesisEnv | None = None, settle_steps: int = 10,
-                 q_down: np.ndarray = Q_DOWN, **env_kwargs):
+                 q_down: np.ndarray = Q_DOWN, genesis_axes: bool = False, **env_kwargs):
         self.spec = spec
         self.env = env if env is not None else CathlabGenesisEnv(spec, **env_kwargs)
         self.settle_steps = settle_steps
         self.q_down = q_down
+        self.genesis_axes = genesis_axes
+        self.axes: GenesisAxes | None = None
         self.cfg: EpisodeConfig | None = None
         self._tray_floor_z = spec.scene.tray_floor_z
 
@@ -34,6 +36,8 @@ class GenesisExpertSim:
         self.cfg = cfg
         self.env.reset()
         apply_episode_config(self.env, self.spec, cfg)
+        self.axes = genesis_axes(cfg) if self.genesis_axes else None
+        apply_genesis_axes(self.env, self.axes)
         self.env.settle(self.settle_steps)
         target = cfg.object
         self._grasp_point = grasp_pose(self.spec.objects[target], self.get_object_pose(target), self.q_down)[0]

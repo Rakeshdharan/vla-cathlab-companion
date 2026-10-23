@@ -48,6 +48,31 @@ def test_generate_window_and_shard(tmp_path, capsys):
                 "--version": "v1", "--dataset-id": "cathlab/pick_genesis", "--split": "train", "--spec": SPEC,
                 "--task": str(ROOT / "configs/tasks/cathlab_pick.yaml")}
     assert {k: val(cmd, k) for k in expected} == expected
+    assert "--no-genesis-axes" not in cmd
+    cmd = argv_of(capsys, "generate", "--out", str(tmp_path), "--no-genesis-axes")
+    assert "--no-genesis-axes" in cmd
+
+
+def test_preview_can_disable_genesis_axes(tmp_path, capsys):
+    assert "--no-genesis-axes" not in argv_of(capsys, "preview", "--out", str(tmp_path))
+    assert "--no-genesis-axes" in argv_of(capsys, "preview", "--out", str(tmp_path), "--no-genesis-axes")
+
+
+def test_add_provenance_records_per_episode_genesis_axes(tmp_path):
+    from dataclasses import asdict
+    from dataengine.variation import VariationSpec, train_configs
+    from engines.genesis.generate import add_provenance
+    from sim.genesis.randomize import genesis_axes
+    cfgs = train_configs(VariationSpec.load(SPEC))[:2]
+    meta = tmp_path / "episodes_extra.jsonl"
+    meta.write_text("".join(json.dumps({"episode_index": i, "config": c.model_dump()}) + "\n"
+                            for i, c in enumerate(cfgs)))
+    add_provenance(meta, {"engine": "genesis"}, axes_on=True)
+    lines = [json.loads(line) for line in meta.read_text().splitlines()]
+    assert [m["provenance"] for m in lines] == [{"engine": "genesis"}] * 2
+    assert [m["genesis_axes"] for m in lines] == [json.loads(json.dumps(asdict(genesis_axes(c)))) for c in cfgs]
+    add_provenance(meta, {"engine": "genesis"}, axes_on=False)
+    assert all(json.loads(line)["genesis_axes"] is None for line in meta.read_text().splitlines())
 
 
 def test_generate_selects_the_robosuite_window():

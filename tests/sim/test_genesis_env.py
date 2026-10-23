@@ -13,7 +13,8 @@ from dataengine.geometry import quat_conj, quat_mul, quat_to_axis_angle  # noqa:
 from dataengine.variation import VariationSpec, object_poses, train_configs  # noqa: E402
 from sim.genesis.env import _to_np  # noqa: E402
 from sim.genesis.expert_sim import GenesisExpertSim  # noqa: E402
-from sim.genesis.randomize import apply_episode_config, kelvin_to_rgb  # noqa: E402
+from sim.genesis.randomize import (GENESIS_AXES, apply_episode_config, apply_genesis_axes, genesis_axes,  # noqa: E402
+                                   kelvin_to_rgb)
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = VariationSpec.load(ROOT / "configs/variation/cathlab_v1.yaml")
@@ -105,6 +106,51 @@ def test_randomize_is_absolute_not_compounding(sim):
         assert snaps[1][name + ".rgba"] == pytest.approx(SPEC.obj_colors[b.obj_color_id][name])
     assert snaps[1]["table.rgba"] == pytest.approx(SPEC.table_colors[b.table_color_id])
     assert snaps[1]["lights"][0][1] == pytest.approx(snaps[0]["lights"][0][1] * b.light_intensity / a.light_intensity)
+
+
+def _view_snapshot(env) -> dict:
+    ctx = env.scene.visualizer.context
+    av = env.cameras["agentview"]
+    return {"cam_pos": np.asarray(_to_np(av.pos)).round(6).tolist(),
+            "cam_lookat": np.asarray(_to_np(av.lookat)).round(6).tolist(),
+            "light_dirs": [(-np.asarray(n.matrix)[:3, 2]).round(6).tolist() for n in ctx._scene.light_nodes
+                           if type(n.light).__name__ == "DirectionalLight"]}
+
+
+def test_genesis_axes_are_seeded_bounded_and_absolute(sim):
+    env = sim.env
+    cfgs = train_configs(SPEC)
+    a, b = cfgs[0], cfgs[1]
+    assert genesis_axes(a) == genesis_axes(a) and genesis_axes(a) != genesis_axes(b)
+    for cfg in cfgs[:50]:
+        ax = genesis_axes(cfg)
+        assert np.abs(ax.cam_pos_offset).max() <= GENESIS_AXES.cam_pos and \
+            np.abs(ax.cam_lookat_offset).max() <= GENESIS_AXES.cam_lookat
+        assert GENESIS_AXES.light_elevation_deg[0] <= ax.light_elevation_deg <= GENESIS_AXES.light_elevation_deg[1]
+    nominal = _view_snapshot(env)
+    snaps = []
+    for cfg in (a, b, a):
+        apply_genesis_axes(env, genesis_axes(cfg))
+        snaps.append(_view_snapshot(env))
+    assert snaps[0] == snaps[2] and snaps[0] != snaps[1] and snaps[0] != nominal
+    np.testing.assert_allclose(np.array(snaps[1]["cam_pos"]) - np.array(nominal["cam_pos"]),
+                               genesis_axes(b).cam_pos_offset, atol=1e-5)
+    apply_genesis_axes(env, None)
+    assert _view_snapshot(env) == nominal
+
+
+def test_expert_sim_applies_genesis_axes_only_when_enabled(sim):
+    cfg = train_configs(SPEC)[3]
+    sim.genesis_axes = False
+    sim.reset(cfg)
+    nominal = _view_snapshot(sim.env)
+    sim.genesis_axes = True
+    obs = sim.reset(cfg)
+    assert sim.axes == genesis_axes(cfg) and _view_snapshot(sim.env) != nominal
+    assert obs["agentview"].std() > 5
+    sim.genesis_axes = False
+    sim.reset(cfg)
+    assert sim.axes is None and _view_snapshot(sim.env) == nominal
 
 
 def test_kelvin_to_rgb_is_warm_to_cool_and_normalised():

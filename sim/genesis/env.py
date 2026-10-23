@@ -46,6 +46,7 @@ MAX_TORSIONAL_FRICTION = 0.02
 CAMERAS = ("agentview", "eye_in_hand")
 AGENTVIEW = dict(pos=(1.06, 0.0, 0.55), dir=(-0.7081, 0.0, -0.7061), up=(-0.7061, 0.0, 0.7081), fov=45.0)
 EYE_IN_HAND = dict(pos=(0.05, 0.0, 0.0), fov=75.0)   # hand frame; looks along hand +z, up hand +x
+KEY_LIGHT_DIR = (-0.3, 0.2, -1.0)
 
 _GS_READY = False
 
@@ -101,13 +102,14 @@ class CathlabGenesisEnv:
         self.control_dt = 1.0 / control_hz
         self._arm_plan = None
         self.layout_poses = object_poses(spec, train_configs(spec)[0])
-        self.nominal_light = dict(color=np.array([1.0, 1.0, 1.0]), intensity=3.0, ambient=np.array([0.35, 0.35, 0.35]))
+        self.nominal_light = dict(color=np.array([1.0, 1.0, 1.0]), intensity=3.0, ambient=np.array([0.35, 0.35, 0.35]),
+                                  dir=np.array(KEY_LIGHT_DIR))
         scene = gs.Scene(
             sim_options=gs.options.SimOptions(dt=dt, substeps=substeps),
             rigid_options=gs.options.RigidOptions(enable_self_collision=False, enable_torsional_friction=True),
             vis_options=gs.options.VisOptions(
                 ambient_light=tuple(self.nominal_light["ambient"]), shadow=True, background_color=(0.6, 0.6, 0.6),
-                lights=[gs.options.vis.DirectionalLight(dir=(-0.3, 0.2, -1.0), color=(1.0, 1.0, 1.0),
+                lights=[gs.options.vis.DirectionalLight(dir=KEY_LIGHT_DIR, color=(1.0, 1.0, 1.0),
                                                         intensity=self.nominal_light["intensity"])]),
             show_viewer=False)
         self.scene = scene
