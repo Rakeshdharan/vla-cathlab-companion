@@ -1,5 +1,6 @@
-from contracts import GapSpec, DatasetManifest, PolicyAdapter
-from dataengine import register_method
+from contracts import GapSpec, PolicyAdapter
+from dataengine.registry import GenerationReceipt
+from dataengine.registry import register_method
 
 # This file contains the Scripted Expert.
 # It's essentially a perfectly programmed robot that uses advanced math 
@@ -25,9 +26,9 @@ class ScriptedExpert(PolicyAdapter):
         return {"name": "ScriptedExpert", "version": "1.0"}
 
 @register_method('scripted')
-def generate_scripted_data(gap: GapSpec | None, n: int) -> DatasetManifest:
+def generate_scripted_data(gap: GapSpec | None, n: int) -> GenerationReceipt:
     """
     Uses the ScriptedExpert to generate 'n' perfect examples.
     """
     print(f"Generating {n} perfect episodes using Scripted Expert...")
-    return DatasetManifest(source='scripted', num_episodes=n)
+    return GenerationReceipt(source='scripted', num_episodes=n)

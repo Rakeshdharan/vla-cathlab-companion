@@ -1,5 +1,6 @@
-from contracts import GapSpec, DatasetManifest
-from dataengine import register_method
+from contracts import GapSpec
+from dataengine.registry import GenerationReceipt
+from dataengine.registry import register_method
 
 # This file contains the "Domain Randomization" data generator.
 # Its job is to take existing robot demonstrations and create new practice data
@@ -7,7 +8,7 @@ from dataengine import register_method
 # or slightly shaking the camera). This helps the robot learn to not be confused by small changes.
 
 @register_method('domain_rand')
-def generate_domain_rand_data(gap: GapSpec | None, n: int) -> DatasetManifest:
+def generate_domain_rand_data(gap: GapSpec | None, n: int) -> GenerationReceipt:
     """
     Generates synthetic training data using domain randomization.
     """
@@ -34,9 +35,9 @@ def generate_domain_rand_data(gap: GapSpec | None, n: int) -> DatasetManifest:
     # applying our random tweaks each time.
     print(f"Running domain randomization to generate {n} episodes with config: {randomization_config}...")
     
-    # 4. Return a "receipt" (DatasetManifest) confirming what we just created.
+    # 4. Return a "receipt" (GenerationReceipt) confirming what we just created.
     # As per the task requirements, we use a specific version tag for this dataset.
-    return DatasetManifest(
+    return GenerationReceipt(
         source='cathlab/handover_dr@v1', 
         num_episodes=n
     )

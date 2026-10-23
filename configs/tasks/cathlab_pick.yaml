@@ -1,0 +1,13 @@
+task_id: cathlab_pick
+instruction_templates:
+  - "Hand me the {object}"
+  - "Please pass the {object}"
+  - "Can you give me the {object}"
+objects: [bottle, vial, syringe]
+success_predicate: "target object at rest inside the tray and gripper open"
+stage_predicates:
+  reach: "end-effector within 5 cm of the target grasp point"
+  grasp: "target attached to / held by the gripper"
+  lift: "target bottom > table top + 5 cm"
+  transport: "target xy inside the tray inner bounds"
+  place: "target released and at rest inside the tray"

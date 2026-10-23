@@ -1,11 +1,11 @@
 import pytest
-from contracts import GapSpec, DatasetManifest
-from dataengine import generate, list_methods, register_method
+from contracts import GapSpec
+from dataengine.registry import GenerationReceipt, generate, list_methods, register_method
 
 # Create a fake generator just for testing purposes
 @register_method("dummy_gen")
-def dummy_generator(gap: GapSpec | None, n: int) -> DatasetManifest:
-    return DatasetManifest(source="dummy_gen", num_episodes=n)
+def dummy_generator(gap: GapSpec | None, n: int) -> GenerationReceipt:
+    return GenerationReceipt(source="dummy_gen", num_episodes=n)
 
 # Test 1: Make sure the system crashes properly if we ask for a tool that doesn't exist
 def test_generate_unknown_method():
