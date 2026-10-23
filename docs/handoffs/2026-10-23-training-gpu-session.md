@@ -2,21 +2,26 @@
 
 *From the master session, 2026-10-23 ~08:20 (≈H17). Owner: Rakesh. On the GPU PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-training-gpu-session.md`".*
 
-## Status (2026-10-23 17:15)
+## Status (2026-10-23 17:30): model set decided
 
-| Model | State | Steps × batch | HF model repo |
-|---|---|---|---|
-| SmolVLA | ✅ on HF | 8,500 × 32 | [`Rakeshdharan56/smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1) |
-| ACT | ✅ on HF | 50,000 × 64 | [`Rakeshdharan56/act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1) |
-| X-VLA | ✅ on HF | 7,500 × 32 | [`Rakeshdharan56/xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1) |
-| π0.5 | ⏳ training (`chain` tmux: smoke, then ≤ 3 h / ≤ 10k steps) | — | `Rakeshdharan56/pi05_panda_pick_v1` |
-| MolmoAct2 | ⬜ queued after π0.5 | — | `Rakeshdharan56/molmoact2_panda_pick_v1` |
+> **Decision (H26.5): fine-tune only ACT, SmolVLA and X-VLA; the scripted expert is the baseline.** π0.5 and MolmoAct2 are **dropped**. Stop the `chain` tmux session if π0.5 is still training, and free the GPU for evaluation and Panda v2. T2 (π0.5), T4 (MolmoAct2) and the π0.5 ablations below are kept for history only.
 
-- All three published checkpoints were trained on `pick_robosuite@v1` (their `train_config.json` records it).
-- GPU PC paths: status `outputs/logs/status.txt`, chain log `outputs/logs/chain.log`.
-- **Not done yet: the closed-loop eval of any checkpoint.** Push `train/lerobot_adapter.py` (T6) to `main` so `engines/{robosuite,maniskill}` eval can load them.
-- FR3 models (Aravind's Newton data) are trained by Aravind on a cloud GPU. Panda v2 (robosuite + `pick_maniskill`) is the next run here after MolmoAct2.
-- Team-wide data/model/engine status: [`docs/STATUS.md`](../STATUS.md).
+| Model | Role | State | Steps × batch | HF model repo |
+|---|---|---|---|---|
+| Scripted expert | baseline (privileged poses) | ✅ robosuite, ✅ ManiSkill (60/60) | — | `engines/<id>/cli eval --policy expert` |
+| ACT | non-language lower bound | ✅ on HF | 50,000 × 64 | [`Rakeshdharan56/act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1) |
+| SmolVLA | small VLA | ✅ on HF | 8,500 × 32 | [`Rakeshdharan56/smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1) |
+| X-VLA | frontier VLA | ✅ on HF | 7,500 × 32 | [`Rakeshdharan56/xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1) |
+| ~~π0.5~~ / ~~MolmoAct2~~ | — | dropped | — | — |
+
+All three checkpoints were trained on `pick_robosuite@v1`.
+
+**Next on this GPU PC, in order:**
+1. **T6:** push `train/lerobot_adapter.py` to `main` (one adapter for all three models).
+2. **T7:** closed-loop eval of ACT / SmolVLA / X-VLA + the expert in **robosuite and ManiSkill** (`suite_v2`, seeds 5000–5003).
+3. **Panda v2:** retrain the same three on `pick_robosuite@v1` + `pick_maniskill@v1` (753 episodes), with the same recipes and steps.
+
+The pipeline after training (version, rollout, deploy, failure report, next loop) is tracked in [`docs/STATUS.md`](../STATUS.md#the-loop-after-training).
 
 ## Goal of this session
 
