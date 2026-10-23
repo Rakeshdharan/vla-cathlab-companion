@@ -20,7 +20,7 @@ def test_manifest():
     m = get_engine("genesis")
     assert m.env.kind == "venv" and m.worker == "genesis" and m.io == "panda_libero"
     assert m.entry == "engines.genesis.cli" and m.backend == "sim.genesis.backend:GenesisBackend"
-    assert m.status("expert.analytic") == "ready" and m.status("convert") == "in_progress"
+    assert m.status("expert.analytic") == "ready" and m.status("convert") == "ready" and m.status("generate") == "ready"
     assert {c.name for c in m.credits} >= {"Genesis", "MuJoCo Menagerie Franka Panda"}
 
 
