@@ -2,24 +2,21 @@
 
 *From the master session, 2026-10-23 ~08:20 (≈H17). Owner: Rakesh. On the GPU PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-training-gpu-session.md`".*
 
-## Status (2026-10-23 13:05)
+## Status (2026-10-23 17:15)
 
-| Model | State | Steps | Final loss | HF model repo | ETA |
-|---|---|---|---|---|---|
-| SmolVLA | ✅ done, on HF | 8,500 / 8,500 | 0.009 | `Rakeshdharan56/smolvla_panda_pick_v1` | — |
-| ACT | ✅ done, on HF | 50,000 / 50,000 | 0.023 | `Rakeshdharan56/act_panda_pick_v1` | — |
-| X-VLA | ⏳ training (1.16 steps/s) | 2,944 / 7,500 | 0.028 | `Rakeshdharan56/xvla_panda_pick_v1` (auto-push) | ~14:10 |
-| π0.5 | queued (`chain` tmux) | 200-step smoke, then ≤ 3 h / ≤ 10k steps | — | `Rakeshdharan56/pi05_panda_pick_v1` | ~17:30 |
-| MolmoAct2 | not started | after π0.5 | — | `Rakeshdharan56/molmoact2_panda_pick_v1` | evening |
+| Model | State | Steps × batch | HF model repo |
+|---|---|---|---|
+| SmolVLA | ✅ on HF | 8,500 × 32 | [`Rakeshdharan56/smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1) |
+| ACT | ✅ on HF | 50,000 × 64 | [`Rakeshdharan56/act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1) |
+| X-VLA | ✅ on HF | 7,500 × 32 | [`Rakeshdharan56/xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1) |
+| π0.5 | ⏳ training (`chain` tmux: smoke, then ≤ 3 h / ≤ 10k steps) | — | `Rakeshdharan56/pi05_panda_pick_v1` |
+| MolmoAct2 | ⬜ queued after π0.5 | — | `Rakeshdharan56/molmoact2_panda_pick_v1` |
 
-- GPU PC paths: status `outputs/logs/status.txt` (refreshed every 10 min), chain log `outputs/logs/chain.log`.
-- The `chain` tmux session runs after X-VLA ends:
-  1. push X-VLA and check it loads from the Hub;
-  2. run a π0.5 smoke test (batch 16; one retry with `torch.compile` off);
-  3. check π0.5's actions are 7-D;
-  4. launch π0.5's full run.
-  If both π0.5 smoke attempts fail, the chain stops and logs why.
-- Next on the GPU PC: closed-loop robosuite eval script, starting with SmolVLA. Its scores (`EvalReport`) feed the Plan B Eval/Rollout stage and the model registry.
+- All three published checkpoints were trained on `pick_robosuite@v1` (their `train_config.json` records it).
+- GPU PC paths: status `outputs/logs/status.txt`, chain log `outputs/logs/chain.log`.
+- **Not done yet: the closed-loop eval of any checkpoint.** Push `train/lerobot_adapter.py` (T6) to `main` so `engines/{robosuite,maniskill}` eval can load them.
+- FR3 models (Aravind's Newton data) are trained by Aravind on a cloud GPU. Panda v2 (robosuite + `pick_maniskill`) is the next run here after MolmoAct2.
+- Team-wide data/model/engine status: [`docs/STATUS.md`](../STATUS.md).
 
 ## Goal of this session
 
