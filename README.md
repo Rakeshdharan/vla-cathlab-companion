@@ -8,6 +8,19 @@
      └──── DataEngine ◄── Loop Controller (failures → gaps → new data) ◄─────┘
 ```
 
+## Control Station (UI + agent harness)
+
+```bash
+make install && make test      # core env + GPU-free tests
+make dev                       # http://localhost:8700  (UI, catalog, runs, agent harness)
+make worker-robosuite          # robosuite worker :8711 (needs the robosuite conda env)
+make demo-ui                   # try the UI with a throwaway repo and a fake agent
+```
+
+- **PROJECT:** pick simulator, embodiment, objects, expert, variation and model from the catalog. Anything not ready offers **Build with agent**.
+- **AGENT:** run a task template with a coding agent (GitHub Copilot CLI by default) in an isolated git worktree, then review the diff and push the branch. See [docs/HARNESS.md](docs/HARNESS.md).
+- Install (native, remote GPU worker): [docs/INSTALL.md](docs/INSTALL.md) · Credits: [CREDITS.md](CREDITS.md).
+
 | Doc | What |
 |---|---|
 | [docs/specs/…-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md) | Architecture, stages, option catalogue, timeline |

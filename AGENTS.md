@@ -30,6 +30,7 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | `sim/isaac/`, `engines/isaac/`, `configs/variation/cathlab_fr3_isaac.yaml` | Navneet |
 | `assets/` | Rakesh |
 | `eval/` (beyond `runner.py` signatures), `configs/eval/` | Akanksh |
+| `orchestrator/`, `harness/`, `frontend/`, `configs/{catalog,workers,agents}.yaml` | Rakesh |
 
 ## Build and test
 
@@ -61,3 +62,11 @@ Heavy dependencies (Isaac Sim, LeRobot, GraspGen, cuRobo, ElevenLabs) are option
 - Commit messages: Conventional Commits (`feat(eval): …`, `fix(serve): …`, `docs: …`).
 - **Commits are authored by the human teammate only.** Do NOT add `Co-authored-by:` trailers for AI agents/assistants (Copilot, Claude, Codex, Cursor, etc.) and do not sign commits as an agent. The `.githooks/commit-msg` hook strips such trailers; enable it once per clone with `git config core.hooksPath .githooks`.
 - Never force-push `main`, and never commit `.env`, datasets, or checkpoints.
+
+## Control Station and agent harness
+
+- Control plane: `python -m orchestrator.control` (FastAPI, port 8700) serves `frontend/`, the catalog (`configs/catalog.yaml`), runs/jobs (`var/control.db`) and `/api/agent/*`.
+- Workers: `python -m orchestrator.worker --name <env> --capabilities ... --port 87xx` inside each Python env; URLs in `configs/workers.yaml`.
+- Harness: task templates in `harness/tasks/*.yaml` (file name = id). To support a new kind of agent task, add a template rather than special-casing code. Agents run in worktrees on `agent/<task>-<id>`, may only change `allowed_paths`, must not commit or push, and every job ends with a human review.
+- When you add a catalog item that is not ready, set `harness_task` to an existing template id (`tests/harness/test_templates.py` enforces this).
+- **Always stay on the tip of `main` when running the control plane and starting agent jobs.** New templates, catalog items, and configuration changes are published frequently.
