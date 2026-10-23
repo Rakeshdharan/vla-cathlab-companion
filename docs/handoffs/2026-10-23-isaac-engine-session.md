@@ -183,7 +183,7 @@ Use direct USD attribute edits (reliable on every reset), or `omni.replicator.co
 - Log expert success per object, throughput (episodes/min/GPU) and the HF link in `docs/decisions.md`.
 - ✅ Dataset on HF; capabilities `preview`, `randomize`, `expert.analytic`, `generate`, `eval` and `rollout` set to `ready`.
 
-**I9 — Worker** (once `orchestrator/worker.py` is on `main`; Plan A is landing it today). On the 4090 PC:
+**I9 — Worker** (`orchestrator/worker.py` with token auth is on `main`). On the 4090 PC:
 
 ```bash
 export CATHLAB_WORKER_TOKEN=<shared secret from Rakesh>
