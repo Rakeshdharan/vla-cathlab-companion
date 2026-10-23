@@ -17,7 +17,7 @@ def test_random_policy_is_one_step_chunks():
 
 def test_url_policy_without_serve_is_a_clear_error(monkeypatch):
     monkeypatch.setitem(sys.modules, "serve.policy_client", None)   # import -> ImportError
-    with pytest.raises(RuntimeError, match="policy server client not available"):
+    with pytest.raises(RuntimeError, match="policy server client unavailable"):
         make_policy("url:http://127.0.0.1:8720", action_dim=7)
 
 
