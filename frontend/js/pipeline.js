@@ -1,8 +1,9 @@
 // PIPELINE tab: pick a run, see which stages can start (and why not), run one, follow its log and outputs.
 import { api } from "./api.js";
 import { $, el, setStatus } from "./dom.js";
+import { openBrief } from "./brief.js";
 
-const ps = { runId: null, stages: [], current: null, jobId: null, offset: 0, timer: null };
+const ps = { runId: null, stages: [], current: null, jobId: null, offset: 0, timer: null, runs: [], engine: null };
 const GATES = { preview: "scene", check_expert: "expert", generate: "data_method", convert: "convert",
   eval: "eval", rollout: "rollout" };
 const ACTIVE = ["queued", "running"];
@@ -19,6 +20,7 @@ export async function initPipeline() {
 
 export async function refreshRuns(selectId) {
   const runs = await api.get("/api/runs");
+  ps.runs = runs;
   const sel = $("#run-select");
   sel.innerHTML = "";
   if (!runs.length) sel.append(new Option("No runs yet: CREATE RUN in PROJECT", ""));
@@ -31,6 +33,7 @@ export async function refreshRuns(selectId) {
 async function selectRun(id) {
   ps.runId = id || null;
   ps.current = null;
+  ps.engine = ((ps.runs.find((r) => r.id === id) || {}).selection || {}).simulator || null;
   stopFollow();
   await refreshStages();
   renderDetail();
@@ -79,6 +82,13 @@ function renderDetail() {
     return;
   }
   box.append(el("div", s.reason ? "p" : "ok", s.reason ? `BLOCKED: ${s.reason}` : `Runs on worker ${s.worker}.`));
+  const gate = stageGate(s.id);
+  if (gate) {
+    const b = el("button", "btn agent", "AGENT BRIEF FOR THIS STAGE");
+    b.type = "button";
+    b.addEventListener("click", () => openBrief({ stages: [gate], engines: ps.engine ? [ps.engine] : [] }));
+    box.append(b);
+  }
   const form = el("form", "form");
   form.id = "stage-form";
   for (const p of s.params) {
