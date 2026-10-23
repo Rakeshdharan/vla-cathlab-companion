@@ -14,8 +14,8 @@ capabilities:                    # ready | in_progress | planned
   expert: {analytic: ready, graspgen: planned}
   generate: ready
   convert: ready
-  eval: in_progress              # flipped to ready in Task 4
-  rollout: in_progress
+  eval: ready
+  rollout: ready
 entry: engines.robosuite.cli
 backend: "sim.robosuite.backend:RobosuiteBackend"
 credits:
