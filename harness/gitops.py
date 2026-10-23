@@ -41,8 +41,11 @@ def diff(worktree: Path, base_sha: str, stat: bool = False) -> str:
     return git(["diff", "--stat" if stat else "--patch", f"{base_sha}..HEAD"], worktree)
 
 
-def push(worktree: Path, branch: str, remote: str = "origin") -> None:
-    git(["push", "-q", "-u", remote, branch], worktree)
+def push(worktree: Path, branch: str, remote: str = "origin", url: str | None = None) -> None:
+    if url:
+        git(["push", "-q", "-u", url, branch], worktree)
+    else:
+        git(["push", "-q", "-u", remote, branch], worktree)
 
 
 def remove_worktree(repo: Path, path: Path, branch: str, delete_branch: bool = True) -> None:
