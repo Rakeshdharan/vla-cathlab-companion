@@ -10,6 +10,7 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 | ACT (`act_panda_pick_v1`) | robosuite | 7% (3%–16%, n=60) **in-domain** | 2% (0%–9%, n=60) |
 | SmolVLA (`smolvla_panda_pick_v1`) | robosuite | 38% (27%–51%, n=60) **in-domain** | 0% (0%–6%, n=60) |
 | X-VLA (`xvla_panda_pick_v1`) | robosuite | 8% (4%–18%, n=60) **in-domain** | 0% (0%–6%, n=60) |
+| SmolVLA (`smolvla_panda_maniskill_v1`) | maniskill | 0% (0%–6%, n=60) | — |
 
 ## Per tier: eval in robosuite (MuJoCo)
 
@@ -19,6 +20,7 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 | ACT | robosuite | 8% (1%–35%, n=12) | 0% (0%–24%, n=12) | 8% (1%–35%, n=12) | 17% (5%–45%, n=12) | 0% (0%–24%, n=12) |
 | SmolVLA | robosuite | 67% (39%–86%, n=12) | 8% (1%–35%, n=12) | 50% (25%–75%, n=12) | 58% (32%–81%, n=12) | 8% (1%–35%, n=12) |
 | X-VLA | robosuite | 0% (0%–24%, n=12) | 8% (1%–35%, n=12) | 17% (5%–45%, n=12) | 17% (5%–45%, n=12) | 0% (0%–24%, n=12) |
+| SmolVLA | maniskill | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) | 0% (0%–24%, n=12) |
 
 ## Per tier: eval in ManiSkill (PhysX)
 
@@ -37,6 +39,7 @@ Success with Wilson 95 % CI. **In-domain** = eval engine = training engine; the 
 | robosuite | ACT (robosuite) | 54 | 2 | 0 | 0 | 0 | 15 / 20 |
 | robosuite | SmolVLA (robosuite) | 20 | 17 | 0 | 0 | 0 | 235 / 271 |
 | robosuite | X-VLA (robosuite) | 27 | 25 | 0 | 2 | 1 | 113 / 214 |
+| robosuite | SmolVLA (maniskill) | 60 | 0 | 0 | 0 | 0 | 917 / 7338 |
 | maniskill | Scripted expert (—) | 0 | 0 | 0 | 0 | 0 | 0 / 0 |
 | maniskill | ACT (robosuite) | 54 | 2 | 0 | 1 | 2 | 15 / 22 |
 | maniskill | SmolVLA (robosuite) | 51 | 8 | 0 | 1 | 0 | 241 / 313 |

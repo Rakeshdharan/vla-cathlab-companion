@@ -42,8 +42,10 @@ Remaining evals (ManiSkill-trained SmolVLA + X-VLA) moved to the **RTX 2000 Ada*
 | | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
 |---|---|---|
 | expert | ✅ 60/60 | ✅ 60/60 |
-| ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (CI 3–16), SmolVLA ⏳, X-VLA ⏳ | ACT 2 % (CI 0–9), SmolVLA ⏳, X-VLA ⏳ |
-| SmolVLA / X-VLA trained on ManiSkill | ⬜ | ⬜ |
+| ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (3–16) · **SmolVLA 38 % (27–51)** · X-VLA 8 % (4–18): in-domain | ACT 2 % (0–9) · SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) |
+| SmolVLA / X-VLA trained on ManiSkill | SmolVLA **0 % (0–6)**, 60/60 fail at reach (RTX 2000 Ada) · X-VLA ⏳ (2,500 × 32; evaluated here if on HF by 22:55) | ⛔ not evaluated: the RTX 2000 Ada is WSL2 without Vulkan; ManiSkill needs native Linux (in-domain cells pending) |
+
+**Reading (22:15):** the cross-physics gap is **symmetric and total**. Robosuite-trained SmolVLA drops 38 % → 0 % in ManiSkill, and ManiSkill-trained SmolVLA scores 0 % in robosuite, failing at *reach*: it doesn't find the object in the other engine's images. The expert is 100 % in both, so the action/state plumbing is correct. The gap is visual (pedestal, floor, lighting) + dynamics, not an interface bug. Per-episode latency on the laptop GPU is ~0.9 s median with 5 parallel evals; this doesn't change success, since actions are open-loop chunks.
 
 Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-10-23-training-gpu-session.md).
 
