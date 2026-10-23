@@ -10,7 +10,7 @@ def make_policy(spec: str, action_dim: int, seed: int = 0) -> PolicyAdapter:
         try:
             from serve.policy_client import PolicyClient
         except ImportError as e:
-            raise RuntimeError("policy server client not available yet (serve/policy_client.py, Sharan's S2)") from e
+            raise RuntimeError("policy server client unavailable (serve/policy_client.py)") from e
         return PolicyClient(spec[len("url:"):])
     if spec.startswith("lerobot:"):
         from train.lerobot_adapter import LeRobotPolicyAdapter   # lazy: needs lerobot + torch
