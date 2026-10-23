@@ -10,7 +10,7 @@
 | R2 | **Shared sim core**: [plan](../plans/2026-10-22-sim-shared-core.md) Tasks 1–6 (variation spec, expert, fake sim, generator, LeRobot sink) | `dataengine/`, `configs/variation/`, `configs/tasks/cathlab_pick.yaml` | H8 |
 | R3 | **robosuite env** `CathlabPickPlace` (from `PickPlace`): Panda + `OSC_POSE`, table (top at base z = 0 after offset), tray, 3 objects at spec dimensions, `agentview` + `robot0_eye_in_hand` at 256², 20 Hz; randomizer applying `EpisodeConfig` | `sim/robosuite/env.py`, `sim/robosuite/randomize.py` | H10 |
 | R4 | `RobosuiteExpertSim` (`ExpertSim`) + `RobosuiteBackend` (`SimBackend`); expert ≥80% on 20 train configs | `sim/robosuite/expert_sim.py`, `sim/robosuite/backend.py` | H12 |
-| R5 | 384 train episodes in parallel shards → `cathlab/pick_robosuite@v1` | data on HF | H16 |
+| R5 | ✅ 384 train episodes in parallel shards → [`Rakeshdharan56/pick_robosuite@v1`](https://huggingface.co/datasets/Rakeshdharan56/pick_robosuite) | data on HF | H16 |
 | R6 | 01 Ingest: provided FR3 Duo datasets validated + reported (embodiment-agnostic demo); instruction paraphrases for the 3 objects | `ingest/` | H14 |
 | R7 | Training from LIBERO checkpoints: SmolVLA v0/v1/v2, ACT v0/v1, frontier (π0.5 or X-VLA, Akanksh's pick) v1; W&B + `ModelCard` | `train/` | H18–H28 |
 | R8 | Loop: failing grid cells → `eval_configs`-style configs for those cells → generate in both sims → v2 | `loop/` | H28 |
