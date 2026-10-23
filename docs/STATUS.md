@@ -20,19 +20,27 @@
 |---|---|---|---|
 | Scripted expert (baseline) | ✅ robosuite | ✅ ManiSkill 60/60 on suite_v2 | ✅ Newton + MuJoCo 100 % on every tier |
 | ACT (from scratch) | ✅ [`act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1), 50,000 × 64 (baseline) | dropped | dropped |
-| SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ⏳ `Rakeshdharan56/smolvla_panda_maniskill_v1` (RTX 6000 Ada) | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
-| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1` (RTX 6000 Ada) | ⏳ `Rakeshdharan56/xvla_fr3_pick_v1`, from `xvla-base` (`auto`, 16-D, 3 cams), **RTX 6000 Ada, ~21:30** |
+| SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ⏳ `Rakeshdharan56/smolvla_panda_maniskill_v1`, 8,500 × 32 (v1 recipe), RTX 6000 Ada, **ETA ~20:55** | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
+| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1`, **2,500 × 32** (time-boxed, v1: 7,500), **ETA ~22:40** | ⏳ `Rakeshdharan56/xvla_fr3_pick_v1`, from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, RTX 6000 Ada, **ETA ~22:05** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
 | **Panda v2** (co-training) | ⬜ optional: `pick_panda_v2` = merged robosuite + ManiSkill (753 eps) → `smolvla_panda_pick_v2` | | — |
 
-**ACT is dropped for the new datasets** (it stays as the robosuite-trained baseline). FR3 checkpoints are evaluated by Aravind in Newton + MuJoCo. The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Add VRAM, steps/s and ETAs here as the runs start.
+**ACT is dropped for the new datasets** (it stays as the robosuite-trained baseline). FR3 checkpoints are evaluated by Aravind in Newton + MuJoCo. The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Smokes and schedule (RTX 6000 Ada, 48 GB; runs are sequential because no two fit together):
+
+| Run | VRAM peak | s/step (batch 32) | Steps | Start → ETA |
+|---|---|---|---|---|
+| SmolVLA-ManiSkill | 28.4 GB | 0.78 (AMP) | 8,500 (= v1) | 18:57 → ~20:55 |
+| X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | ~20:55 → ~22:05 |
+| X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | ~22:05 → ~22:40 |
+
+`train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
 **Cross-physics eval matrix (the headline, suite_v2, 60 episodes per cell):**
 
 | | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
 |---|---|---|
-| expert | ⬜ | ✅ 60/60 |
-| ACT / SmolVLA / X-VLA trained on robosuite | ⬜ | ⬜ |
+| expert | ✅ 60/60 | ✅ 60/60 |
+| ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (CI 3–16), SmolVLA ⏳, X-VLA ⏳ | ACT 2 % (CI 0–9), SmolVLA ⏳, X-VLA ⏳ |
 | SmolVLA / X-VLA trained on ManiSkill | ⬜ | ⬜ |
 
 Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-10-23-training-gpu-session.md).
