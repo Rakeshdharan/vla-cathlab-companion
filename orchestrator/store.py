@@ -79,14 +79,15 @@ class Store:
 
     def update_job(self, job_id: str, state: str | None = None, result: dict | None = None,
                    worker: str | None = None) -> Job:
-        job = self.get_job(job_id)
-        if job is None:
-            raise KeyError(job_id)
-        merged = {**job.result, **(result or {})}
-        with self._lock, self._db:
-            self._db.execute("UPDATE jobs SET state=?, result=?, worker=?, updated=? WHERE id=?",
-                             (state or job.state, json.dumps(merged), worker or job.worker, time.time(), job_id))
-        return self.get_job(job_id)
+        with self._lock:
+            job = self.get_job(job_id)
+            if job is None:
+                raise KeyError(job_id)
+            merged = {**job.result, **(result or {})}
+            with self._db:
+                self._db.execute("UPDATE jobs SET state=?, result=?, worker=?, updated=? WHERE id=?",
+                                 (state or job.state, json.dumps(merged), worker or job.worker, time.time(), job_id))
+            return self.get_job(job_id)
 
     def get_job(self, job_id: str) -> Job | None:
         row = self._db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
