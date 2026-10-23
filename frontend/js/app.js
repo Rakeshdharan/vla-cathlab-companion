@@ -1,6 +1,7 @@
 import { api } from "./api.js";
 import { $, el, setStatus } from "./dom.js";
 import { initAgent, openTemplate } from "./agent.js";
+import { initPipeline, refreshRuns } from "./pipeline.js";
 
 // ---- tabs -------------------------------------------------------------------------------
 export function showTab(name) {
@@ -118,27 +119,17 @@ async function createRun() {
     $("#current-run").textContent = `${run.id}\n${Object.entries(run.selection)
       .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join("\n")}`;
     setStatus(`RUN ${run.id} CREATED`);
+    refreshRuns(run.id);
   } catch (e) {
     setStatus(`RUN REJECTED: ${e.message}`);
   }
 }
 
-// ---- PIPELINE tab (stage strip; stages are wired in Plan B) -----------------------------------
-const STAGES = ["SCENE", "GENERATE", "INTEL", "TRAIN", "EVAL", "PROMOTE", "ROLLOUT"];
+// ---- PIPELINE tab (stage strip) ---------------------------------------------------
+
 function renderStrip() {
   const strip = $("#strip");
   strip.innerHTML = "";
-  STAGES.forEach((s) => {
-    const t = el("div", "stage blocked");
-    t.append(el("div", "", s), el("div", "sub", "not wired"));
-    t.addEventListener("click", () => {
-      document.querySelectorAll(".stage").forEach((x) => x.classList.remove("active"));
-      t.classList.add("active");
-      $("#stage-title").textContent = s;
-      $("#stage-detail").textContent = "Stage execution arrives with Plan B (stages, eval, registry, rollout).";
-    });
-    strip.append(t);
-  });
 }
 
 // ---- workers + LOG --------------------------------------------------------------------------
@@ -188,6 +179,7 @@ async function boot() {
   await checkSelection();
   $("#btn-create-run").addEventListener("click", createRun);
   await initAgent();
+  await initPipeline();
   refreshWorkers();
   refreshJobs();
   setInterval(refreshWorkers, 5000);
