@@ -21,7 +21,7 @@
 | Scripted expert (baseline) | ✅ robosuite | ✅ ManiSkill 60/60 on suite_v2 | ✅ Newton + MuJoCo 100 % on every tier |
 | ACT (from scratch) | ✅ [`act_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/act_panda_pick_v1), 50,000 × 64 (baseline) | dropped | dropped |
 | SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ✅ [`smolvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_maniskill_v1), 8,500 × 32 (v1 recipe), 1 h 54 m, loss 0.011 | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
-| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1`, **2,500 × 32** (time-boxed, v1: 7,500), **ETA ~22:40** | ⏳ `Rakeshdharan56/xvla_fr3_pick_v1`, from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, RTX 6000 Ada, **ETA ~22:05** |
+| X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ⏳ `Rakeshdharan56/xvla_panda_maniskill_v1`, **2,500 × 32** (time-boxed, v1: 7,500), **ETA ~22:40** | ✅ [`xvla_fr3_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_fr3_pick_v1), from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, 1 h 08 m, loss 0.001: **Aravind evaluates** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
 | **Panda v2** (co-training) | ❌ dropped at H28.5 (no more SmolVLA training; GPU queue is X-VLA only until freeze) | | — |
 
@@ -30,8 +30,8 @@
 | Run | VRAM peak | s/step (batch 32) | Steps | Start → ETA |
 |---|---|---|---|---|
 | SmolVLA-ManiSkill | 28.4 GB | 0.78 (AMP) | 8,500 (= v1) | 18:57 → ✅ 20:52 |
-| X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ~22:05 |
-| X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | ~22:05 → ~22:40 |
+| X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ✅ 22:03 |
+| X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ~22:41 |
 
 `train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
