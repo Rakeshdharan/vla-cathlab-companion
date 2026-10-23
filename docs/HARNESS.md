@@ -66,9 +66,6 @@ touches (`harness/gates/*.yaml`) and, for engine work, the engine's manifest.
 - **RUN WITH AGENT:** in the AGENT BRIEF drawer, push the brief straight into `free_task` instead of copying it
   into another agent.
 
-To add a template, drop a YAML file in `harness/tasks/` (the file name must equal its `id`).
-`tests/harness/test_templates.py` checks that it loads and renders.
-
 ## Rules
 
 - Review every diff before pushing. The agent is fast, not infallible.
