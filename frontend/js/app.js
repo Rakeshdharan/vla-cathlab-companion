@@ -24,7 +24,7 @@ function renderTree() {
   for (const [key, section] of Object.entries(state.catalog.sections)) {
     const li = el("li", key === state.section ? "active" : "");
     li.append(el("span", "", section.title), el("span", "val", valueText(section, state.selection[key])));
-    li.addEventListener("click", () => { state.section = key; renderSection(); });
+    li.addEventListener("click", () => { state.section = key; renderTree(); renderSection(); });
     ul.append(li);
   }
 }
