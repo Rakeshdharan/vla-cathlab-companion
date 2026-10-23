@@ -122,8 +122,11 @@ def test_concurrent_job_submissions_with_eviction(tmp_path):
     results = []
     
     def submit_job(index):
-        r = c.post("/jobs", json={"argv": [PY, "-c", f"print({index})"]})
-        results.append((index, r.status_code))
+        try:
+            r = c.post("/jobs", json={"argv": [PY, "-c", f"print({index})"]})
+            results.append(r.status_code)
+        except Exception as e:
+            results.append(f"EXC:{repr(e)}")
     
     threads = [threading.Thread(target=submit_job, args=(i,)) for i in range(6)]
     for t in threads:
@@ -131,20 +134,35 @@ def test_concurrent_job_submissions_with_eviction(tmp_path):
     for t in threads:
         t.join()
     
-    # Every response must be 200 or 429 (never 5xx errors from race)
-    for index, status in results:
-        assert status in (200, 429), f"Thread {index} got unexpected status {status}"
+    # Verify exactly 6 results
+    assert len(results) == 6, f"Expected 6 results, got {len(results)}"
     
-    # Job table should never exceed max_jobs
-    # Get all jobs and verify table size is bounded
-    for index, status in results:
-        if status == 200:
-            # Job was created, verify it exists
-            pass
+    # Every response must be 200 or 429 (no exceptions, no 500 errors)
+    for i, result in enumerate(results):
+        assert isinstance(result, int), f"Result {i} is exception: {result}"
+        assert result in (200, 429), f"Result {i} has unexpected status {result}"
     
-    # Verify final state: jobs dict should have at most max_jobs
+    # Verify final state: jobs table should have at most max_jobs entries
     h = c.get("/health").json()
-    assert h["jobs_running"] <= 3
+    assert h["jobs_total"] <= 3, f"Jobs table size {h['jobs_total']} exceeds max_jobs=3"
+
+
+def test_failed_process_start_returns_500_and_no_slot_leak(tmp_path):
+    """Test that failed start_process doesn't leak a slot and returns 500."""
+    c = TestClient(create_worker_app("w", [], tmp_path))
+    
+    # Get initial table size
+    h1 = c.get("/health").json()
+    initial_size = h1["jobs_total"]
+    
+    # Try to start non-existent binary → 500
+    r = c.post("/jobs", json={"argv": ["/nonexistent/binary", "arg"]})
+    assert r.status_code == 500
+    assert "failed to start" in r.json()["detail"]
+    
+    # Verify table size unchanged (no slot leaked)
+    h2 = c.get("/health").json()
+    assert h2["jobs_total"] == initial_size, f"Table size changed from {initial_size} to {h2['jobs_total']}"
 
 
 def test_check_bind_allows_local_hosts_without_token():
