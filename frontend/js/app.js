@@ -2,6 +2,7 @@ import { api } from "./api.js";
 import { $, el, setStatus } from "./dom.js";
 import { initAgent, openTemplate } from "./agent.js";
 import { initPipeline, refreshRuns } from "./pipeline.js";
+import { initBrief } from "./brief.js";
 
 // ---- tabs -------------------------------------------------------------------------------
 export function showTab(name) {
@@ -182,6 +183,7 @@ async function boot() {
   $("#btn-create-run").addEventListener("click", createRun);
   await initAgent();
   await initPipeline();
+  await initBrief();
   refreshWorkers();
   refreshJobs();
   setInterval(refreshWorkers, 5000);

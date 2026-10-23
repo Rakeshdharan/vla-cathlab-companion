@@ -17,6 +17,7 @@
       <button data-tab="agent">AGENT</button>
       <button data-tab="log">LOG</button>
     </nav>
+    <button class="btn brief" id="btn-brief" title="Agent Brief: describe anything the UI doesn't offer">AGENT BRIEF</button>
     <div class="workers" id="workers" title="Worker health"></div>
   </header>
 
@@ -108,6 +109,28 @@
       </div>
     </section>
   </main>
+
+  <!-- AGENT BRIEF drawer (every tab) -->
+  <aside class="drawer hidden" id="brief">
+    <div class="panel-title">AGENT BRIEF</div>
+    <div class="muted">Describe what you need. The brief collects the stage contracts, tests, templates and rules for
+      any coding agent. Copy it, download it, or run it with the harness.</div>
+    <textarea id="brief-request" class="field" rows="5"
+      placeholder="e.g. Add a ManiSkill engine with the Panda and our three objects"></textarea>
+    <div class="panel-title">STAGES</div>
+    <div id="brief-stages" class="checks"></div>
+    <div class="panel-title">ENGINES</div>
+    <div id="brief-engines" class="checks"></div>
+    <input id="brief-new-engine" class="field" placeholder="new engine id (optional), e.g. maniskill">
+    <div class="row">
+      <button class="btn primary" id="brief-build">BUILD BRIEF</button>
+      <button class="btn" id="brief-copy" disabled>COPY</button>
+      <button class="btn" id="brief-download" disabled>DOWNLOAD .MD</button>
+      <button class="btn agent" id="brief-run" disabled>RUN WITH AGENT</button>
+      <button class="btn" id="brief-close">CLOSE</button>
+    </div>
+    <pre class="console" id="brief-out"></pre>
+  </aside>
 
   <footer class="bar bottom">
     <button class="btn run" id="btn-run" disabled title="Run the selected stage">&#9654; RUN STAGE</button>
