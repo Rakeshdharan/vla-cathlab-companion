@@ -1,7 +1,8 @@
 import sys
 import time
 from fastapi.testclient import TestClient
-from orchestrator.worker import create_worker_app
+from orchestrator.worker import create_worker_app, check_bind
+import pytest
 
 PY = sys.executable
 
@@ -39,3 +40,84 @@ def test_cancel_unknown_and_empty(tmp_path):
     assert wait_state(c, job["id"]) == "cancelled"
     assert c.get("/jobs/nope").status_code == 404
     assert c.post("/jobs", json={"argv": []}).status_code == 400
+
+
+def test_token_auth_required_for_non_health_endpoints(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path, token="s3cret"))
+    
+    # POST /jobs without token → 401
+    r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
+    assert r.status_code == 401
+    assert "X-Cathlab-Token" in r.json()["detail"]
+    
+    # POST /jobs with wrong token → 401
+    r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}, headers={"X-Cathlab-Token": "wrong"})
+    assert r.status_code == 401
+    
+    # POST /jobs with correct token → 200
+    r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}, headers={"X-Cathlab-Token": "s3cret"})
+    assert r.status_code == 200
+    
+    # GET /health works without token and reports auth true
+    h = c.get("/health").json()
+    assert h["auth"] is True
+
+
+def test_health_reports_auth_false_when_no_token(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path, token=None))
+    h = c.get("/health").json()
+    assert h["auth"] is False
+
+
+def test_max_jobs_evicts_oldest_non_running(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=2))
+    
+    # Submit two quick jobs
+    job1 = c.post("/jobs", json={"argv": [PY, "-c", "print('1')"]}).json()
+    job2 = c.post("/jobs", json={"argv": [PY, "-c", "print('2')"]}).json()
+    
+    # Wait for both to complete
+    assert wait_state(c, job1["id"]) == "done"
+    assert wait_state(c, job2["id"]) == "done"
+    
+    # Submit third job (should evict job1 since max_jobs=2)
+    job3 = c.post("/jobs", json={"argv": [PY, "-c", "print('3')"]}).json()
+    assert job3["state"] == "running" or job3["state"] == "done"
+    
+    # job1 should now be evicted and return 404
+    assert c.get(f"/jobs/{job1['id']}").status_code == 404
+    
+    # job3 should still be accessible
+    assert c.get(f"/jobs/{job3['id']}").status_code == 200
+
+
+def test_too_many_running_jobs_returns_429(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=1))
+    
+    # Submit one long-running job
+    job1 = c.post("/jobs", json={"argv": [PY, "-c", "import time; time.sleep(30)"]}).json()
+    assert job1["state"] == "running"
+    
+    # Try to submit another while first is running → 429
+    r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
+    assert r.status_code == 429
+    assert "too many running jobs" in r.json()["detail"]
+
+
+def test_check_bind_allows_local_hosts_without_token():
+    check_bind("127.0.0.1", None)
+    check_bind("localhost", None)
+    check_bind("::1", None)
+
+
+def test_check_bind_allows_any_host_with_token():
+    check_bind("0.0.0.0", "x")
+    check_bind("192.168.1.1", "token")
+
+
+def test_check_bind_rejects_non_local_host_without_token():
+    with pytest.raises(SystemExit):
+        check_bind("0.0.0.0", None)
+    with pytest.raises(SystemExit):
+        check_bind("192.168.1.1", None)
+
