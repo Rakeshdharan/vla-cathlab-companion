@@ -63,33 +63,56 @@ def test_api_discard_force(tmp_path, repo):
     assert resp.json()["state"] == "discarded"
 
 
-def test_cli_discard_force_flag():
-    """Test that CLI discard subcommand accepts --force flag via argparse."""
-    import argparse
+def test_cli_discard_force_flag(tmp_path, repo, monkeypatch):
+    """Test that the real CLI discard command with --force flag works end-to-end."""
+    import os
+    import time
+    from pathlib import Path
     from harness.__main__ import main
+    from harness.factory import default_harness
+    from harness.runner import AgentJob, HarnessError
+    import pytest
     
-    # Simple test: just parse the args to verify --force is accepted
-    # If the flag is not recognized, argparse will fail
-    # We test this by parsing with the discard command and --force flag
+    # Monkeypatch away CATHLAB_WORKTREES if set
+    monkeypatch.delenv("CATHLAB_WORKTREES", raising=False)
     
-    # This just tests that argparse is configured correctly for the --force flag
-    # by attempting to parse valid arguments (we don't need to actually run)
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", default=".")
-    ap.add_argument("--no-fetch", action="store_true")
-    sub = ap.add_subparsers(dest="cmd", required=True)
+    # Copy real agents.yaml into the test repo
+    agents_src = Path(__file__).parent.parent.parent / "configs/agents.yaml"
+    (repo / "configs").mkdir(parents=True, exist_ok=True)
+    (repo / "configs/agents.yaml").write_text(agents_src.read_text())
     
-    # Discard subcommand with force flag
-    discard = sub.add_parser("discard")
-    discard.add_argument("job_id")
-    discard.add_argument("--force", action="store_true")
+    # Build the harness that the CLI will build
+    h = default_harness(repo, fetch=False)
     
-    # Parse valid arguments
-    args = ap.parse_args(["discard", "test-id", "--force"])
-    assert args.force is True
+    # Create a stuck job by manually saving an AgentJob record
+    job_id = "test-stuck-job-1234"
+    now = time.time()
+    stuck_job = AgentJob(
+        id=job_id,
+        task="demo",
+        title="Stuck job",
+        params={"name": "test"},
+        extra="",
+        agent="copilot",
+        branch=f"agent/demo-{job_id}",
+        worktree=str(tmp_path / "wt" / job_id),
+        state="agent_running",
+        created=now,
+        updated=now,
+    )
+    h._save(stuck_job)
     
-    # Parse without force flag
-    args = ap.parse_args(["discard", "test-id"])
-    assert args.force is False
+    # Try to discard without force - should fail with HarnessError
+    with pytest.raises(HarnessError):
+        main(["--repo", str(repo), "--no-fetch", "discard", job_id])
+    
+    # Discard with force - should succeed with exit code 0
+    rc = main(["--repo", str(repo), "--no-fetch", "discard", job_id, "--force"])
+    assert rc == 0
+    
+    # Verify the job state is now "discarded"
+    h2 = default_harness(repo, fetch=False)
+    job = h2.get(job_id)
+    assert job.state == "discarded"
 
 
