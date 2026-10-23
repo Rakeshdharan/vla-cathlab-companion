@@ -9,8 +9,8 @@
 | [`Rakeshdharan56/pick_robosuite`](https://huggingface.co/datasets/Rakeshdharan56/pick_robosuite) `v1` | Panda, `panda_libero` (7-D EEF delta, 8-D state, 2 cams 256², 20 fps) | robosuite 1.5.2 (MuJoCo 3.3.7) | 384 | 69,191 | ✅ public | Full train grid, expert 100 %. Raw shards: `pick_robosuite_raw` |
 | [`Rakeshdharan56/pick_maniskill`](https://huggingface.co/datasets/Rakeshdharan56/pick_maniskill) `v1` | Panda, `panda_libero` | ManiSkill3 3.0.1 (**PhysX 5**) | 369 / 384 | 45,387 | ✅ public | Paired with robosuite episode for episode; expert bottle 100 / vial 90 / syringe 100 %. Raw: `pick_maniskill_raw`. [PR #10](https://github.com/Rakeshdharan/vla-cathlab-companion/pull/10) |
 | [`aravindsuresh16/cathlab_fr3_newton_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_fr3_newton_v1) `v1`, **`v1.0.1`** | FR3 Duo, `fr3_duo_16d` (16-D joint targets, 3 cams 224², 30 fps), right arm | Newton 1.6 (MuJoCo-Warp 3.12) | 384 | 159,568 | ✅ public | Expert 128/128 per object. **Use `v1.0.1` for π0.5 / QUANTILES models**: it widens q01/q99 of the idle left-arm columns (otherwise normalised to ±30). Same episodes as `v1`. [Report](https://github.com/aravinds1610/mujoco_cathlab_vla/blob/main/docs/NEWTON_REPORT.md) |
-| [`aravindsuresh16/cathlab_handover_mujoco_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_handover_mujoco_v1) `v3.0` | FR3 Duo, 16-D, **left arm**, his original 6 instruments (not our task) | MuJoCo 3.3.7 | 200 | 91,375 | ⚠️ legacy | Pre-task v1. Not our objects/arm; don't co-train with the above |
-| FR3 **MuJoCo** episodes of the team task (CPU twin of the Newton set) | FR3 Duo, 16-D | MuJoCo 3.12 (CPU) | generated, sim2sim only | — | ⏸ **not published** | Same plans as Newton; outcomes agree 60/60. `runner generate --engine mujoco` reproduces them |
+| [`aravindsuresh16/cathlab_handover_mujoco_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_handover_mujoco_v1) `v3.0` | FR3 Duo, 16-D, **left arm**, his original 6 instruments (not our task) | MuJoCo 3.3.7 | 200 | 91,375 | ⚠️ legacy | Pre-task v1. Not our objects/arm; don't co-train with the above. Aravind adds a "legacy" banner |
+| `aravindsuresh16/cathlab_fr3_mujoco_v1` (team task, CPU twin of the Newton set) | FR3 Duo, 16-D | MuJoCo 3.12 (CPU) | 384 (planned) | — | ⏳ **Aravind, by 18:30** ([part-2 handoff](handoffs/2026-10-23-aravind-part2-mujoco-and-training.md)) | Same task/objects/grid/schema as Newton; episode *i* = Newton episode *i*. Replaces the legacy MuJoCo set |
 | Newton "more episodes" (seeds 1, 2) | FR3 Duo, 16-D | Newton | 768 generated | — | ⏸ **not published** | Resampled physics/light + ±1 cm layout; 768/768 success. Publish as `v1.1` if FR3 models need more data |
 | `pick_genesis` | Panda | Genesis 1.4.5 | — | — | ⬜ not started | Handoff ready; optional (PhysX already gives cross-physics) |
 
@@ -23,7 +23,7 @@
 | [`Rakeshdharan56/xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1) | `lerobot/xvla-base` (`action_mode=auto`) | `pick_robosuite@v1` | 7,500 × 32 | ✅ on HF | RTX 6000 |
 | `Rakeshdharan56/pi05_panda_pick_v1` | `lerobot/pi05_libero_finetuned` | `pick_robosuite@v1` | ≤ 10k | ⏳ training (chain) | RTX 6000 |
 | `Rakeshdharan56/molmoact2_panda_pick_v1` | `allenai/MolmoAct2-LIBERO` | `pick_robosuite@v1` | ≤ 10k | ⬜ queued | RTX 6000 |
-| FR3 models on `cathlab_fr3_newton_v1` | SmolVLA / π0.5 / … | `cathlab_fr3_newton_v1@v1.0.1` | — | ⏳ **Aravind, cloud GPU**: he pushes checkpoints to HF | Aravind |
+| `aravindsuresh16/smolvla_fr3_pick_v1` → `pi05_fr3_pick_v1` → `act_fr3_pick_v1` | `smolvla_base` / `pi05_base` / scratch | `cathlab_fr3_newton_v1@v1.0.1` | SmolVLA ≥ 15k × 64 | ⏳ **Aravind, cloud GPU** (SmolVLA on HF by 20:30) | Aravind |
 
 Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-10-23-training-gpu-session.md).
 
@@ -49,7 +49,10 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 ## Next (owner)
 
 1. **Land a policy adapter on `main`** (training session on the RTX 6000, or Sharan's server), then evaluate SmolVLA in robosuite and in ManiSkill. Rakesh.
-2. **FR3 models on cloud GPU** from `cathlab_fr3_newton_v1@v1.0.1`, pushed to HF. Aravind.
-3. **FR3 closed-loop eval** of those checkpoints in Newton (and CPU MuJoCo for sim2sim), using his `evaluate.py` / `PolicyAdapter`. Aravind.
+2. **FR3, Aravind** ([part-2 handoff](handoffs/2026-10-23-aravind-part2-mujoco-and-training.md)):
+   - `cathlab_fr3_mujoco_v1` (team task) by 18:30;
+   - SmolVLA → π0.5 → ACT trained on a cloud GPU from `cathlab_fr3_newton_v1@v1.0.1`;
+   - closed-loop eval of each in Newton and CPU MuJoCo (suite_v2 seeds 5000–5003) → the FR3 results table and the FR3 sim2sim gap.
+3. *(merged into 2)*
 4. **Panda v2 = robosuite + ManiSkill (753 episodes):** retrain SmolVLA and test whether cross-physics co-training helps on held-out tiers (spec D5). RTX 6000, after π0.5 / MolmoAct2.
-5. **Optional:** publish Newton `v1.1` (+768 episodes) and the MuJoCo CPU twin if FR3 models need more data or a second FR3 engine for eval. Genesis if someone is free.
+5. **Optional:** publish Newton `v1.1` (+768 episodes) if FR3 models need more data. Genesis if someone is free.
