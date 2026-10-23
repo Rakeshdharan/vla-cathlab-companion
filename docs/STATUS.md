@@ -1,6 +1,6 @@
 # Project status: data, models, engines, codebase
 
-*Single source of truth for what exists on HF and what is next. Last checked against HF and `main`: **2026-10-23 17:50 (≈ H27)**; codebase section at `main` 98303b7. Update this file when a dataset or checkpoint lands.*
+*Single source of truth for what exists on HF and what is next. Last checked against HF and `main`: **2026-10-23 17:50 (≈ H27)**; codebase section at `feat/rakesh-control-station` 5746025. Update this file when a dataset or checkpoint lands.*
 
 > **Model set (decided H26.5): ACT, SmolVLA, X-VLA, with the scripted expert as the baseline**, for both Panda and FR3. π0.5 and MolmoAct2 are dropped.
 
@@ -64,9 +64,9 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | Genesis | Panda | Genesis 1.4.5 | ✅ `engines/genesis` (worker :8715, `make worker-genesis`) | ✅ | ✅ expert 60/60; checkpoints pending |
 | ~~Isaac Sim~~ | ~~FR3 Duo~~ | ~~PhysX~~ | removed (H24) | — | — |
 
-## Codebase readiness (`main` 98303b7, H27)
+## Codebase readiness (`feat/rakesh-control-station` 5746025, H31)
 
-`uv run pytest -q` → **242 passed, 10 skipped** (GPU- and simulator-free). Simulator tests run in each engine's env (`make conformance-robosuite`, `make conformance-maniskill`).
+`uv run pytest -q` → **293 passed, 14 skipped** (GPU- and simulator-free). Simulator tests run in each engine's env (`make conformance-robosuite`, `make conformance-maniskill`).
 
 **Legend:** ✅ works end to end · 🟡 partial · ⬜ missing.
 
@@ -81,14 +81,14 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | Newton / MuJoCo FR3 | Aravind's repo | 🟡 | Data on HF, expert 100 %, sim2sim 60/60 | Not an engine plugin in this repo (optional) |
 | Control plane + workers | `orchestrator/` | ✅ | Catalog + selection rules, runs (`var/runs/<id>/run.yaml`), SQLite jobs, worker app (token auth, Host allow-list), **stage pipeline**: readiness with reasons, dispatch to workers, logs, cancel, outputs, no double dispatch | Train / version / promote stages not in `orchestrator/stages.py` yet |
 | Agent harness | `harness/` | ✅ | 12 templates, worktree jobs with path guard + checks + human review, env allow-list, 12 **stage gates**, deterministic **Agent Brief** (UI, CLI `python -m harness brief`, API) | Frozen-file deny-list (e.g. `cathlab_v1.yaml`) in the guard |
-| UI | `frontend/` | 🟡 | PROJECT (catalog, Build with agent), **PIPELINE** (6 stages, live log, outputs, video), AGENT, LOG, **AGENT BRIEF** drawer | DATA and MODELS tabs are placeholders; no ASSIST or REPORT tab |
+| UI | `frontend/` | ✅ | PROJECT (catalog, Build with agent), **PIPELINE** (6 stages, live log, outputs, video), **MODELS** (register, promote, rollback), **REPORT** (failure report, CREATE NEXT RUN), **ASSIST** (procedure step proposes the object, YES hands it over with the production model), AGENT, LOG, **AGENT BRIEF** drawer | DATA tab is a placeholder |
 | Eval metrics + judge | `eval/` | 🟡 | metrics, failure classes, VLM judge, `eval.cli` (DummySim/robosimstudio), tests | Benchmark table across models × engines; engine evals feed it once checkpoints can be loaded |
-| Awareness | `awareness/` | 🟡 | Procedure model, VLM step tracking, propose-confirm assistant (tests) | ASSIST panel wiring (instruction → rollout), voice |
+| Awareness | `awareness/` | 🟡 | Procedure model, VLM step tracking, propose-confirm assistant (tests); **ASSIST panel wired** (instruction → rollout, YES hands over with the production model) | VLM step tracking not wired to the UI yet (ASSIST proposes from the procedure model, not live video), voice |
 | Training | `train/` | ⬜ | Recipes and checkpoints exist on the RTX 6000 / HF | `train/lerobot_adapter.py` (**the eval blocker**), recipes on `main`, Train stage in the UI |
-| Serving + registry | `serve/` | ⬜ | Contract in the [Sharan handoff](handoffs/2026-10-23-sharan-serve-intel-session.md) | Policy server/client, registry with promote/rollback; **now owned by Rakesh** (Sharan is out) |
+| Serving + registry | `serve/` | ✅ | Registry (`serve/registry.py`: versions, promotion rule, rollback), policy server (`serve/policy_server.py`, `make policy-server` on :8720) + stdlib `PolicyClient` (`serve/policy_client.py`), codec (`serve/codec.py`) | — |
 | Dataset intelligence | `dataset_intel/` | ⬜ | Contract (S5) | Validators, coverage, readiness score; Rakesh |
-| Failure report → next run | `report/` | ⬜ | Contract (S6) | `report.md/json` + `next_run.json` → CREATE NEXT RUN; Rakesh |
-| Loop controller | `loop/` | ⬜ | `contracts.GapSpec` | Gaps → targeted generate → v2 |
+| Failure report → next run | `report/` | ✅ | `report/failure_report.py`: `build_report` sections (failing cells, sim2sim gap, stage histogram, recommendations) + `next_run.json` (train-split cells only); CREATE NEXT RUN in the REPORT tab | — |
+| Loop controller | `orchestrator/loop.py` | ✅ | Next run via the REPORT tab's CREATE NEXT RUN → `dataengine.variation.select_configs` `cells:` split, consumed by every engine's `generate --split cells:<next_run.json>` | — |
 | Ingest | `ingest/` | ⬜ | Provided FR3 data on HF (private) | Validation report (low priority) |
 | CI + Docker | `.github/workflows/`, `docker/`, `compose.yaml` | ⬜ | — | Proposed for Mitesh (free after ManiSkill was merged) |
 | Docs + agent setup | `AGENTS.md`, `docs/EXTENDING.md`, `docs/HARNESS.md`, `docs/INSTALL.md`, `.github/{instructions,skills,prompts,agents}` | ✅ | Install, harness guide, extending guide (robosuite + ManiSkill examples), engine README, per-area agent instructions, repo skill | — |
@@ -108,11 +108,11 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 | Stage | What it produces | Owner | Code on `main` | State |
 |---|---|---|---|---|
 | **Eval** | `EvalReport` per model × engine × tier (suite_v2: 3 objects × 5 tiers × seeds 5000–5003 = 60 episodes); expert as reference | Rakesh (Panda), Aravind (FR3) | ✅ `engines/{robosuite,maniskill}/cli eval` (expert works); **needs a policy adapter** | ⛔ blocked on `train/lerobot_adapter.py` or `serve/policy_client.py` |
-| **Version** | Registry entry `cathlab-pick@vN` = ModelCard (checkpoint URI, dataset versions, eval report, W&B run, git SHA) | Rakesh (was Sharan, S3) | ⬜ `serve/registry.py` | not started on `main` |
-| **Promote / rollback** | Production pointer moves only if the candidate beats production beyond the 95 % CI and p95 latency ≤ 200 ms (`configs/serve.yaml`) | Rakesh (was Sharan, S3) | ⬜ | — |
-| **Deploy** | Policy server serving the production version (HTTP+JSON, token auth) + stdlib `PolicyClient` used by every engine | Rakesh (was Sharan, S1, S2) | ⬜ `serve/policy_server.py`, `serve/policy_client.py` | — |
+| **Version** | Registry entry `cathlab-pick@vN` = ModelCard (checkpoint URI, dataset versions, eval report, W&B run, git SHA) | Rakesh (was Sharan, S3) | ✅ `serve/registry.py` | ✅ |
+| **Promote / rollback** | Production pointer moves only if the candidate beats production beyond the 95 % CI and p95 latency ≤ 500 ms (`configs/serve.yaml`) | Rakesh (was Sharan, S3) | ✅ `serve/registry.py` | ✅ |
+| **Deploy** | Policy server serving the production version (HTTP+JSON, token auth) + stdlib `PolicyClient` used by every engine | Rakesh (was Sharan, S1, S2) | ✅ `serve/policy_server.py`, `serve/policy_client.py` | ✅ |
 | **Rollout** | One live episode of the production model with video, from the Control Station (ASSIST/PIPELINE) | Rakesh | ✅ `engines/<id>/cli rollout` (expert) | waits for Deploy |
-| **Failure report → next loop** | Failing cells (engine × tier × object × layout/colour), stage histogram, wrong-object grasps, sim2sim gap, `next_run.json` with exactly those cells → generate → v2 data → retrain | Rakesh (was Sharan, S6) | ⬜ `report/failure_report.py` | — |
+| **Failure report → next loop** | Failing cells (engine × tier × object × layout/colour), stage histogram, wrong-object grasps, sim2sim gap, `next_run.json` with exactly those cells → generate → v2 data → retrain | Rakesh (was Sharan, S6) | ✅ `report/failure_report.py` | ✅ |
 
 ## Blocker for every headline number
 

@@ -36,9 +36,9 @@ a brief; `AGENTS.md`, templates and this guide all point back to them.
 | [`intel`](../harness/gates/intel.yaml) | Dataset intelligence | planned | Sharan | `dataset_intel/` (validators, coverage, readiness score) | `uv run pytest -q tests/dataset_intel` |
 | [`train`](../harness/gates/train.yaml) | Policy training | partial | Rakesh | `train/recipes/<model>.yaml` + a `PolicyAdapter` | `uv run pytest -q tests/test_contracts.py` |
 | [`eval`](../harness/gates/eval.yaml) | Evaluation | partial | Rakesh (engine eval stages), Akanksh (metrics, VLM judge) | `eval/` (metrics, judge, failure analysis), or an engine's `eval` stage | `uv run pytest -q tests/test_metrics.py tests/test_runner.py tests/test_failures.py tests/engines` |
-| [`rollout`](../harness/gates/rollout.yaml) | Serving, registry and rollout | partial | Sharan (policy server, registry), Rakesh (engine rollout stages) | `serve/`, or an engine's `rollout` stage | `uv run pytest -q tests/engines tests/serve` |
+| [`rollout`](../harness/gates/rollout.yaml) | Serving, registry and rollout | ready | Rakesh | `serve/` (registry: versions, promotion, rollback; policy server + `PolicyClient`), or an engine's `rollout` stage | `uv run pytest -q tests/serve tests/orchestrator/test_loop.py tests/engines` |
 | [`assist`](../harness/gates/assist.yaml) | Awareness assistant (ASSIST) | partial | Navneet (awareness), Rakesh (panel) | `awareness/` (procedure model, VLM step tracking, `Assistant`) -> `--instruction` on a rollout | `uv run pytest -q tests/test_awareness_assistant.py tests/test_awareness_engine.py tests/test_awareness_procedure.py` |
-| [`report`](../harness/gates/report.yaml) | Failure report and next run | planned | Sharan | `report/failure_report.py` (+ sections) reading `EvalReport`s | `uv run pytest -q tests/report` |
+| [`report`](../harness/gates/report.yaml) | Failure report and next run | ready | Rakesh | `report/failure_report.py` (build_report sections + next_run), `dataengine.variation.select_configs` `cells:` split | `uv run pytest -q tests/report tests/dataengine/test_targeted.py` |
 
 ## 3. Add an engine, step by step
 
@@ -81,7 +81,36 @@ Mirror an existing plugin: `engines/robosuite/` (MuJoCo 3.3) or `engines/maniski
   `report.md` / `next_run.json`. See the [`report`](../harness/gates/report.yaml) gate and the `add_report_section`
   template.
 
-## 5. Agent Brief
+## 5. Close the loop (versions → report → next run)
+
+Once a checkpoint has an `EvalReport`, the loop from PIPELINE eval back to a new targeted generate is:
+
+```
+PIPELINE eval → MODELS register → PROMOTE → REPORT → CREATE NEXT RUN → PIPELINE generate (cells:) → convert → train → eval
+```
+
+- `python -m serve.registry register --card <ModelCard.yaml> --eval robosuite=<eval_report.json> [--eval maniskill=...]`
+  adds a version (`cathlab-pick@vN`) under `var/registry/`; `promote <name> <version>` applies the rule in
+  `configs/serve.yaml` (CI low on the primary engine (robosuite) > production success rate, ≥ `min_episodes`,
+  p95 latency ≤ `latency_budget_ms_p95`; `--force` only skips the CI-beats-production check, never latency);
+  `rollback <name>` restores the previously promoted version. The MODELS tab calls the same `orchestrator/loop.py`
+  API (register, promote, rollback).
+- `python -m serve.policy_server --registry cathlab-pick@production` (or `make policy-server`) serves the production
+  version over HTTP+JSON on `:8720` (token auth, `X-Cathlab-Token`); `serve/policy_client.py` is the stdlib+numpy
+  client every engine's `--policy url:<server>` uses.
+- `python -m report.failure_report --eval robosuite=<eval_report.json> [--eval maniskill=...] --model cathlab-pick@vN --out var/reports/<id>`
+  builds `report.md` / `report.json` (failing cells, sim2sim gap, stage histogram, recommendations) and
+  `next_run.json`, which lists only **train-split** cells (`layout_id`, `obj_color_id`, `table_color_id` all in the
+  spec's train splits) so a targeted run never trains on held-out eval cells. The REPORT tab's **CREATE NEXT RUN**
+  button writes a run selection with `split: cells:<next_run.json>` that PIPELINE's **generate** stage prefills.
+- Policy strings every engine CLI accepts: `expert`, `random`, `lerobot:<hf-repo-or-path>`, `url:<policy-server-url>`.
+  The control plane (and only the control plane) also resolves `registry:<name>@<version|production>` to a policy
+  string before dispatch (`orchestrator/pipeline.py:Pipeline.effective_params`, via `serve.registry.Registry`).
+- **Add a report section:** add a function to `report/failure_report.py` that reads `EvalReport`s and contributes to
+  `build_report`'s sections (feeding `report.md` and, if it names cells, `next_run.json`). See the
+  [`report`](../harness/gates/report.yaml) gate and the `add_report_section` harness template.
+
+## 6. Agent Brief
 
 A deterministic markdown brief for any coding agent, built from a plain-English request plus the stage gates it
 touches:
@@ -93,7 +122,7 @@ touches:
 Copy the brief into any coding agent (GitHub Copilot, Claude Code, Codex, Cursor), or push it straight into the
 harness with **RUN WITH AGENT**.
 
-## 6. Rules
+## 7. Rules
 
 Same seven lines as `harness/brief.py`'s `RULES`:
 

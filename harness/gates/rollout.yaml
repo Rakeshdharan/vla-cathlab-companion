@@ -1,14 +1,14 @@
 id: rollout
 title: Serving, registry and rollout
-status: partial
-owner: "Sharan (policy server, registry), Rakesh (engine rollout stages)"
-extension_point: "serve/ (policy server + PolicyClient + registry with promote/rollback) and each engine's rollout stage"
+status: ready
+owner: Rakesh
+extension_point: "serve/ (registry: versions, promotion rule, rollback; policy server + PolicyClient) and each engine's rollout stage"
 contract:
   - "rollout writes rollout.json {success, steps, failed_stage, latency_ms_p50, latency_ms_p95, object, tier, seed, instruction, policy, video} + the video"
   - "--policy url:<policy server> uses serve.policy_client.PolicyClient (HTTP + JSON, X-Cathlab-Token)"
-  - "Promotion rule and rollback as in docs/handoffs/2026-10-23-sharan-serve-intel-session.md (S3)"
-conformance: "uv run pytest -q tests/engines tests/serve"
+  - "Promotion: CI low on the primary engine > production success rate, ≥ min_episodes, p95 ≤ latency budget (configs/serve.yaml); force never skips latency; rollback restores the previous promoted version"
+conformance: "uv run pytest -q tests/serve tests/orchestrator/test_loop.py tests/engines"
 paths: ["serve/", "engines/", "tests/serve/", "tests/engines/", "docs/decisions.md"]
-reference: [engines/robosuite/evaluate.py, engines/policies.py, docs/handoffs/2026-10-23-sharan-serve-intel-session.md]
+reference: [engines/robosuite/evaluate.py, engines/policies.py, serve/registry.py, serve/policy_server.py, serve/policy_client.py, orchestrator/loop.py]
 context: [AGENTS.md, docs/EXTENDING.md, configs/serve.yaml]
 templates: []
