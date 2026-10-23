@@ -1,0 +1,63 @@
+catalog_version: 1
+
+# Every option the Control Station offers. status: ready | in_progress | planned.
+# Items that are not ready (and `add_task` on a section) point to a harness task template
+# in harness/tasks/, so the UI can offer "Build with agent".
+sections:
+  simulator:
+    title: Simulator
+    multi: false
+    items:
+      - {id: robosuite, label: "robosuite (MuJoCo)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz"}
+      - {id: isaac, label: "Isaac Sim", status: in_progress, harness_task: add_sim_backend, notes: "Provided FR3 Duo scene, right arm"}
+      - {id: mujoco, label: "MuJoCo (standalone)", status: planned, harness_task: add_sim_backend}
+  embodiment:
+    title: Embodiment
+    multi: false
+    items:
+      - {id: panda, label: "Franka Panda (single arm)", status: ready, requires: {simulator: [robosuite]}}
+      - {id: fr3_duo, label: "Franka FR3 Duo (right arm)", status: in_progress, harness_task: add_sim_backend, requires: {simulator: [isaac, mujoco]}}
+  objects:
+    title: Objects
+    multi: true
+    min: 1
+    add_task: add_object
+    items:
+      - {id: bottle, label: "Bottle (Ø62 × 250 mm)", status: ready}
+      - {id: vial, label: "Vial (Ø27 × 42 mm)", status: ready}
+      - {id: syringe, label: "Syringe (140 mm, lying)", status: ready}
+  expert:
+    title: Expert controller
+    multi: false
+    items:
+      - {id: analytic, label: "Analytic grasp templates + waypoints", status: ready}
+      - {id: graspgen, label: "GraspGen grasp ranking", status: planned, harness_task: add_expert}
+  variation:
+    title: Variation axes
+    multi: true
+    min: 0
+    add_task: add_variation_axis
+    items:
+      - {id: layout, label: "Object layouts (10)", status: ready}
+      - {id: obj_color, label: "Object colour palettes (5)", status: ready}
+      - {id: table_color, label: "Table colours (5)", status: ready}
+      - {id: mass, label: "Mass × 0.7–1.3", status: ready}
+      - {id: friction, label: "Friction 0.5–1.0", status: ready}
+      - {id: light, label: "Light intensity / colour temperature", status: ready}
+      - {id: camera_jitter, label: "Camera jitter", status: planned, harness_task: add_variation_axis}
+      - {id: distractors, label: "Unseen distractor objects", status: planned, harness_task: add_variation_axis}
+  model:
+    title: Policy model
+    multi: false
+    items:
+      - {id: smolvla, label: "SmolVLA (baseline)", status: ready}
+      - {id: act, label: "ACT", status: ready}
+      - {id: pi05, label: "π0.5", status: planned, harness_task: add_policy_adapter}
+
+defaults:
+  simulator: robosuite
+  embodiment: panda
+  objects: [bottle, vial, syringe]
+  expert: analytic
+  variation: [layout, obj_color, table_color, mass, friction, light]
+  model: smolvla
