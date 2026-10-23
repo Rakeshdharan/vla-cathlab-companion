@@ -11,6 +11,7 @@ import os
 import platform
 import secrets
 import sys
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -39,6 +40,7 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
     var_dir = Path(var_dir)
     app = FastAPI(title=f"cathlab worker: {name}")
     jobs: dict[str, dict] = {}
+    jobs_lock = threading.Lock()
 
     def _get_token_checker():
         """FastAPI dependency for token authentication."""
@@ -52,10 +54,11 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
 
     def _get(job_id: str) -> dict:
         """Get job record, raise 404 if not found."""
-        job = jobs.get(job_id)
-        if job is None:
-            raise HTTPException(404, f"unknown job {job_id}")
-        return job
+        with jobs_lock:
+            job = jobs.get(job_id)
+            if job is None:
+                raise HTTPException(404, f"unknown job {job_id}")
+            return job
 
     def view(job_id_or_record: str | dict) -> dict:
         """Build job view from job_id (lookup) or record (cached)."""
@@ -71,7 +74,8 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
 
     @app.get("/health")
     def health() -> dict:
-        running = sum(1 for j in jobs.values() if j["handle"].state == "running")
+        with jobs_lock:
+            running = sum(1 for j in jobs.values() if j["handle"].state == "running")
         return {"name": name, "capabilities": capabilities, "python": platform.python_version(),
                 "executable": sys.executable, "pid": os.getpid(), "jobs_running": running,
                 "auth": token is not None}
@@ -81,20 +85,29 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
         if not req.argv:
             raise HTTPException(400, "argv must not be empty")
         
-        # Evict oldest non-running jobs if at capacity
-        if len(jobs) >= max_jobs:
-            non_running = [(jid, j) for jid, j in jobs.items() if j["handle"].state != "running"]
-            if not non_running:
-                raise HTTPException(429, "too many running jobs")
-            non_running.sort(key=lambda x: x[1]["started"])
-            while len(jobs) >= max_jobs and non_running:
-                jid, _ = non_running.pop(0)
-                del jobs[jid]
+        with jobs_lock:
+            # Evict oldest non-running jobs if at capacity
+            if len(jobs) >= max_jobs:
+                non_running = [(jid, j) for jid, j in jobs.items() if j["handle"].state != "running"]
+                if not non_running:
+                    raise HTTPException(429, "too many running jobs")
+                non_running.sort(key=lambda x: x[1]["started"])
+                while len(jobs) >= max_jobs and non_running:
+                    jid, _ = non_running.pop(0)
+                    del jobs[jid]
+            
+            # Reserve slot in jobs dict
+            job_id = uuid.uuid4().hex[:12]
+            # Placeholder to reserve the slot
+            jobs[job_id] = {"handle": None, "name": req.name, "started": time.time(), "id": job_id}
         
-        job_id = uuid.uuid4().hex[:12]
+        # Start process outside lock
         handle = start_process(req.argv, var_dir / "jobs" / f"{job_id}.log", cwd=req.cwd, env=req.env,
                                timeout_s=req.timeout_s)
-        jobs[job_id] = {"handle": handle, "name": req.name, "started": time.time(), "id": job_id}
+        
+        with jobs_lock:
+            jobs[job_id]["handle"] = handle
+        
         return view(job_id)
 
     @app.get("/jobs/{job_id}")

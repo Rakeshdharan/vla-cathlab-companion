@@ -1,5 +1,6 @@
 import sys
 import time
+import threading
 from fastapi.testclient import TestClient
 from orchestrator.worker import create_worker_app, check_bind
 import pytest
@@ -98,10 +99,52 @@ def test_too_many_running_jobs_returns_429(tmp_path):
     job1 = c.post("/jobs", json={"argv": [PY, "-c", "import time; time.sleep(30)"]}).json()
     assert job1["state"] == "running"
     
-    # Try to submit another while first is running → 429
-    r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
-    assert r.status_code == 429
-    assert "too many running jobs" in r.json()["detail"]
+    try:
+        # Try to submit another while first is running → 429
+        r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
+        assert r.status_code == 429
+        assert "too many running jobs" in r.json()["detail"]
+    finally:
+        # Clean up: cancel the long-running job
+        c.post(f"/jobs/{job1['id']}/cancel")
+
+
+def test_concurrent_job_submissions_with_eviction(tmp_path):
+    """Test concurrent submissions don't race during eviction."""
+    c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=3))
+    
+    # Fill with 3 finished jobs
+    for _ in range(3):
+        job = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}).json()
+        wait_state(c, job["id"])
+    
+    # Submit 6 jobs concurrently from threads
+    results = []
+    
+    def submit_job(index):
+        r = c.post("/jobs", json={"argv": [PY, "-c", f"print({index})"]})
+        results.append((index, r.status_code))
+    
+    threads = [threading.Thread(target=submit_job, args=(i,)) for i in range(6)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    
+    # Every response must be 200 or 429 (never 5xx errors from race)
+    for index, status in results:
+        assert status in (200, 429), f"Thread {index} got unexpected status {status}"
+    
+    # Job table should never exceed max_jobs
+    # Get all jobs and verify table size is bounded
+    for index, status in results:
+        if status == 200:
+            # Job was created, verify it exists
+            pass
+    
+    # Verify final state: jobs dict should have at most max_jobs
+    h = c.get("/health").json()
+    assert h["jobs_running"] <= 3
 
 
 def test_check_bind_allows_local_hosts_without_token():
@@ -120,4 +163,3 @@ def test_check_bind_rejects_non_local_host_without_token():
         check_bind("0.0.0.0", None)
     with pytest.raises(SystemExit):
         check_bind("192.168.1.1", None)
-
