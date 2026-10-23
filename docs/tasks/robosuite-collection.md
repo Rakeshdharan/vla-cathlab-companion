@@ -2,9 +2,11 @@
 
 You will produce demonstrations of a Franka Panda robot doing *"Hand me the {bottle | vial | syringe}"*: it picks the named object from a table and puts it in a tray. A scripted "expert" controller does the robot work. You only run commands, check the numbers, and upload the result. No robotics knowledge is needed.
 
-**What you produce:** a LeRobot v3 dataset (`cathlab/pick_robosuite`, version `v1`) with 384 episodes: 3 objects × 8 layouts × 4 object colours × 4 table colours. Each episode has 2 camera videos (256×256), an 8-D robot state and a 7-D action at 20 Hz.
+**What you produce:** a LeRobot v3 dataset with 384 episodes: 3 objects × 8 layouts × 4 object colours × 4 table colours. Each episode has 2 camera videos (256×256), an 8-D robot state and a 7-D action at 20 Hz.
 
-**Rule:** data never goes into git. `data/` and `outputs/` are git-ignored; finished datasets go to the private Hugging Face org.
+**Rule:** data never goes into git. `data/` and `outputs/` are git-ignored; finished datasets go to the Hugging Face Hub.
+
+> **v1 already exists:** [`Rakeshdharan56/pick_robosuite`](https://huggingface.co/datasets/Rakeshdharan56/pick_robosuite) (tag `v1`, 384 episodes). Load it with `LeRobotDataset("Rakeshdharan56/pick_robosuite", revision="v1")`. Use this guide for new versions (for example loop-targeted episodes) and pick a new `--out` folder, repo or tag.
 
 ## 1. One-time setup
 
@@ -104,7 +106,7 @@ Once all shards are finished, copy every `raw/shard_*` folder into one machine's
 
 ```bash
 conda activate lerobot
-python scripts/npz_to_lerobot.py --dataset data/pick_robosuite
+python scripts/npz_to_lerobot.py --dataset data/pick_robosuite --repo-id Rakeshdharan56/pick_robosuite
 # -> data/pick_robosuite/lerobot/  (videos, parquet, meta/episodes_extra.jsonl, manifest.yaml)
 ```
 
@@ -113,28 +115,40 @@ Check that it loads:
 ```bash
 python -c "
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
-ds = LeRobotDataset('cathlab/pick_robosuite', root='data/pick_robosuite/lerobot')
+ds = LeRobotDataset('Rakeshdharan56/pick_robosuite', root='data/pick_robosuite/lerobot')
 f = ds[0]
 print(ds.num_episodes, 'episodes', ds.fps, 'fps', f['action'].shape, f['observation.state'].shape, f['observation.images.agentview'].shape)"
 # expected: 384 episodes 20 fps torch.Size([7]) torch.Size([8]) torch.Size([3, 256, 256])
 ```
 
-## 5. Upload to Hugging Face as `cathlab/pick_robosuite@v1`
+## 5. Upload to Hugging Face
 
-The repo is **private** and must stay private.
+This is how v1 was published (public dataset under Rakesh's account). The `v3.0` tag is **required**: LeRobot refuses to load a Hub dataset without a codebase-version tag.
 
 ```bash
 conda activate lerobot
-hf auth login                                     # once; needs write access to the cathlab org
-hf upload cathlab/pick_robosuite data/pick_robosuite/lerobot . --repo-type dataset --private \
+hf auth login                                     # once; needs write access to the repo
+REPO=Rakeshdharan56/pick_robosuite                # change for a new dataset
+hf repos create $REPO --repo-type dataset --exist-ok
+hf upload $REPO data/pick_robosuite/lerobot . --repo-type dataset --exclude "images/*" \
   --commit-message "pick_robosuite v1: 384 scripted robosuite episodes"
-hf repos tag create cathlab/pick_robosuite v1 --repo-type dataset -m "robosuite scripted, train grid 384"
+hf repos tag create $REPO v3.0 --repo-type dataset -m "LeRobot codebase v3.0"
+hf repos tag create $REPO v1 --repo-type dataset -m "robosuite scripted, train grid 384"
 ```
 
-Optional: also keep the raw shards, so the dataset can be rebuilt without re-simulating:
+Put a dataset card at `data/pick_robosuite/lerobot/README.md` before uploading (copy the one on the v1 repo page and edit the numbers).
+
+Also keep the raw shards, so the dataset can be rebuilt without re-simulating (about 3 GB; resumable if interrupted):
 
 ```bash
-hf upload cathlab/pick_robosuite_raw data/pick_robosuite/raw . --repo-type dataset --private
+hf repos create ${REPO}_raw --repo-type dataset --exist-ok
+hf upload-large-folder ${REPO}_raw data/pick_robosuite/raw --repo-type dataset
+```
+
+Check the upload by loading it from the Hub:
+
+```bash
+python -c "from lerobot.datasets.lerobot_dataset import LeRobotDataset; ds = LeRobotDataset('Rakeshdharan56/pick_robosuite', revision='v1'); print(ds.num_episodes)"
 ```
 
 Then post the dataset link and the per-object success numbers in the team channel.
