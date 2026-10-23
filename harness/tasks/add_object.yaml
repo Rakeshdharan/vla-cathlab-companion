@@ -1,0 +1,58 @@
+id: add_object
+title: Add an object to the robosuite scene
+description: >
+  Add a new pickable object (geometry, mass, grasp type, colours) to a NEW versioned variation spec, the robosuite
+  scene builder, the task config and the catalog, so the scripted expert can pick it and episodes can be generated.
+catalog_target: objects
+params:
+  - {name: name, type: str, pattern: "^[a-z][a-z0-9_]*$", help: "object id, snake_case, e.g. guidewire_hoop"}
+  - {name: label, type: str, help: "UI label, e.g. 'Guidewire hoop (Ø120 mm)'"}
+  - {name: shape, type: choice, choices: [cylinder, syringe, box], default: cylinder, help: "box needs a new shape in ObjectSpec + env.py"}
+  - {name: radius, type: float, help: "metres (box: half width)"}
+  - {name: length, type: float, help: "metres (height if upright, long axis if lying)"}
+  - {name: upright, type: bool, default: true}
+  - {name: mass, type: float, help: "kg"}
+  - {name: grasp, type: choice, choices: [top, side], default: top}
+  - {name: spec_out, type: str, pattern: "^[a-z][a-z0-9_]*$", default: cathlab_v2, help: "new variation spec file name (never edit cathlab_v1)"}
+context:
+  - AGENTS.md
+  - docs/specs/2026-10-22-sim-framework-design.md
+  - configs/variation/cathlab_v1.yaml
+  - dataengine/variation.py
+  - dataengine/expert.py
+  - sim/robosuite/env.py
+  - sim/robosuite/randomize.py
+  - configs/tasks/cathlab_pick.yaml
+  - configs/catalog.yaml
+  - sim/robosuite/README.md
+prompt: |
+  Add the object `{name}` ("{label}") to the robosuite pick task.
+  1. Create configs/variation/{spec_out}.yaml as a copy of configs/variation/cathlab_v1.yaml with variation_id `{spec_out}`
+     and a new `objects.{name}` entry: shape {shape}, radius {radius}, length {length}, upright {upright}, mass {mass}, grasp {grasp}.
+     Add an RGBA colour for `{name}` to EVERY palette in `obj_colors` (5 palettes, visibly distinct per palette).
+     Do NOT edit cathlab_v1.yaml: the published v1 dataset depends on it.
+  2. If shape is `box` (or anything ObjectSpec/env.py does not support yet), extend `ObjectSpec.shape` in dataengine/variation.py
+     and the object builder in sim/robosuite/env.py, keeping existing shapes unchanged.
+  3. Add `{name}` to `objects` in configs/tasks/cathlab_pick.yaml and an item {{id: {name}, label: "{label}", status: ready}}
+     to the `objects` section of configs/catalog.yaml.
+  4. Make sure layouts still separate all objects (min_separation, reach corridor) and the expert grasp template suits the
+     object; tune `sim/robosuite/params.py` only if needed and explain why in docs/decisions.md (one new table row).
+  5. Add or extend a test under tests/ that loads configs/variation/{spec_out}.yaml and checks the new object exists in every palette.
+allowed_paths:
+  - configs/variation/
+  - configs/tasks/cathlab_pick.yaml
+  - configs/catalog.yaml
+  - dataengine/variation.py
+  - sim/robosuite/
+  - tests/
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+  - {name: robosuite-tests, cmd: "conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python -m pytest -q tests/sim"}
+  - name: expert-rate
+    cmd: >-
+      conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python scripts/robosuite_expert_check.py
+      --n 5 --objects {name} --spec configs/variation/{spec_out}.yaml --json var/expert_check.json
+      && python3 scripts/assert_expert_rate.py var/expert_check.json --min 0.8
+    timeout_s: 1800
+timeout_min: 45

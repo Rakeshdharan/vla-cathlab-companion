@@ -1,0 +1,37 @@
+id: add_sim_backend
+title: Add or extend a simulator backend
+description: >
+  Implement the expert adapter (dataengine.expert.ExpertSim) and the eval backend (contracts.SimBackend) for a simulator,
+  following the robosuite reference implementation, and register it in the catalog.
+catalog_target: simulator
+params:
+  - {name: sim, type: choice, choices: [isaac, mujoco], help: "package sim/<sim>/"}
+  - {name: embodiment, type: str, default: fr3_duo}
+  - {name: notes, type: text, required: false, help: "scene file, env name, known constraints"}
+context:
+  - AGENTS.md
+  - docs/specs/2026-10-22-sim-framework-design.md
+  - docs/handoffs/2026-10-22-isaac-fr3-session.md
+  - contracts/sim.py
+  - dataengine/expert.py
+  - dataengine/variation.py
+  - sim/robosuite/expert_sim.py
+  - sim/robosuite/backend.py
+  - sim/robosuite/README.md
+prompt: |
+  Build sim/{sim}/ for embodiment `{embodiment}`. Notes from the user: {notes}
+  1. `sim/{sim}/expert_sim.py`: a class implementing the ExpertSim protocol (reset(cfg), get_object_pose, get_ee_pose,
+     step, tray_contains), converting the simulator's frames to the core frame (robot base, table top z = 0, wxyz quats),
+     exactly as sim/robosuite/expert_sim.py does. Import the simulator lazily so tests run without it.
+  2. `sim/{sim}/backend.py`: contracts.SimBackend for policy eval with stage flags reach/grasp/lift/transport/place.
+  3. `sim/{sim}/README.md` (env setup, how to run, conventions) and tests in tests/sim/ that skip without the simulator.
+  4. Update the `{sim}` item in configs/catalog.yaml: status in_progress until the expert reaches 80 %, then ready
+     (state the measured rate in docs/decisions.md).
+allowed_paths:
+  - sim/{sim}/
+  - tests/sim/
+  - configs/
+  - docs/decisions.md
+acceptance:
+  - {name: core-tests, cmd: "uv run pytest -q"}
+timeout_min: 60
