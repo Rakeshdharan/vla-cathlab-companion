@@ -10,7 +10,7 @@ from contracts import STAGES, EvalReport
 from dataengine.variation import TIERS
 from eval.metrics import latency_summary, success_by_object, success_by_tier
 
-ENGINES = {"robosuite": "robosuite (MuJoCo)", "maniskill": "ManiSkill (PhysX)"}
+ENGINES = {"robosuite": "robosuite (MuJoCo)", "maniskill": "ManiSkill (PhysX)", "genesis": "Genesis"}
 # model -> (label, trained on); the order is the table's row order.
 MODELS = {
     "expert": ("Scripted expert", "—"),

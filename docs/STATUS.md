@@ -40,11 +40,11 @@
 
 Remaining evals (ManiSkill-trained SmolVLA + X-VLA) moved to the **RTX 2000 Ada**: [`handoffs/2026-10-23-rtx2000-cross-eval-session.md`](handoffs/2026-10-23-rtx2000-cross-eval-session.md). The RTX 6000 Ada only trains. Raw reports: `reports/robosuite/eval_reports/`; table: [`reports/robosuite/cross_physics_v1.md`](../reports/robosuite/cross_physics_v1.md).
 
-| | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) |
-|---|---|---|
-| expert | ✅ 60/60 | ✅ 60/60 |
-| ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (3–16) · **SmolVLA 38 % (27–51)** · X-VLA 8 % (4–18): in-domain | ACT 2 % (0–9) · SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) |
-| SmolVLA / X-VLA trained on ManiSkill | SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) | **SmolVLA 43 % (32–56)** · X-VLA 8 % (4–18): in-domain (RTX 6000 Ada; the RTX 2000 is WSL2 without Vulkan) |
+| | eval robosuite (MuJoCo) | eval ManiSkill (PhysX) | eval Genesis |
+|---|---|---|---|
+| expert | ✅ 60/60 | ✅ 60/60 | ✅ 60/60 |
+| ACT / SmolVLA / X-VLA trained on robosuite | ACT 7 % (3–16) · **SmolVLA 38 % (27–51)** · X-VLA 8 % (4–18): in-domain | ACT 2 % (0–9) · SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) | ACT 0 % (0–6) · SmolVLA 0 % (0–6) · X-VLA 2 % (0–9) |
+| SmolVLA / X-VLA trained on ManiSkill | SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) | **SmolVLA 43 % (32–56)** · X-VLA 8 % (4–18): in-domain (RTX 6000 Ada; the RTX 2000 is WSL2 without Vulkan) | SmolVLA 0 % (0–6) · X-VLA 0 % (0–6) |
 
 **Reading (22:50, table complete, 12/12 cells):** the cross-physics gap is **symmetric and total**. Each policy works only in the engine it was trained in: SmolVLA 38 % in robosuite / 0 % in ManiSkill when trained on robosuite, and 43 % in ManiSkill / 0 % in robosuite when trained on ManiSkill. Failures in the other engine are at *reach* (55–60/60): the policy doesn't find the object in the other renderer's images. The expert is 100 % in both, so the action/state plumbing is correct. The gap is visual (pedestal, floor, lighting) + dynamics, not an interface bug. X-VLA is weak in-domain in both engines (8 %; the ManiSkill one had only 2,500 steps). **Implication for the loop:** co-train on both engines' data (and/or visual domain randomisation) before claiming sim2sim transfer. SmolVLA-ManiSkill-in-robosuite latency (917 ms p50) was measured on the RTX 2000 laptop with 5 parallel evals.
 
@@ -62,7 +62,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | robosuite | Panda | MuJoCo 3.3.7 | ✅ `engines/robosuite` | ✅ | ✅ expert + 5 checkpoints (`--policy lerobot:<ckpt>`) |
 | ManiSkill3 | Panda | PhysX 5 | ✅ `engines/maniskill` | ✅ | ✅ expert 60/60 + 5 checkpoints |
 | Newton | FR3 Duo | MuJoCo-Warp | ⬜ Aravind's repo only ([`cathlab_sim/newton`](https://github.com/aravinds1610/mujoco_cathlab_vla/tree/main/cathlab_sim/newton)) | ✅ | expert 100 % all tiers, sim2sim vs MuJoCo 60/60 |
-| Genesis | Panda | Genesis 1.4.5 | ✅ `engines/genesis` (worker :8715, `make worker-genesis`) | ✅ | ✅ expert 60/60; checkpoints pending |
+| Genesis | Panda | Genesis 1.4.5 | ✅ `engines/genesis` (worker :8715, `make worker-genesis`) | ✅ | ✅ expert 60/60; all 5 checkpoints 0–2 % (23:35) |
 | ~~Isaac Sim~~ | ~~FR3 Duo~~ | ~~PhysX~~ | removed (H24) | — | — |
 
 ## Codebase readiness (`feat/rakesh-control-station` 5746025, H31)
@@ -78,7 +78,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | Engine SDK | `engines/{registry,cli_base,policies,expert_policy}.py` | ✅ | Manifests + I/O profiles (`panda_libero`, `fr3_duo_16d`), uniform CLI (6 stages, `--run`, `--dry-run`, one-line errors), expert-as-policy, conformance test | `url:` policies wait for `serve/policy_client.py`; `lerobot:<ckpt>` adapter is being built in the RTX 6000 ManiSkill session |
 | robosuite engine | `engines/robosuite`, `sim/robosuite` | ✅ | preview, check-expert, generate, convert, eval (suite_v2), rollout (GIF; no `imageio_ffmpeg` in the env) | trained-checkpoint eval (adapter) |
 | ManiSkill3 engine | `engines/maniskill`, `sim/maniskill` | ✅ | All 6 stages; expert 60/60 on suite_v2; worker :8714 (`make worker-maniskill`) | Env only on the RTX 6000 Ada (no `maniskill` env on this box) |
-| Genesis engine | `engines/genesis`, `sim/genesis` | ✅ | All 6 stages; expert 60/60 on suite_v2; `pick_genesis@v1` (383 eps); worker :8715; `CATHLAB_GENESIS_BACKEND=cpu` for a shared GPU | Trained-checkpoint eval (`--policy lerobot:<ckpt>`) |
+| Genesis engine | `engines/genesis`, `sim/genesis` | ✅ | All 6 stages; expert 60/60 on suite_v2; 5 checkpoints evaluated (0–2 %); `pick_genesis@v1` (383 eps); worker :8715; `CATHLAB_GENESIS_BACKEND=cpu` for a shared GPU | — |
 | Newton / MuJoCo FR3 | Aravind's repo | 🟡 | Data on HF, expert 100 %, sim2sim 60/60 | Not an engine plugin in this repo (optional) |
 | Control plane + workers | `orchestrator/` | ✅ | Catalog + selection rules, runs (`var/runs/<id>/run.yaml`), SQLite jobs, worker app (token auth, Host allow-list), **stage pipeline**: readiness with reasons, dispatch to workers, logs, cancel, outputs, no double dispatch | Train / version / promote stages not in `orchestrator/stages.py` yet |
 | Agent harness | `harness/` | ✅ | 12 templates, worktree jobs with path guard + checks + human review, env allow-list, 12 **stage gates**, deterministic **Agent Brief** (UI, CLI `python -m harness brief`, API) | Frozen-file deny-list (e.g. `cathlab_v1.yaml`) in the guard |
@@ -143,6 +143,6 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
    - eval of both + the expert in Newton + MuJoCo → FR3 table + sim2sim gap.
 4. **Version v1 → promote the best Panda model → rollout video → failure report → `next_run.json`.** Rakesh, after 1–2.
 5. **Panda v2:** merged robosuite + ManiSkill (753 episodes) plus the loop-targeted cells; SmolVLA first, then evaluate and promote if better. RTX 6000 Ada (T6 of the ManiSkill handoff).
-6. **Genesis:** ✅ merged with `pick_genesis@v1`. Next: evaluate the Panda checkpoints in Genesis (`engines.genesis.cli eval --policy lerobot:<ckpt>`, axes off) for the third physics column.
+6. **Genesis:** ✅ merged with `pick_genesis@v1`; ✅ third physics column (5 checkpoints, 0–2 %, 23:35). Next: evaluate `xvla_panda_genesis_v1` in all three engines when it lands.
 7. **CI + Docker:** proposed for Mitesh (free).
 8. **Optional:** Newton `v1.1` (+768 episodes).
