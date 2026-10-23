@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
+from harness.gitops import GitError
 from harness.model import ParamError
 from harness.runner import Harness, HarnessError
 
@@ -73,6 +74,8 @@ def create_agent_router(harness: Harness) -> APIRouter:
             return harness.push(job_id).model_dump()
         except HarnessError as e:
             raise HTTPException(409, str(e)) from e
+        except GitError as e:
+            raise HTTPException(502, str(e)) from e
 
     @r.post("/jobs/{job_id}/discard")
     def discard(job_id: str, force: bool = False) -> dict:
@@ -81,5 +84,7 @@ def create_agent_router(harness: Harness) -> APIRouter:
             return harness.discard(job_id, force=force).model_dump()
         except HarnessError as e:
             raise HTTPException(409, str(e)) from e
+        except GitError as e:
+            raise HTTPException(502, str(e)) from e
 
     return r

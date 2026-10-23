@@ -17,6 +17,7 @@ import uuid
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
+from orchestrator.hosts import protect
 from orchestrator.process import ProcessHandle, read_log, start_process
 
 
@@ -36,7 +37,7 @@ def check_bind(host: str, token: str | None) -> None:
 
 
 def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, token: str | None = None,
-                      max_jobs: int = 200) -> FastAPI:
+                      max_jobs: int = 200, bind_host: str | None = None) -> FastAPI:
     var_dir = Path(var_dir)
     app = FastAPI(title=f"cathlab worker: {name}")
     jobs: dict[str, dict] = {}
@@ -51,6 +52,8 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
         return check_token
 
     token_checker = _get_token_checker()
+    if not token:  # with a token, rebinding pages can't authenticate; without one, accept local hosts only
+        protect(app, bind_host)
 
     def _get(job_id: str) -> dict:
         """Get job record (snapshot), raise 404 if not found. Caller must not hold lock."""
@@ -144,7 +147,7 @@ def main() -> None:
     token = args.token or os.environ.get("CATHLAB_WORKER_TOKEN")
     check_bind(args.host, token)
     caps = [c for c in args.capabilities.split(",") if c]
-    app = create_worker_app(args.name, caps, Path(args.var_dir) / args.name, token=token)
+    app = create_worker_app(args.name, caps, Path(args.var_dir) / args.name, token=token, bind_host=args.host)
     uvicorn.run(app, host=args.host, port=args.port)
 
 

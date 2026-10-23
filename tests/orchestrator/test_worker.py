@@ -181,3 +181,23 @@ def test_check_bind_rejects_non_local_host_without_token():
         check_bind("0.0.0.0", None)
     with pytest.raises(SystemExit):
         check_bind("192.168.1.1", None)
+
+
+def test_tokenless_worker_rejects_foreign_host_header(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path))
+    assert c.get("/health", headers={"Host": "localhost:8711"}).status_code == 200
+    assert c.get("/health", headers={"Host": "attacker.example"}).status_code == 400
+    assert c.post("/jobs", json={"argv": ["true"]}, headers={"Host": "attacker.example"}).status_code == 400
+
+
+def test_token_worker_accepts_remote_host_names(tmp_path):
+    c = TestClient(create_worker_app("w", [], tmp_path, token="s3cret"))
+    assert c.get("/health", headers={"Host": "gpu-box:8712"}).status_code == 200
+
+
+def test_allowed_hosts_adds_bind_host_and_env(monkeypatch):
+    from orchestrator.hosts import allowed_hosts
+    monkeypatch.setenv("CATHLAB_ALLOWED_HOSTS", "gpu-box, 10.0.0.5")
+    hosts = allowed_hosts("192.168.1.7")
+    assert {"localhost", "127.0.0.1", "192.168.1.7", "gpu-box", "10.0.0.5"} <= set(hosts)
+    assert "0.0.0.0" not in allowed_hosts("0.0.0.0")

@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "serve":
         import uvicorn
         from harness.server import create_agent_app
-        uvicorn.run(create_agent_app(h), host=args.host, port=args.port)
+        uvicorn.run(create_agent_app(h, bind_host=args.host), host=args.host, port=args.port)
     return 0
 
 

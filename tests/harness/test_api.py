@@ -116,3 +116,27 @@ def test_cli_discard_force_flag(tmp_path, repo, monkeypatch):
     assert job.state == "discarded"
 
 
+
+
+def test_push_git_failure_returns_502_with_reason(tmp_path, repo):
+    import subprocess
+    c = TestClient(create_agent_app(make_harness(tmp_path, repo)))
+    job = c.post("/api/agent/jobs", json={"task": "demo", "params": {"name": "hoop"}}).json()
+    assert wait(c, job["id"]) == "ready_for_review"
+    subprocess.run(["git", "config", "remote.origin.url", str(tmp_path / "missing.git")], cwd=repo, check=True)
+    r = c.post(f"/api/agent/jobs/{job['id']}/push")
+    assert r.status_code == 502 and "git push" in r.json()["detail"]
+
+
+def test_git_errors_redact_url_credentials(tmp_path):
+    import pytest
+    from harness.gitops import GitError, git
+    with pytest.raises(GitError) as e:
+        git(["ls-remote", "https://user:s3cret@127.0.0.1:9/x.git"], tmp_path)
+    assert "s3cret" not in str(e.value) and "://***@" in str(e.value)
+
+
+def test_agent_app_rejects_foreign_host_header(tmp_path, repo):
+    c = TestClient(create_agent_app(make_harness(tmp_path, repo)))
+    assert c.get("/health").status_code == 200
+    assert c.get("/health", headers={"Host": "attacker.example"}).status_code == 400

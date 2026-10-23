@@ -74,7 +74,16 @@ function renderSection() {
 
 function buildWithAgent(taskId, sectionKey, itemId) {
   const prefill = {};
-  if (taskId === "add_sim_backend" && itemId) prefill.sim = itemId;
+  if (taskId === "add_sim_backend" && itemId) {
+    if (sectionKey === "embodiment") {
+      const item = state.catalog.sections.embodiment.items.find((i) => i.id === itemId);
+      prefill.embodiment = itemId;
+      const sims = item?.requires?.simulator;
+      if (sims?.length) prefill.sim = sims[0];
+    } else {
+      prefill.sim = itemId;
+    }
+  }
   if (taskId === "add_policy_adapter" && itemId) prefill.model_id = itemId;
   if (taskId === "add_expert" && itemId) prefill.expert_id = itemId;
   if (taskId === "add_variation_axis" && itemId) prefill.axis_id = itemId;

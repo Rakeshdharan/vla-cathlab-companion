@@ -1,4 +1,5 @@
 """Git operations for harness jobs (worktree per job, commit, diff, push, cleanup)."""
+import re
 import subprocess
 from pathlib import Path
 
@@ -10,7 +11,8 @@ class GitError(RuntimeError):
 def git(args: list[str], cwd: str | Path) -> str:
     res = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
     if res.returncode != 0:
-        raise GitError(f"git {' '.join(args)}: {res.stderr.strip() or res.stdout.strip()}")
+        msg = f"git {' '.join(args)}: {res.stderr.strip() or res.stdout.strip()}"
+        raise GitError(re.sub(r"://[^/@\s]+@", "://***@", msg))  # never echo credentials embedded in URLs
     return res.stdout
 
 

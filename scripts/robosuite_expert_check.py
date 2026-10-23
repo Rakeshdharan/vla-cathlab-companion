@@ -86,6 +86,7 @@ def main() -> None:
               f"max {v['max_steps']}  failures: {summary['failures'].get(obj, {})}")
     print(f"{elapsed / max(n_eps, 1):.2f} s/episode (no rendering)")
     if args.json:
+        Path(args.json).parent.mkdir(parents=True, exist_ok=True)
         Path(args.json).write_text(json.dumps(summary, indent=2))
 
 
