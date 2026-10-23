@@ -27,12 +27,15 @@ git clone https://github.com/Rakeshdharan/vla-cathlab-companion && cd vla-cathla
 git config core.hooksPath .githooks
 git config user.name "<your name>" && git config user.email "<your email>"
 uv sync && uv run pytest -q            # must be green before you start
-uv add --optional serve fastapi uvicorn httpx   # if fastapi isn't already a core dependency on main
+# fastapi, uvicorn and httpx are already core dependencies on main: never `uv add` them (it would conflict).
+# If you need a NEW dependency, put it in an optional group (e.g. `uv add --optional intel pyarrow`) in its own small PR.
 ```
 
 For S5 you also need an env with `pyarrow`/`pandas` (or `lerobot`): `uv run --with pyarrow --with pandas ...`, or the conda `lerobot` env.
 
 Branch per package: `feat/sharan-<topic>`. Make small PRs to `main`; each PR carries its tests.
+
+**Stay on the tip of `main`:** start every branch from a fresh `git fetch && git switch -c feat/sharan-<topic> origin/main`, and run `git fetch && git rebase origin/main` before opening the PR. `main` moves several times a day. Never merge `main` into your branch, and never force-push `main`.
 
 ## 3. Contracts (build to these exactly)
 
@@ -189,7 +192,7 @@ Plus:
 - `configs/workers.docker.yaml` (service-name URLs), selected with `CATHLAB_WORKERS=configs/workers.docker.yaml`;
 - a "Docker" section in `docs/INSTALL.md`: build, up, logs, GPU prerequisites (NVIDIA Container Toolkit), and why the agent harness and Isaac stay on their hosts.
 
-`orchestrator/` and `frontend/` land on `main` today (Plan A); start S7 after that.
+`orchestrator/` (worker, control plane) is on `main`, and `frontend/` and `orchestrator/control.py` land later today (Plan A). Start S7 once `orchestrator/control.py` exists on `main`.
 
 ## 4. Work packages (priority order; each ends with a ✅)
 
