@@ -9,6 +9,7 @@ sections:
     multi: false
     items:
       - {id: robosuite, label: "robosuite (MuJoCo)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz"}
+      - {id: maniskill, label: "ManiSkill3 (SAPIEN / PhysX 5)", status: ready, notes: "Panda, LIBERO I/O, 20 Hz; worker :8714"}
       - {id: isaac, label: "Isaac Sim", status: in_progress, harness_task: add_sim_backend, notes: "Provided FR3 Duo scene, right arm"}
       - {id: mujoco, label: "MuJoCo (standalone)", status: planned, harness_task: add_sim_backend}
   embodiment:

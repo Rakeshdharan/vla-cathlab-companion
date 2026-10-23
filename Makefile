@@ -4,8 +4,9 @@
 PORT ?= 8700
 ROBOSUITE_ENV ?= robosuite
 LEROBOT_ENV ?= lerobot
+MANISKILL_ENV ?= maniskill
 
-.PHONY: install test dev worker-robosuite worker-lerobot agent demo-ui harness-list
+.PHONY: install test dev worker-robosuite worker-maniskill worker-lerobot agent demo-ui harness-list
 
 install:            ## core env (uv) with dev deps
 	uv sync
@@ -19,6 +20,10 @@ dev:                ## control plane + UI + agent harness on http://localhost:$(
 worker-robosuite:   ## robosuite worker (scene, generate, eval-rollout) on :8711
 	MUJOCO_GL=egl conda run -n $(ROBOSUITE_ENV) --no-capture-output python -m orchestrator.worker \
 		--name robosuite --capabilities scene,generate,eval --port 8711
+
+worker-maniskill:   ## ManiSkill3 worker (scene, generate, eval-rollout) on :8714
+	conda run -n $(MANISKILL_ENV) --no-capture-output python -m orchestrator.worker \
+		--name maniskill --capabilities scene,generate,eval --port 8714
 
 worker-lerobot:     ## lerobot worker (convert, intel, train, policy-server) on :8712
 	conda run -n $(LEROBOT_ENV) --no-capture-output python -m orchestrator.worker \
