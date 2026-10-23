@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
 import httpx
+from dataengine.variation import load_cells
 from orchestrator.stages import STAGE_BY_ID, STAGES, StageDef, stage_argv
 from orchestrator.store import Job, Run, Store
 
@@ -29,10 +30,12 @@ def worker_request(method: str, url: str, timeout: float = 5.0, **kw) -> httpx.R
 
 class Pipeline:
     def __init__(self, store: Store, var_dir: Path, repo_root: Path, workers_fn: Callable[[], list],
-                 engines_fn: Callable[[], dict], http: Callable[..., httpx.Response] = worker_request):
+                 engines_fn: Callable[[], dict], http: Callable[..., httpx.Response] = worker_request,
+                 resolve_policy: Callable[[str], str] | None = None):
         self.store, self.var_dir, self.repo_root = store, Path(var_dir), Path(repo_root)
         self._workers_fn, self._engines_fn, self._http = workers_fn, engines_fn, http
         self._start_lock = threading.Lock()
+        self._resolve_policy = resolve_policy
 
     # workers ---------------------------------------------------------------------------------
     def health(self, entry) -> dict:
@@ -81,6 +84,29 @@ class Pipeline:
                 return f"needs '{need}' to finish first", worker
         return None, worker
 
+    def run_defaults(self, run: Run, stage: StageDef) -> dict:
+        """Param defaults that come from the run itself: a next run's generate targets its failing cells."""
+        nr = run.selection.get("next_run")
+        if stage.id != "generate" or not nr:
+            return {}
+        return {"split": f"cells:{nr}", "start": 0, "n": sum(int(c.get("k", 8)) for c in load_cells(nr))}
+
+    def effective_params(self, run: Run, stage: StageDef, params: dict) -> dict:
+        """User params over run defaults; `registry:<name>@<version|production>` resolved to an engine policy."""
+        out = {**self.run_defaults(run, stage), **{k: v for k, v in params.items() if v is not None and v != ""}}
+        policy = out.get("policy")
+        if isinstance(policy, str) and policy.startswith("registry:"):
+            ref = policy[len("registry:"):]
+            if self._resolve_policy is None:
+                raise PipelineError("no model registry configured", 400)
+            try:
+                out["policy"] = self._resolve_policy(ref)
+            except (KeyError, ValueError) as e:
+                raise PipelineError(f"cannot resolve {policy}: {e}", 400) from e
+            if stage.id == "eval" and not out.get("model-version"):
+                out["model-version"] = ref
+        return out
+
     def stages(self, run: Run) -> list[dict]:
         engines, workers = self._engines_fn(), self.workers()
         out = []
@@ -90,7 +116,9 @@ class Pipeline:
             if job is not None and job.state in ACTIVE:
                 job = self.refresh(job)
             running = job is not None and job.state in ACTIVE
-            out.append({"id": stage.id, "label": stage.label, "params": stage.param_dicts(),
+            defaults = self.run_defaults(run, stage)
+            params = [{**p, "default": defaults.get(p["name"], p["default"])} for p in stage.param_dicts()]
+            out.append({"id": stage.id, "label": stage.label, "params": params,
                         "enabled": reason is None and not running, "reason": reason,
                         "worker": worker["name"] if worker else None, "job": job.model_dump() if job else None})
         return out
@@ -104,7 +132,7 @@ class Pipeline:
         if reason:
             raise PipelineError(reason)
         try:
-            flags = stage_argv(stage, params)
+            flags = stage_argv(stage, self.effective_params(run, stage, params))
         except ValueError as e:
             raise PipelineError(str(e), 400) from e
         manifest = engines[run.selection["simulator"]]
