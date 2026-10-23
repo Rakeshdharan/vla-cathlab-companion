@@ -1,4 +1,6 @@
 """Harness task templates: typed parameters, context files, prompt, allowed paths, acceptance checks."""
+import re
+import shlex
 from pathlib import Path
 from typing import Any, Literal
 import yaml
@@ -7,11 +9,12 @@ from pydantic import BaseModel, Field
 
 class Param(BaseModel):
     name: str
-    type: Literal["str", "int", "float", "bool", "choice", "text"] = "str"
+    type: Literal["str", "int", "float", "bool", "choice", "text", "command"] = "str"
     default: Any = None
     choices: list[str] = Field(default_factory=list)
     required: bool = True
     help: str = ""
+    pattern: str | None = None
 
 
 class Check(BaseModel):
@@ -48,7 +51,7 @@ def load_templates(directory: str | Path) -> dict[str, TaskTemplate]:
 
 
 def _coerce(p: Param, raw: Any) -> Any:
-    if p.type in ("str", "text"):
+    if p.type in ("str", "text", "command"):
         return str(raw)
     if p.type == "int":
         return int(raw)
@@ -79,6 +82,9 @@ def validate_params(template: TaskTemplate, params: dict) -> dict:
             out[p.name] = _coerce(p, raw)
         except (TypeError, ValueError) as e:
             raise ParamError(f"{p.name}: {e}") from e
+        if p.pattern and p.type in ("str", "text", "choice", "command") and out[p.name]:
+            if not re.fullmatch(p.pattern, out[p.name]):
+                raise ParamError(f"{p.name}: '{out[p.name]}' does not match pattern '{p.pattern}'")
     return out
 
 
@@ -91,7 +97,9 @@ def allowed_for(template: TaskTemplate, params: dict) -> list[str]:
 
 
 def checks_for(template: TaskTemplate, params: dict) -> list[Check]:
-    return [Check(name=c.name, cmd=c.cmd.format(**params), timeout_s=c.timeout_s) for c in template.acceptance]
+    command_param_names = {p.name for p in template.params if p.type == "command"}
+    quoted = {k: (v if k in command_param_names else shlex.quote(str(v))) for k, v in params.items()}
+    return [Check(name=c.name, cmd=c.cmd.format(**quoted), timeout_s=c.timeout_s) for c in template.acceptance]
 
 
 RULES = """You are working in a git worktree of the CathLab Companion repo, on a fresh branch.

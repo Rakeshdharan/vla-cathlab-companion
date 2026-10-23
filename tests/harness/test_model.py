@@ -47,3 +47,33 @@ def test_placeholders_in_allowed_paths_and_checks():
     params = {"paths": "sim/robosuite/, tests/sim/", "obj": "hoop"}
     assert allowed_for(t, params) == ["sim/robosuite/", "tests/sim/", "docs/decisions.md"]
     assert checks_for(t, params)[0].cmd == "check --objects hoop"
+
+
+def test_checks_for_shell_quotes_params_but_not_command_type():
+    t = TaskTemplate(id="f", title="Free", description="d", params=[Param(name="name")],
+                     prompt="x", allowed_paths=["docs/"],
+                     acceptance=[Check(name="c", cmd="check --objects {name}")])
+    params = {"name": "x; rm -rf ~"}
+    assert checks_for(t, params)[0].cmd == "check --objects 'x; rm -rf ~'"
+
+    t2 = TaskTemplate(id="g", title="Free", description="d",
+                      params=[Param(name="check", type="command")],
+                      prompt="x", allowed_paths=["docs/"],
+                      acceptance=[Check(name="c", cmd="{check}")])
+    params2 = {"check": "pytest -q && echo ok"}
+    assert checks_for(t2, params2)[0].cmd == "pytest -q && echo ok"
+
+
+def test_validate_params_enforces_pattern():
+    t = TaskTemplate(id="h", title="Pattern", description="d",
+                     params=[Param(name="name", pattern="^[a-z][a-z0-9_]*$")],
+                     prompt="x", allowed_paths=["docs/"])
+    with pytest.raises(ParamError, match="name"):
+        validate_params(t, {"name": "Bad Name"})
+    assert validate_params(t, {"name": "hoop_2"}) == {"name": "hoop_2"}
+
+
+def test_path_guard_rejects_absolute_and_dotdot_paths():
+    allowed = ["configs/", "*"]
+    files = ["/etc/passwd", "configs/../contracts/x.py", "..\\x", "C:\\x", "configs/ok.yaml"]
+    assert path_violations(files, allowed) == ["/etc/passwd", "configs/../contracts/x.py", "..\\x", "C:\\x"]
