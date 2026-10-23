@@ -4,3 +4,4 @@ workers:
   - {name: robosuite, url: "http://127.0.0.1:8711"}
   - {name: lerobot, url: "http://127.0.0.1:8712"}
   - {name: maniskill, url: "http://127.0.0.1:8714"}
+  - {name: genesis, url: "http://127.0.0.1:8715"}

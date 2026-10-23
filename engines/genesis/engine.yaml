@@ -1,6 +1,6 @@
 # Genesis engine plugin. Contract: docs/EXTENDING.md and harness/gates/engine.yaml.
 id: genesis
-label: "Genesis 1.4.5 (own GPU rigid solver): Panda, cathlab table scene"
+label: "Genesis 1.4.5 (own rigid solver, CPU or GPU): Panda, cathlab table scene"
 env: {kind: venv, name: ~/venvs/genesis}
 worker: genesis
 embodiments: [panda]
@@ -12,10 +12,10 @@ capabilities:                    # ready | in_progress | planned
   objects: {primitive: ready, mjcf: planned}
   randomize: ready
   expert: {analytic: ready, graspgen: planned}
-  generate: in_progress          # smoke-tested (3 episodes); full 384 not run yet
-  convert: in_progress           # scripts/npz_to_lerobot.py, not run here (no lerobot env on this machine)
-  eval: in_progress              # smoke-tested with the expert
-  rollout: in_progress
+  generate: ready                # 383/384 paired train configs (+ Genesis camera/light axes) -> pick_genesis@v1
+  convert: ready                 # scripts/npz_to_lerobot.py in the lerobot env
+  eval: ready                    # expert 60/60 on suite_v2
+  rollout: ready
 entry: engines.genesis.cli
 backend: "sim.genesis.backend:GenesisBackend"
 credits:
