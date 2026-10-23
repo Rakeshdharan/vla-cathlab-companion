@@ -1,0 +1,15 @@
+# Coding-agent CLIs the harness can drive. The prompt is passed as {prompt} (and also saved to {prompt_file}).
+# The agent always runs inside the job's git worktree ({workdir}), never in your working folder.
+default: copilot
+agents:
+  copilot:
+    description: "GitHub Copilot CLI (headless). Needs `copilot` logged in on the host."
+    argv: [copilot, -C, "{workdir}", -p, "{prompt}", --allow-all-tools, --deny-tool, "shell(git push)",
+           --deny-tool, "shell(git commit)", --output-format, json]
+  claude:
+    description: "Claude Code (optional). Needs `claude` installed and logged in."
+    argv: [bash, -c, 'cd "$0" && claude -p "$(cat "$1")" --dangerously-skip-permissions --output-format stream-json --verbose',
+           "{workdir}", "{prompt_file}"]
+  codex:
+    description: "OpenAI Codex CLI (optional). Needs `codex` installed and logged in."
+    argv: [codex, exec, --full-auto, -C, "{workdir}", "{prompt}"]
