@@ -29,3 +29,6 @@ reports/**/raw/
 
 # Local caches / provided raw data (hosted on HF Hub, never in git)
 .cache/
+
+# Control Station runtime state (SQLite, job logs, agent jobs, run snapshots)
+var/
