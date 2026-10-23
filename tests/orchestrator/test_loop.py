@@ -85,6 +85,22 @@ def test_report_and_next_run(env):
     assert argv[argv.index("--split") + 1].startswith("cells:") and argv[argv.index("--n") + 1] == str(total)
 
 
+def test_missing_next_run_blocks_generate_not_the_stage_list(env):
+    c, var, _ = env
+    from pathlib import Path
+
+    rs = write_report(var, "robosuite", "m", 10)
+    r = c.post("/api/reports", json={"eval_reports": {"robosuite": rs}, "model": "m"}).json()
+    run = c.post(f"/api/reports/{r['id']}/next-run", json={"note": "loop 1"}).json()
+    Path(run["selection"]["next_run"]).unlink()
+    resp = c.get(f"/api/runs/{run['id']}/stages")
+    assert resp.status_code == 200
+    stages = {s["id"]: s for s in resp.json()}
+    gen = stages["generate"]
+    assert not gen["enabled"] and "next run file missing" in gen["reason"]
+    assert len(stages) > 1
+
+
 def test_registry_policies_resolve_in_the_pipeline(env):
     c, var, app = env
     a = write_report(var, "robosuite", "x", 50)

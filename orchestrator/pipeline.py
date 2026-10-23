@@ -61,6 +61,12 @@ class Pipeline:
 
     def _check(self, run: Run, stage: StageDef, engines: dict, workers: list) -> tuple:
         """(reason the stage can't start or None, the worker it would run on or None)."""
+        nr = run.selection.get("next_run")
+        if stage.id == "generate" and nr:
+            try:
+                load_cells(nr)
+            except (OSError, ValueError, KeyError):
+                return f"next run file missing: {nr}", None
         engine_id = run.selection.get("simulator")
         manifest = engines.get(engine_id)
         if manifest is None:
@@ -89,7 +95,10 @@ class Pipeline:
         nr = run.selection.get("next_run")
         if stage.id != "generate" or not nr:
             return {}
-        return {"split": f"cells:{nr}", "start": 0, "n": sum(int(c.get("k", 8)) for c in load_cells(nr))}
+        try:
+            return {"split": f"cells:{nr}", "start": 0, "n": sum(int(c.get("k", 8)) for c in load_cells(nr))}
+        except (OSError, ValueError, KeyError):
+            return {}
 
     def effective_params(self, run: Run, stage: StageDef, params: dict) -> dict:
         """User params over run defaults; `registry:<name>@<version|production>` resolved to an engine policy."""
