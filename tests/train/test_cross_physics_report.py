@@ -31,3 +31,13 @@ def test_main_writes_md_and_json(tmp_path):
     write(tmp_path / "evals", "maniskill", "expert", [True] * 3)
     main(["--evals", str(tmp_path / "evals"), "--out", str(tmp_path / "out/cross")])
     assert (tmp_path / "out/cross.md").exists() and (tmp_path / "out/cross.json").exists()
+
+
+def test_model_card_section_is_idempotent():
+    import argparse
+    from train.model_card import MARKER, section, with_section
+    a = argparse.Namespace(dataset="d@v1", base="b", steps=8500, batch=32, gpu="g", wall="1:54", loss="0.011",
+                           vram="28.4", note="")
+    once = with_section("# card\n", section(a))
+    twice = with_section(once, section(a))
+    assert once == twice and once.count(MARKER) == 1 and "8,500 × 32" in once
