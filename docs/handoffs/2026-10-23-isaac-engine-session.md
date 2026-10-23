@@ -1,5 +1,7 @@
 # Session Handover: Isaac Sim Engine (RTX 4090 PC): provided FR3 Duo scene → expert → data → eval → rollout
 
+> **Status 2026-10-23 H23.5: DROPPED.** Isaac Sim produced no working run, and the RTX 4090 now hosts the ManiSkill3 + Genesis engines ([handoff](2026-10-23-rtx4090-maniskill-genesis-session.md)). FR3 Duo data comes from Aravind's MuJoCo/Newton track ([handoff](2026-10-23-aravind-newton-fr3-session.md)). Kept for reference.
+
 *From the master session, 2026-10-23 ~10:30 (≈H20.5). **Supersedes** [`2026-10-22-isaac-fr3-session.md`](2026-10-22-isaac-fr3-session.md) and [`2026-10-22-navneet-gpu-machine.md`](2026-10-22-navneet-gpu-machine.md) (keep them for the verified USD facts). **Owner: Navneet** (in parallel with his awareness work); Rakesh helps. On the RTX 4090 PC, paste this file into the agent as the first message, or say "follow `docs/handoffs/2026-10-23-isaac-engine-session.md`".*
 
 ## 1. Goal
