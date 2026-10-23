@@ -53,12 +53,13 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
     token_checker = _get_token_checker()
 
     def _get(job_id: str) -> dict:
-        """Get job record, raise 404 if not found."""
+        """Get job record (snapshot), raise 404 if not found. Caller must not hold lock."""
         with jobs_lock:
             job = jobs.get(job_id)
             if job is None:
                 raise HTTPException(404, f"unknown job {job_id}")
-            return job
+            # Return a snapshot to avoid concurrent access to handle
+            return dict(job)
 
     def view(job_id_or_record: str | dict) -> dict:
         """Build job view from job_id (lookup) or record (cached)."""
@@ -76,9 +77,10 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
     def health() -> dict:
         with jobs_lock:
             running = sum(1 for j in jobs.values() if j["handle"].state == "running")
+            total = len(jobs)
         return {"name": name, "capabilities": capabilities, "python": platform.python_version(),
                 "executable": sys.executable, "pid": os.getpid(), "jobs_running": running,
-                "auth": token is not None}
+                "jobs_total": total, "auth": token is not None}
 
     @app.post("/jobs")
     def submit(req: JobRequest, _: None = Depends(token_checker)) -> dict:
@@ -96,17 +98,14 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
                     jid, _ = non_running.pop(0)
                     del jobs[jid]
             
-            # Reserve slot in jobs dict
             job_id = uuid.uuid4().hex[:12]
-            # Placeholder to reserve the slot
-            jobs[job_id] = {"handle": None, "name": req.name, "started": time.time(), "id": job_id}
-        
-        # Start process outside lock
-        handle = start_process(req.argv, var_dir / "jobs" / f"{job_id}.log", cwd=req.cwd, env=req.env,
-                               timeout_s=req.timeout_s)
-        
-        with jobs_lock:
-            jobs[job_id]["handle"] = handle
+            try:
+                # Start process while holding lock to ensure atomic insert
+                handle = start_process(req.argv, var_dir / "jobs" / f"{job_id}.log", cwd=req.cwd, env=req.env,
+                                       timeout_s=req.timeout_s)
+                jobs[job_id] = {"handle": handle, "name": req.name, "started": time.time(), "id": job_id}
+            except Exception as e:
+                raise HTTPException(500, f"failed to start: {e}")
         
         return view(job_id)
 
