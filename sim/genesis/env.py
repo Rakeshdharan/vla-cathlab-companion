@@ -22,6 +22,9 @@ TCP_OFFSET = 0.097            # robosuite grip site: 0.097 m along hand +z
 # local x, approach along local z, which is what dataengine.expert.Q_DOWN assumes.
 HAND_TO_EE = np.array([np.cos(np.pi / 4), 0.0, 0.0, -np.sin(np.pi / 4)])
 PANDA_MJCF = "xml/franka_emika_panda/panda_no_tendon.xml"
+# 5 ms (10 steps per 20 Hz action): at 10 ms the 11-20 g vial chattered at ~6 rad/s between the 20 N fingers and was
+# shaken out during transport (docs/decisions.md).
+SIM_DT = 0.005
 ARM_DOFS = np.arange(7)
 FINGER_DOFS = np.array([7, 8])
 # Controller
@@ -87,7 +90,7 @@ class CathlabGenesisEnv:
     Core frame = world - CORE_ORIGIN (robot base frame, table top at z = 0, identity base rotation). Object poses and
     the TCP are reported in the core frame, quaternions wxyz."""
 
-    def __init__(self, spec: VariationSpec, camera_size: int = 256, render: bool = True, dt: float = 0.01,
+    def __init__(self, spec: VariationSpec, camera_size: int = 256, render: bool = True, dt: float = SIM_DT,
                  substeps: int = 1, control_hz: float = 20.0):
         init_genesis()
         import genesis as gs
