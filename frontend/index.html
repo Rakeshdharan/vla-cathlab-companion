@@ -15,6 +15,7 @@
       <button data-tab="data">DATA</button>
       <button data-tab="models">MODELS</button>
       <button data-tab="report">REPORT</button>
+      <button data-tab="assist">ASSIST</button>
       <button data-tab="agent">AGENT</button>
       <button data-tab="log">LOG</button>
     </nav>
@@ -123,6 +124,36 @@
         </div>
         <div class="muted" id="next-run-info">Build or select a report.</div>
         <pre class="console" id="report-md"></pre>
+      </div>
+    </section>
+
+    <!-- ASSIST: procedure step -> proposed object -> handover rollout of the production model -->
+    <section class="tab hidden" id="tab-assist">
+      <aside class="tree">
+        <div class="panel-title">PROCEDURE</div>
+        <select id="assist-procedure" class="field"></select>
+        <div class="panel-title">CURRENT STEP (click)</div>
+        <ul id="assist-steps"></ul>
+      </aside>
+      <div class="pane">
+        <div class="panel-title">PROPOSAL</div>
+        <div class="kv" id="assist-proposal">Click the step the clinician is in.</div>
+        <div class="form">
+          <label for="assist-run">run (simulator)</label>
+          <select id="assist-run" class="field"></select>
+          <label for="assist-policy">policy</label>
+          <select id="assist-policy" class="field">
+            <option value="registry:cathlab-pick@production">production model (registry)</option>
+            <option value="expert">scripted expert</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="btn ok" id="assist-yes" type="button" disabled>YES, HAND IT OVER</button>
+          <button class="btn" id="assist-no" type="button" disabled>NO</button>
+        </div>
+        <div class="kv mono" id="assist-job"></div>
+        <pre class="console" id="assist-console"></pre>
+        <div class="files" id="assist-files"></div>
       </div>
     </section>
 
