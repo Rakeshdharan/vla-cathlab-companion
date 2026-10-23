@@ -14,6 +14,7 @@
       <button data-tab="pipeline">PIPELINE</button>
       <button data-tab="data">DATA</button>
       <button data-tab="models">MODELS</button>
+      <button data-tab="report">REPORT</button>
       <button data-tab="agent">AGENT</button>
       <button data-tab="log">LOG</button>
     </nav>
@@ -63,10 +64,65 @@
       </div>
     </section>
 
+    <!-- MODELS: register evaluated checkpoints as versions, promote by rule, roll back -->
     <section class="tab hidden" id="tab-models">
+      <aside class="tree">
+        <div class="panel-title">REGISTER VERSION</div>
+        <div class="form">
+          <label for="reg-adapter">adapter</label>
+          <select id="reg-adapter" class="field">
+            <option value="lerobot">lerobot (HF checkpoint)</option>
+            <option value="expert">expert (scripted baseline)</option>
+          </select>
+          <label for="reg-ckpt">checkpoint (HF repo or path)</label>
+          <input id="reg-ckpt" class="field" placeholder="Rakeshdharan56/smolvla_panda_pick_v1">
+          <label for="reg-datasets">dataset versions (comma-separated)</label>
+          <input id="reg-datasets" class="field" placeholder="Rakeshdharan56/pick_robosuite@v1">
+        </div>
+        <div class="panel-title">EVAL REPORTS</div>
+        <div id="register-evals" class="form"></div>
+        <div class="row"><button class="btn primary" id="btn-register" type="button">REGISTER</button></div>
+      </aside>
       <div class="pane">
-        <div class="panel-title">MODEL REGISTRY</div>
-        <div class="muted">No model versions registered yet. Train, Eval and Promote populate this view.</div>
+        <div class="row runbar">
+          <span class="panel-title">PRODUCTION</span>
+          <span class="mono" id="production">none</span>
+          <button class="btn danger" id="btn-rollback" type="button">ROLLBACK</button>
+          <button class="btn" id="btn-models-refresh" type="button">REFRESH</button>
+        </div>
+        <div class="muted" id="promotion-rule"></div>
+        <div class="panel-title">VERSIONS</div>
+        <table class="grid" id="versions"><thead></thead><tbody></tbody></table>
+        <div class="panel-title">HISTORY</div>
+        <div id="history" class="kv mono"></div>
+      </div>
+    </section>
+
+    <!-- REPORT: failure report from eval reports -> failing cells -> CREATE NEXT RUN -->
+    <section class="tab hidden" id="tab-report">
+      <aside class="tree">
+        <div class="panel-title">NEW FAILURE REPORT</div>
+        <div class="form">
+          <label for="rep-model">model label</label>
+          <input id="rep-model" class="field" placeholder="cathlab-pick@v3">
+        </div>
+        <div class="panel-title">EVAL REPORTS</div>
+        <div id="report-evals" class="form"></div>
+        <div class="form">
+          <label for="rep-k">episodes per failing cell (k)</label>
+          <input id="rep-k" class="field" type="number" value="8" min="1" max="100">
+        </div>
+        <div class="row"><button class="btn primary" id="btn-build-report" type="button">BUILD REPORT</button></div>
+        <div class="panel-title">REPORTS</div>
+        <ul id="reports"></ul>
+      </aside>
+      <div class="pane">
+        <div class="row runbar">
+          <span class="panel-title" id="report-title">REPORT</span>
+          <button class="btn primary" id="btn-next-run" type="button" disabled>CREATE NEXT RUN</button>
+        </div>
+        <div class="muted" id="next-run-info">Build or select a report.</div>
+        <pre class="console" id="report-md"></pre>
       </div>
     </section>
 

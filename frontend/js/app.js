@@ -3,6 +3,8 @@ import { $, el, setStatus } from "./dom.js";
 import { initAgent, openTemplate } from "./agent.js";
 import { initPipeline, refreshRuns } from "./pipeline.js";
 import { initBrief } from "./brief.js";
+import { initModels } from "./models.js";
+import { initReport } from "./report.js";
 
 // ---- tabs -------------------------------------------------------------------------------
 export function showTab(name) {
@@ -184,6 +186,8 @@ async function boot() {
   await initAgent();
   await initPipeline();
   await initBrief();
+  await initModels();
+  await initReport();
   refreshWorkers();
   refreshJobs();
   setInterval(refreshWorkers, 5000);
