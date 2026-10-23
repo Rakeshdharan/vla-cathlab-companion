@@ -32,15 +32,15 @@ def test_templates_and_gates_point_at_each_other():
 
 
 def test_brief_is_deterministic_and_complete():
-    args = ("Add a Newton engine with the Panda and our table scene", ["eval", "engine"], ["newton", "robosuite"],
+    args = ("Add a MuJoCo engine with the Panda and our table scene", ["eval", "engine"], ["mujoco", "robosuite"],
             GATES, TEMPLATES, load_engines())
     md = build_brief(*args)
     assert md == build_brief(*args)
-    assert md.startswith("# Agent brief: Add a Newton engine")
+    assert md.startswith("# Agent brief: Add a MuJoCo engine")
     assert md.index("(`engine`") < md.index("(`eval`")                  # pipeline order, not request order
     assert GATES["engine"].contract[0] in md and GATES["engine"].conformance in md
     assert "python -m harness run add_engine" in md
-    assert "`newton`: new engine" in md and "`robosuite` (" in md
+    assert "`mujoco`: new engine" in md and "`robosuite` (" in md
     assert "Co-authored-by" in md and "cathlab_v1.yaml" in md
 
 
