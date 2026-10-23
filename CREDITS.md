@@ -8,6 +8,8 @@ CathLab Companion builds on these projects. Thank you to their authors. Each is 
 | MuJoCo | Physics engine under robosuite | https://github.com/google-deepmind/mujoco | Apache-2.0 |
 | ManiSkill3 | Second Panda engine (PhysX 5), Panda URDF and EE-delta controller | https://github.com/haosulab/ManiSkill | Apache-2.0 |
 | SAPIEN | Simulator/renderer under ManiSkill3 | https://github.com/haosulab/SAPIEN | MIT |
+| Genesis | GPU physics + rendering for the Genesis Panda engine | https://github.com/Genesis-Embodied-AI/Genesis | Apache-2.0 |
+| MuJoCo Menagerie (Franka Emika Panda) | Panda model (`panda_no_tendon.xml`) in the Genesis engine | https://github.com/google-deepmind/mujoco_menagerie/tree/main/franka_emika_panda | Apache-2.0 |
 | LeRobot | Dataset format (v3), training, policies | https://github.com/huggingface/lerobot | Apache-2.0 |
 | SmolVLA | Baseline vision-language-action policy (via LeRobot) | https://huggingface.co/lerobot/smolvla_base | Apache-2.0 |
 | ACT | Non-language baseline policy (via LeRobot) | https://github.com/tonyzhaozh/act | MIT |
