@@ -7,7 +7,7 @@
 Excellent work. The Newton track is the best-documented engine in the project. What we're taking from it:
 
 - [`cathlab_fr3_newton_v1`](https://huggingface.co/datasets/aravindsuresh16/cathlab_fr3_newton_v1): 384 episodes, expert 100 % on every object and every held-out tier, MuJoCo ↔ Newton sim2sim agreement 60/60. It is the team's FR3 dataset.
-- The **`v1.0.1` stats fix** (widened q01/q99 on the idle left arm) was the right catch for π0.5's QUANTILES normalisation. **Train every FR3 model on `v1.0.1`.**
+- The **`v1.0.1` stats fix** (widened q01/q99 on the idle left arm) is correct for any quantile-normalised model. **Train every FR3 model on `v1.0.1`.**
 - The throughput finding (Newton 1,580 eps/h vs a 12-process CPU pool at 2,990 eps/h on your laptop) is honest and useful. The pitch frames Newton as *the second physics + NVIDIA stack*, not raw speed.
 - Your 10 Newton workarounds (§2 of your report) are a reusable asset. Keep them in `docs/NEWTON_REPORT.md`.
 - Your deviations are accepted: bottle Ø77 × 152 mm with a top grasp, mirrored tray, no extra distractors.
@@ -15,8 +15,10 @@ Excellent work. The Newton track is the best-documented engine in the project. W
 **Cleanup the team made in parallel (FYI, nothing for you to change):**
 - **Isaac Sim is removed** from the platform. The FR3 Duo now lives only in your MuJoCo/Newton stack.
 - Panda engines on `main`: robosuite (MuJoCo) and **ManiSkill3 (PhysX 5)** (`pick_maniskill`, 369 episodes paired with robosuite). Genesis is optional.
-- Panda checkpoints on HF (trained on `pick_robosuite@v1`): `Rakeshdharan56/{smolvla,act,xvla}_panda_pick_v1`; π0.5 and MolmoAct2 are training.
+- Panda checkpoints on HF (trained on `pick_robosuite@v1`): `Rakeshdharan56/{smolvla,act,xvla}_panda_pick_v1`.
 - Team status page: [`docs/STATUS.md`](https://github.com/Rakeshdharan/vla-cathlab-companion/blob/main/docs/STATUS.md). Rakesh updates it from your HF repos.
+
+> **Model set (decided H26.5, same for Panda and FR3): ACT, SmolVLA, X-VLA, with the scripted expert as the baseline.** π0.5 and MolmoAct2 are dropped team-wide. Every table you produce has exactly these four rows.
 
 ## 1. Goal of this session (in order)
 
@@ -64,7 +66,7 @@ python -m cathlab_sim.newton.convert --raw datasets/mujoco_raw/v1 --out datasets
 
 ## 4. What to do: training (cloud GPU)
 
-**Setup:** one Python 3.12 venv with your LeRobot version (0.6.1, the one that wrote the datasets) plus the extras for the models you train, e.g. `pip install "lerobot[smolvla,pi]==0.6.1"`. Check `torch.cuda.is_available()` and the GPU name first.
+**Setup:** one Python 3.12 venv with your LeRobot version (0.6.1, the one that wrote the datasets) plus the extras for the models you train, e.g. `pip install "lerobot[smolvla,xvla]==0.6.1"`. Check `torch.cuda.is_available()` and the GPU name first.
 - Log in to HF (`hf auth login`) and W&B (project `cathlab-companion`, run name `<model>-fr3_newton_v1.0.1-aravind`). Keys go in env vars, never in git.
 - If the instance has a Blackwell GPU (RTX 50xx / RTX PRO 6000 / B200), torch must be built for CUDA ≥ 12.8.
 
@@ -73,7 +75,7 @@ python -m cathlab_sim.newton.convert --raw datasets/mujoco_raw/v1 --out datasets
 | # | Model | Base | Why | Starting recipe |
 |---|---|---|---|---|
 | M1 | **SmolVLA** | `lerobot/smolvla_base` | Small and fast. Its three camera slots match ours. Your adapter `smolvla_policy.py` already exists. Your v1 run was undertrained (3k steps, 0/60); this fixes that | `--rename_map` external→`camera1`, left_wrist→`camera2`, right_wrist→`camera3` (as in your README). **≥ 1 full pass:** 384 episodes ≈ 160k frames → batch 64 × ≥ 2,500 steps; aim for **15–20k steps**. 16-D state/action pad into its 32 slots |
-| M2 | **π0.5** | `lerobot/pi05_base` | Frontier model. Its base slots **are our cameras:** `observation.images.base_0_rgb`, `left_wrist_0_rgb`, `right_wrist_0_rgb` (3×224²), state/action up to 32-D. QUANTILES normalisation is why you need **`v1.0.1`** | `--rename_map` external→`base_0_rgb`, left_wrist→`left_wrist_0_rgb`, right_wrist→`right_wrist_0_rgb`; `--policy.dtype=bfloat16 --policy.gradient_checkpointing=true`; ≤ 10k steps. Needs ≥ 40 GB for a full fine-tune, otherwise `--policy.train_expert_only=true` |
+| M2 | **X-VLA** (0.9B) | `lerobot/xvla-base` | Frontier model, the same one the Panda line uses. Its base checkpoint has three image slots (`observation.images.image`, `image2`, `image3`). With `action_mode=auto` it reads our 16-D action and pads it to its 20-D head (16 ≤ 20) | `--rename_map` external→`image`, left_wrist→`image2`, right_wrist→`image3`; `--policy.dtype=bfloat16 --policy.action_mode=auto --policy.max_action_dim=20 --policy.freeze_vision_encoder=false --policy.freeze_language_encoder=false --policy.train_policy_transformer=true --policy.train_soft_prompts=true`; batch 32, ≤ 20k steps. The Panda run needed 7,500 steps × 32. **Smoke first:** if a camera slot mismatches (`image3` vs an `empty_camera_0`), adjust `--policy.empty_cameras` and log it. Assert the postprocessed action is `(*, 16)` |
 | M3 | **ACT** | from scratch | Non-language lower bound. With 3 objects present it can't know the target from the instruction, so expect wrong-object failures. That's the point | `--policy.type=act --policy.chunk_size=50 --policy.n_action_steps=50`, batch 64, 50k steps |
 
 - **Flags differ between LeRobot versions.** The Panda recipes in our [training handoff](2026-10-23-training-gpu-session.md) were verified on LeRobot 0.5.2 (`b06ad40`). On 0.6.1, confirm every flag with `lerobot-train --help` and log the deviation.
@@ -98,7 +100,7 @@ Write these into `docs/NEWTON_REPORT.md` §9 (new):
 | expert (Newton) | … | | | | | |
 | SmolVLA (Newton) | … | | | | | |
 | SmolVLA (MuJoCo) | … | | | | | |
-| π0.5 (Newton) / (MuJoCo) | … | | | | | |
+| X-VLA (Newton) / (MuJoCo) | … | | | | | |
 | ACT (Newton) / (MuJoCo) | … | | | | | |
 
 Plus **the FR3 sim2sim gap:** the same checkpoint's success in Newton vs MuJoCo, per tier, and the rank agreement of the models across the two engines.
@@ -112,7 +114,7 @@ Plus **the FR3 sim2sim gap:** the same checkpoint's success in Newton vs MuJoCo,
 | 18:30 | D1 + D2: `cathlab_fr3_mujoco_v1` on HF; D3 banner |
 | 19:00 | M1 SmolVLA training on the cloud GPU (smoke done) |
 | 20:30 | SmolVLA on HF; T1 eval for SmolVLA in both engines; message Rakesh with the numbers |
-| 22:00 | M2/M3 on HF and evaluated if the budget allows; T2 tables in `NEWTON_REPORT.md` |
+| 22:00 | M2 (X-VLA) and M3 (ACT) on HF and evaluated if the budget allows; T2 tables in `NEWTON_REPORT.md` |
 | 22:30 | Final message to Rakesh: dataset + model links, the tables, cloud GPU type and cost |
 
 ## 7. Report back
@@ -124,4 +126,4 @@ Send Rakesh the HF links, the T2 tables, and any deviations, especially LeRobot 
 - Commit as yourself in your repo, with no AI `Co-authored-by` trailers. Datasets, videos and checkpoints never go into git.
 - Cloud credentials and HF/W&B tokens live only in env vars on the instance. **Shut the instance down when training is done.**
 - Don't change the schema (B2) or the task (B1). Ask Rakesh if something blocks you.
-- Keep the `CREDITS` lines (Newton, MuJoCo/MuJoCo-Warp, Menagerie, LeRobot/SmolVLA/π0.5 licences).
+- Keep the `CREDITS` lines (Newton, MuJoCo/MuJoCo-Warp, Menagerie, LeRobot/SmolVLA/X-VLA licences).
