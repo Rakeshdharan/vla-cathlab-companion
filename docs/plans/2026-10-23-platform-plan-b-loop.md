@@ -1387,3 +1387,1073 @@ git commit -m "feat(orchestrator): loop API (evals, registry, failure reports, n
 ```
 
 ---
+### Task 5: MODELS and REPORT tabs
+
+**Files:**
+- Create: `frontend/js/models.js`, `frontend/js/report.js`
+- Modify: `frontend/index.html` (MODELS section, new REPORT tab + nav button), `frontend/js/app.js` (init), `frontend/css/station.css`, `orchestrator/stages.py` (policy help text only)
+
+**Interfaces:**
+- Consumes (Task 4):
+  - `GET /api/evals` → `[{path, engine, model, n, rate, ci, p95_ms}]`;
+  - `GET /api/registry` → `{name, production, rule, versions:[{card, eval_reports, registered, summary}], history}`;
+  - `POST /api/registry/register` `{adapter, ckpt_uri, dataset_versions, eval_reports}`;
+  - `POST /api/registry/promote` `{version, force}`;
+  - `POST /api/registry/rollback`;
+  - `POST /api/reports` `{model, eval_reports, k}`, `GET /api/reports`, `GET /api/reports/{id}`;
+  - `POST /api/reports/{id}/next-run`;
+  - `refreshRuns(selectId)` from `pipeline.js`.
+- Produces:
+  - `models.js`: `initModels()`, `refreshModels()`, `loadEvals()`, `evalPicker(box, evals, prefix)`, `pickedEvals(box)`. Picker selects are named by engine with ids `<prefix>-<engine>`, and keep their selection across refreshes.
+  - `report.js`: `initReport()`, `prefillReport(model, evalReports)`.
+
+- [ ] **Step 1: Markup.** In `frontend/index.html`:
+  - nav: after `<button data-tab="models">MODELS</button>`, add `<button data-tab="report">REPORT</button>`;
+  - replace the MODELS section with the block below, and add the REPORT section right after it.
+
+```html
+    <!-- MODELS: register evaluated checkpoints as versions, promote by rule, roll back -->
+    <section class="tab hidden" id="tab-models">
+      <aside class="tree">
+        <div class="panel-title">REGISTER VERSION</div>
+        <div class="form">
+          <label for="reg-adapter">adapter</label>
+          <select id="reg-adapter" class="field">
+            <option value="lerobot">lerobot (HF checkpoint)</option>
+            <option value="expert">expert (scripted baseline)</option>
+          </select>
+          <label for="reg-ckpt">checkpoint (HF repo or path)</label>
+          <input id="reg-ckpt" class="field" placeholder="Rakeshdharan56/smolvla_panda_pick_v1">
+          <label for="reg-datasets">dataset versions (comma-separated)</label>
+          <input id="reg-datasets" class="field" placeholder="Rakeshdharan56/pick_robosuite@v1">
+        </div>
+        <div class="panel-title">EVAL REPORTS</div>
+        <div id="register-evals" class="form"></div>
+        <div class="row"><button class="btn primary" id="btn-register" type="button">REGISTER</button></div>
+      </aside>
+      <div class="pane">
+        <div class="row runbar">
+          <span class="panel-title">PRODUCTION</span>
+          <span class="mono" id="production">none</span>
+          <button class="btn danger" id="btn-rollback" type="button">ROLLBACK</button>
+          <button class="btn" id="btn-models-refresh" type="button">REFRESH</button>
+        </div>
+        <div class="muted" id="promotion-rule"></div>
+        <div class="panel-title">VERSIONS</div>
+        <table class="grid" id="versions"><thead></thead><tbody></tbody></table>
+        <div class="panel-title">HISTORY</div>
+        <div id="history" class="kv mono"></div>
+      </div>
+    </section>
+
+    <!-- REPORT: failure report from eval reports -> failing cells -> CREATE NEXT RUN -->
+    <section class="tab hidden" id="tab-report">
+      <aside class="tree">
+        <div class="panel-title">NEW FAILURE REPORT</div>
+        <div class="form">
+          <label for="rep-model">model label</label>
+          <input id="rep-model" class="field" placeholder="cathlab-pick@v3">
+        </div>
+        <div class="panel-title">EVAL REPORTS</div>
+        <div id="report-evals" class="form"></div>
+        <div class="form">
+          <label for="rep-k">episodes per failing cell (k)</label>
+          <input id="rep-k" class="field" type="number" value="8" min="1" max="100">
+        </div>
+        <div class="row"><button class="btn primary" id="btn-build-report" type="button">BUILD REPORT</button></div>
+        <div class="panel-title">REPORTS</div>
+        <ul id="reports"></ul>
+      </aside>
+      <div class="pane">
+        <div class="row runbar">
+          <span class="panel-title" id="report-title">REPORT</span>
+          <button class="btn primary" id="btn-next-run" type="button" disabled>CREATE NEXT RUN</button>
+        </div>
+        <div class="muted" id="next-run-info">Build or select a report.</div>
+        <pre class="console" id="report-md"></pre>
+      </div>
+    </section>
+```
+
+- [ ] **Step 2: `frontend/js/models.js`:**
+
+```javascript
+// MODELS tab: register evaluated checkpoints as versions, promote by the rule, roll back.
+import { api } from "./api.js";
+import { $, el, setStatus } from "./dom.js";
+import { prefillReport } from "./report.js";
+
+const ms = { evals: [], registry: null };
+const pct = (x) => `${Math.round(x * 100)}%`;
+
+export async function loadEvals() {
+  ms.evals = await api.get("/api/evals").catch(() => []);
+  return ms.evals;
+}
+
+export function pickedEvals(box) {
+  return Object.fromEntries([...box.querySelectorAll("select")].filter((s) => s.value).map((s) => [s.name, s.value]));
+}
+
+export function evalPicker(box, evals, prefix) {
+  const keep = pickedEvals(box);
+  box.innerHTML = "";
+  const engines = [...new Set(evals.map((e) => e.engine))].sort();
+  if (!engines.length) box.append(el("div", "muted", "No eval reports yet: run EVALUATE in PIPELINE."));
+  for (const engine of engines) {
+    const sel = el("select", "field");
+    sel.name = engine;
+    sel.id = `${prefix}-${engine}`;
+    sel.append(new Option("—", ""));
+    for (const e of evals.filter((x) => x.engine === engine)) {
+      sel.append(new Option(`${e.model} · ${pct(e.rate)} (n=${e.n}) · ${e.path}`, e.path));
+    }
+    if (keep[engine]) sel.value = keep[engine];
+    const label = el("label", "", engine);
+    label.htmlFor = sel.id;
+    box.append(label, sel);
+  }
+}
+
+export async function initModels() {
+  $("#btn-register").addEventListener("click", register);
+  $("#btn-rollback").addEventListener("click", rollback);
+  $("#btn-models-refresh").addEventListener("click", refreshModels);
+  document.querySelector('#tabs button[data-tab="models"]').addEventListener("click", refreshModels);
+  await refreshModels();
+}
+
+export async function refreshModels() {
+  evalPicker($("#register-evals"), await loadEvals(), "reg");
+  try {
+    ms.registry = await api.get("/api/registry");
+  } catch (e) { setStatus(`REGISTRY: ${e.message}`); return; }
+  renderRegistry();
+}
+
+function cell(s) {
+  return s ? `${pct(s.rate)} (${pct(s.ci[0])}–${pct(s.ci[1])}) · p95 ${Math.round(s.p95_ms)} ms` : "—";
+}
+
+function renderRegistry() {
+  const r = ms.registry;
+  $("#production").textContent = r.production ? `${r.name}@${r.production}` : "none";
+  $("#btn-rollback").disabled = !r.production;
+  $("#promotion-rule").textContent = `Promote if the 95% CI low on ${r.rule.primary_engine} beats production, `
+    + `with ≥ ${r.rule.min_episodes} episodes and p95 latency ≤ ${r.rule.latency_budget_ms_p95} ms. `
+    + "FORCE skips the success check, never the latency check.";
+  const engines = [...new Set(r.versions.flatMap((v) => Object.keys(v.eval_reports)))].sort();
+  const head = el("tr");
+  ["VERSION", "MODEL", ...engines.map((e) => e.toUpperCase()), "STATE", ""].forEach((h) => head.append(el("th", "", h)));
+  $("#versions thead").replaceChildren(head);
+  const rows = [...r.versions].reverse().map((v) => {
+    const tr = el("tr");
+    tr.append(el("td", "mono", v.card.version),
+      el("td", "mono", v.card.adapter === "expert" ? "expert" : v.card.ckpt_uri));
+    for (const e of engines) tr.append(el("td", "mono", cell(v.summary[e])));
+    const st = el("td");
+    st.append(el("span", `badge ${v.card.promoted ? "done" : ""}`, v.card.promoted ? "PRODUCTION" : "candidate"));
+    const act = el("td");
+    const promoteBtn = el("button", "btn ok", "PROMOTE");
+    promoteBtn.disabled = v.card.promoted;
+    promoteBtn.addEventListener("click", () => promote(v.card.version, false));
+    const forceBtn = el("button", "btn", "FORCE");
+    forceBtn.title = "Skip the success check (latency is still checked)";
+    forceBtn.disabled = v.card.promoted;
+    forceBtn.addEventListener("click", () => promote(v.card.version, true));
+    const reportBtn = el("button", "btn", "REPORT");
+    reportBtn.addEventListener("click", () => openReportFor(v));
+    act.append(promoteBtn, forceBtn, reportBtn);
+    tr.append(st, act);
+    return tr;
+  });
+  $("#versions tbody").replaceChildren(...rows);
+  $("#history").replaceChildren(...[...r.history].reverse().map((h) => el("div", "",
+    `${new Date(h.at * 1000).toLocaleTimeString()}  ${h.action.toUpperCase()}  ${h.version ?? "none"}  ${h.reason}`)));
+}
+
+async function register() {
+  const body = {
+    adapter: $("#reg-adapter").value,
+    ckpt_uri: $("#reg-ckpt").value.trim(),
+    dataset_versions: $("#reg-datasets").value.split(",").map((s) => s.trim()).filter(Boolean),
+    eval_reports: pickedEvals($("#register-evals")),
+  };
+  try {
+    const v = await api.post("/api/registry/register", body);
+    setStatus(`REGISTERED ${v.card.model_name}@${v.card.version}`);
+    await refreshModels();
+  } catch (e) { setStatus(`REGISTER REJECTED: ${e.message}`); }
+}
+
+async function promote(version, force) {
+  try {
+    const d = await api.post("/api/registry/promote", { version, force });
+    setStatus(`${d.promoted ? "PROMOTED" : "NOT PROMOTED"} ${version}: ${d.reason}`);
+    await refreshModels();
+  } catch (e) { setStatus(`PROMOTE FAILED: ${e.message}`); }
+}
+
+async function rollback() {
+  if (!window.confirm(`Roll back production ${ms.registry.production}?`)) return;
+  try {
+    const r = await api.post("/api/registry/rollback");
+    setStatus(`ROLLED BACK: production is ${r.production ?? "none"}`);
+    await refreshModels();
+  } catch (e) { setStatus(`ROLLBACK FAILED: ${e.message}`); }
+}
+
+function openReportFor(v) {
+  document.querySelector('#tabs button[data-tab="report"]').click();
+  prefillReport(`${v.card.model_name}@${v.card.version}`, v.eval_reports);
+}
+```
+
+- [ ] **Step 3: `frontend/js/report.js`:**
+
+```javascript
+// REPORT tab: failure report from eval reports -> failing cells -> CREATE NEXT RUN (targeted generate).
+import { api } from "./api.js";
+import { $, el, setStatus } from "./dom.js";
+import { evalPicker, loadEvals, pickedEvals } from "./models.js";
+import { refreshRuns } from "./pipeline.js";
+
+const rs = { current: null };
+
+export async function initReport() {
+  $("#btn-build-report").addEventListener("click", build);
+  $("#btn-next-run").addEventListener("click", createNextRun);
+  document.querySelector('#tabs button[data-tab="report"]').addEventListener("click", refreshPickers);
+  await refreshPickers();
+  await refreshReports();
+}
+
+async function refreshPickers() {
+  evalPicker($("#report-evals"), await loadEvals(), "rep");
+}
+
+export async function prefillReport(model, evalReports) {
+  await refreshPickers();
+  $("#rep-model").value = model;
+  for (const [engine, path] of Object.entries(evalReports)) {
+    const sel = $(`#rep-${engine}`);
+    if (sel) sel.value = path;
+  }
+}
+
+async function refreshReports() {
+  const list = await api.get("/api/reports").catch(() => []);
+  const items = list.map((r) => {
+    const li = el("li", rs.current && rs.current.id === r.id ? "active" : "");
+    const rates = Object.entries(r.overall).map(([e, o]) => `${e} ${Math.round(o.rate * 100)}%`).join(" · ");
+    li.append(el("span", "", r.model), el("span", "val", `${rates} · ${r.cells} cells`));
+    li.addEventListener("click", () => openReport(r.id));
+    return li;
+  });
+  $("#reports").replaceChildren(...items);
+}
+
+async function openReport(id) {
+  try {
+    rs.current = await api.get(`/api/reports/${id}`);
+  } catch (e) { setStatus(`REPORT: ${e.message}`); return; }
+  render();
+  refreshReports();
+}
+
+function render() {
+  const r = rs.current;
+  $("#report-title").textContent = `REPORT ${r.id}`;
+  $("#report-md").textContent = r.markdown;
+  const cells = r.next_run.cells;
+  const episodes = cells.reduce((a, c) => a + c.k, 0);
+  $("#next-run-info").textContent = cells.length
+    ? `Next run: ${cells.length} train-split failing cells, ${episodes} targeted episodes (GENERATE DATA in PIPELINE).`
+    : "No train-split failing cells: follow the recommendations (widen the spec) instead.";
+  $("#btn-next-run").disabled = !cells.length;
+}
+
+async function build() {
+  const body = { model: $("#rep-model").value.trim() || "unnamed", eval_reports: pickedEvals($("#report-evals")),
+    k: Number($("#rep-k").value) || 8 };
+  try {
+    rs.current = await api.post("/api/reports", body);
+    render();
+    setStatus(`REPORT ${rs.current.id} READY`);
+    refreshReports();
+  } catch (e) { setStatus(`REPORT REJECTED: ${e.message}`); }
+}
+
+async function createNextRun() {
+  if (!rs.current) return;
+  try {
+    const run = await api.post(`/api/reports/${rs.current.id}/next-run`, {});
+    setStatus(`NEXT RUN ${run.id} CREATED: run GENERATE DATA in PIPELINE`);
+    await refreshRuns(run.id);
+    document.querySelector('#tabs button[data-tab="pipeline"]').click();
+  } catch (e) { setStatus(`NEXT RUN REJECTED: ${e.message}`); }
+}
+```
+
+- [ ] **Step 4: Wire it up.**
+  - **`app.js`:**
+    - Add the imports `import { initModels } from "./models.js";` and `import { initReport } from "./report.js";`.
+    - In `boot()`, after `await initBrief();`, add `await initModels();` and `await initReport();`.
+  - **`station.css`:** append
+
+```css
+.tree select, .tree input { width: 100%; }
+#versions td .btn { margin-right: 4px; padding: 2px 8px; font-size: 11px; }
+#history div { padding: 2px 0; }
+```
+
+  - **`orchestrator/stages.py`:** change the `help` of both `policy` params (eval and rollout) to `"expert | random | lerobot:<ckpt> | url:<server> | registry:cathlab-pick@production"`.
+
+- [ ] **Step 5: Verify.**
+  - Run `node --input-type=module --check` (node from the `node` env) on `models.js`, `report.js` and `app.js`.
+  - `uv run pytest -q`.
+  - Start `make dev` and check that `curl -s localhost:8700/ | grep -c 'tab-report'` prints 1, and that `curl -s localhost:8700/js/models.js | head -2` works. Stop the server by PID.
+  - The browser check is done by the controller.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add frontend orchestrator/stages.py
+git commit -m "feat(frontend): MODELS tab (register, promote, rollback) and REPORT tab (failure report, create next run)"
+```
+
+---
+
+### Task 6: ASSIST tab (procedure step → proposed object → handover rollout)
+
+**Files:**
+- Create: `orchestrator/assist.py`, `tests/orchestrator/test_assist.py`, `frontend/js/assist.js`
+- Modify: `orchestrator/control.py` (mount the router), `frontend/index.html` (ASSIST tab + nav button), `frontend/js/app.js`, `frontend/css/station.css`
+
+**Interfaces:**
+- Consumes:
+  - `awareness.procedure.ProcedureSpec` (`.from_yaml`, `.steps[i].step_id/description/tools`, `.next_tool(step_id)`, `.validate_against(task)`);
+  - `contracts.TaskSpec` (`instructions(obj)`);
+  - `Pipeline.start(run, "rollout", params)` (Task 4 resolves `registry:` policies);
+  - `Store.get_run`.
+- Produces HTTP under `/api/assist`:
+  - `GET /procedures` → `[{id, steps: [{step_id, description, tools}]}]` from `configs/procedures/*.yaml`.
+  - `POST /propose {procedure, step_id}` → `{procedure, step_id, object, question, instruction, reason}`.
+    - `object` is the first tool of the **current** step if it has one, otherwise `next_tool(step_id)` (anticipation), otherwise `null`.
+    - `question` = `"Shall I hand you the <object>?"`; `instruction` = `task.instructions(object)[0]`; `reason` = `"needed now"` or `"needed for the next step '<id>'"`.
+    - 404 for an unknown procedure or step.
+  - `POST /handover {run_id, object, instruction, policy="registry:cathlab-pick@production", seed=5000}` → the started rollout Job (dispatch errors map to `PipelineError` statuses).
+- Frontend: `assist.js` with `initAssist()`.
+
+- [ ] **Step 1: Write the failing tests** in `tests/orchestrator/test_assist.py`:
+
+```python
+from fastapi.testclient import TestClient
+from orchestrator.control import create_control_app
+from tests.orchestrator.test_pipeline import CATALOG, ROOT
+
+
+def client(tmp_path):
+    (tmp_path / "catalog.yaml").write_text(CATALOG)
+    (tmp_path / "workers.yaml").write_text("workers: []\n")
+    return TestClient(create_control_app(ROOT, var_dir=tmp_path / "var", catalog_path=tmp_path / "catalog.yaml",
+                                         workers_path=tmp_path / "workers.yaml", frontend_dir=tmp_path / "none",
+                                         engines_dir=ROOT / "tests/engines"))
+
+
+def test_procedures_and_proposals(tmp_path):
+    c = client(tmp_path)
+    procs = {p["id"]: p for p in c.get("/api/assist/procedures").json()}
+    steps = [s["step_id"] for s in procs["coronary_angiography"]["steps"]]
+    assert steps[0] == "access_prep" and "contrast_injection" in steps
+    now = c.post("/api/assist/propose", json={"procedure": "coronary_angiography", "step_id": "access_prep"}).json()
+    assert now["object"] == "vial" and now["reason"] == "needed now"
+    assert now["question"] == "Shall I hand you the vial?" and "vial" in now["instruction"]
+    nxt = c.post("/api/assist/propose", json={"procedure": "coronary_angiography", "step_id": "catheter_advance"}).json()
+    assert nxt["object"] == "bottle" and nxt["reason"] == "needed for the next step 'contrast_injection'"
+    last = c.post("/api/assist/propose", json={"procedure": "coronary_angiography", "step_id": "closure"}).json()
+    assert last["object"] is None
+    assert c.post("/api/assist/propose", json={"procedure": "nope", "step_id": "x"}).status_code == 404
+    assert c.post("/api/assist/propose", json={"procedure": "coronary_angiography", "step_id": "x"}).status_code == 404
+
+
+def test_handover_starts_a_rollout_or_explains_why_not(tmp_path):
+    c = client(tmp_path)
+    run = c.post("/api/runs", json={"selection": {"simulator": "fake", "expert": "analytic", "objects": ["vial"]}}).json()
+    r = c.post("/api/assist/handover", json={"run_id": run["id"], "object": "vial", "instruction": "Pass the vial",
+                                             "policy": "expert"})
+    assert r.status_code == 409 and "rollout" in r.json()["detail"]          # fake engine has no rollout capability
+    assert c.post("/api/assist/handover", json={"run_id": "run-x", "object": "vial", "instruction": "x"}).status_code == 404
+```
+
+- [ ] **Step 2: Run them and confirm they fail**
+
+Run: `uv run pytest -q tests/orchestrator/test_assist.py`. Expected: 404s / FAIL (router missing).
+
+- [ ] **Step 3: `orchestrator/assist.py`:**
+
+```python
+"""ASSIST: the awareness procedure model proposes the object the clinician needs; on YES the production model hands it
+over in simulation (a rollout stage with the instruction). The current step is picked in the UI today; the VLM step
+tracker (awareness.engine.AwarenessEngine) can drive the same endpoint later."""
+from pathlib import Path
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from awareness.procedure import ProcedureSpec
+from contracts import TaskSpec, load_yaml
+from orchestrator.pipeline import Pipeline, PipelineError
+from orchestrator.store import Store
+
+
+class ProposeBody(BaseModel):
+    procedure: str
+    step_id: str
+
+
+class HandoverBody(BaseModel):
+    run_id: str
+    object: str
+    instruction: str
+    policy: str = "registry:cathlab-pick@production"
+    seed: int = 5000
+
+
+def create_assist_router(store: Store, pipeline: Pipeline, repo_root: Path) -> APIRouter:
+    r = APIRouter()
+    proc_dir = Path(repo_root) / "configs/procedures"
+    task = load_yaml(Path(repo_root) / "configs/tasks/cathlab_pick.yaml", TaskSpec)
+
+    def procedures() -> dict[str, ProcedureSpec]:
+        out = {}
+        for p in sorted(proc_dir.glob("*.yaml")):
+            spec = ProcedureSpec.from_yaml(p)
+            spec.validate_against(task)
+            out[spec.procedure_id] = spec
+        return out
+
+    @r.get("/procedures")
+    def list_procedures() -> list[dict]:
+        return [{"id": pid, "steps": [s.model_dump() for s in spec.steps]} for pid, spec in procedures().items()]
+
+    @r.post("/propose")
+    def propose(body: ProposeBody) -> dict:
+        spec = procedures().get(body.procedure)
+        if spec is None:
+            raise HTTPException(404, f"unknown procedure {body.procedure}")
+        try:
+            step = spec.steps[spec.index(body.step_id)]
+        except KeyError as e:
+            raise HTTPException(404, f"unknown step {body.step_id}") from e
+        if step.tools:
+            obj, reason = step.tools[0], "needed now"
+        else:
+            obj = spec.next_tool(step.step_id)
+            later = next((s for s in spec.steps[spec.index(step.step_id) + 1:] if obj in s.tools), None)
+            reason = f"needed for the next step '{later.step_id}'" if later else "nothing to hand over"
+        if obj is None:
+            return {"procedure": body.procedure, "step_id": step.step_id, "object": None, "question": None,
+                    "instruction": None, "reason": "nothing to hand over for the rest of the procedure"}
+        return {"procedure": body.procedure, "step_id": step.step_id, "object": obj,
+                "question": f"Shall I hand you the {obj}?", "instruction": task.instructions(obj)[0], "reason": reason}
+
+    @r.post("/handover")
+    def handover(body: HandoverBody) -> dict:
+        run = store.get_run(body.run_id)
+        if run is None:
+            raise HTTPException(404, f"unknown run {body.run_id}")
+        params = {"policy": body.policy, "object": body.object, "instruction": body.instruction, "seed": body.seed}
+        try:
+            return pipeline.start(run, "rollout", params).model_dump()
+        except PipelineError as e:
+            raise HTTPException(e.status, str(e)) from e
+
+    return r
+```
+
+In `orchestrator/control.py`, next to the loop router, add `from orchestrator.assist import create_assist_router` and `app.include_router(create_assist_router(store, pipeline, repo_root), prefix="/api/assist")`. Check first that `ProcedureSpec` has `procedure_id`; adapt to the real attribute name if it differs and note it in the report.
+
+- [ ] **Step 4: Frontend.** In `index.html`:
+  - nav: add `<button data-tab="assist">ASSIST</button>` after REPORT;
+  - add the section:
+
+```html
+    <!-- ASSIST: procedure step -> proposed object -> handover rollout of the production model -->
+    <section class="tab hidden" id="tab-assist">
+      <aside class="tree">
+        <div class="panel-title">PROCEDURE</div>
+        <select id="assist-procedure" class="field"></select>
+        <div class="panel-title">CURRENT STEP (click)</div>
+        <ul id="assist-steps"></ul>
+      </aside>
+      <div class="pane">
+        <div class="panel-title">PROPOSAL</div>
+        <div class="kv" id="assist-proposal">Click the step the clinician is in.</div>
+        <div class="form">
+          <label for="assist-run">run (simulator)</label>
+          <select id="assist-run" class="field"></select>
+          <label for="assist-policy">policy</label>
+          <select id="assist-policy" class="field">
+            <option value="registry:cathlab-pick@production">production model (registry)</option>
+            <option value="expert">scripted expert</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="btn ok" id="assist-yes" type="button" disabled>YES, HAND IT OVER</button>
+          <button class="btn" id="assist-no" type="button" disabled>NO</button>
+        </div>
+        <div class="kv mono" id="assist-job"></div>
+        <pre class="console" id="assist-console"></pre>
+        <div class="files" id="assist-files"></div>
+      </div>
+    </section>
+```
+
+`frontend/js/assist.js`:
+
+```javascript
+// ASSIST tab: procedure step -> proposed object -> YES -> rollout of the production model with that instruction.
+import { api } from "./api.js";
+import { $, el, setStatus } from "./dom.js";
+
+const as = { procedures: [], proposal: null, timer: null };
+
+export async function initAssist() {
+  as.procedures = await api.get("/api/assist/procedures").catch(() => []);
+  const sel = $("#assist-procedure");
+  sel.replaceChildren(...as.procedures.map((p) => new Option(p.id, p.id)));
+  sel.addEventListener("change", renderSteps);
+  $("#assist-yes").addEventListener("click", handover);
+  $("#assist-no").addEventListener("click", () => { as.proposal = null; renderProposal(); });
+  document.querySelector('#tabs button[data-tab="assist"]').addEventListener("click", refreshRuns);
+  renderSteps();
+  await refreshRuns();
+}
+
+async function refreshRuns() {
+  const runs = await api.get("/api/runs").catch(() => []);
+  const sel = $("#assist-run");
+  const keep = sel.value;
+  sel.replaceChildren(...runs.map((r) => new Option(`${r.id} · ${r.selection.simulator}`, r.id)));
+  if (keep) sel.value = keep;
+}
+
+function renderSteps() {
+  const proc = as.procedures.find((p) => p.id === $("#assist-procedure").value);
+  const items = (proc ? proc.steps : []).map((s, i) => {
+    const li = el("li", "");
+    li.append(el("span", "", `${i + 1}. ${s.step_id}`), el("span", "val", s.tools.join(", ") || "—"));
+    li.title = s.description;
+    li.addEventListener("click", () => {
+      document.querySelectorAll("#assist-steps li").forEach((x) => x.classList.remove("active"));
+      li.classList.add("active");
+      propose(proc.id, s.step_id);
+    });
+    return li;
+  });
+  $("#assist-steps").replaceChildren(...items);
+}
+
+async function propose(procedure, stepId) {
+  try {
+    as.proposal = await api.post("/api/assist/propose", { procedure, step_id: stepId });
+  } catch (e) { setStatus(`ASSIST: ${e.message}`); return; }
+  renderProposal();
+}
+
+function renderProposal() {
+  const p = as.proposal;
+  const box = $("#assist-proposal");
+  if (!p) { box.textContent = "Click the step the clinician is in."; }
+  else if (!p.object) { box.textContent = `Step ${p.step_id}: ${p.reason}.`; }
+  else { box.textContent = `Step ${p.step_id}: ${p.question}  (${p.reason})\nInstruction: "${p.instruction}"`; }
+  const ready = !!(p && p.object);
+  $("#assist-yes").disabled = !ready;
+  $("#assist-no").disabled = !ready;
+}
+
+async function handover() {
+  const p = as.proposal;
+  if (!p || !p.object) return;
+  try {
+    const job = await api.post("/api/assist/handover", { run_id: $("#assist-run").value, object: p.object,
+      instruction: p.instruction, policy: $("#assist-policy").value });
+    setStatus(`HANDOVER ${p.object.toUpperCase()} STARTED (${job.id})`);
+    follow(job.id);
+  } catch (e) { setStatus(`HANDOVER REJECTED: ${e.message}`); }
+}
+
+function follow(id) {
+  if (as.timer) clearInterval(as.timer);
+  let offset = 0;
+  $("#assist-console").textContent = "";
+  $("#assist-files").replaceChildren();
+  as.timer = setInterval(async () => {
+    try {
+      const r = await api.get(`/api/jobs/${id}/log?offset=${offset}`);
+      if (r.text) $("#assist-console").textContent += r.text;
+      offset = r.offset;
+      $("#assist-job").textContent = `JOB ${id} · ${r.state.toUpperCase()}`;
+      if (!["queued", "running"].includes(r.state)) {
+        clearInterval(as.timer);
+        as.timer = null;
+        const files = await api.get(`/api/jobs/${id}/files`).catch(() => []);
+        for (const f of files.filter((x) => /\.(gif|mp4)$/i.test(x.path))) {
+          const url = `/api/jobs/${id}/file?path=${encodeURIComponent(f.path)}`;
+          if (f.path.endsWith(".mp4")) { const v = el("video"); v.src = url; v.controls = true; v.autoplay = true; $("#assist-files").append(v); }
+          else { const img = el("img"); img.src = url; $("#assist-files").append(img); }
+        }
+      }
+    } catch (e) { $("#assist-job").textContent = `JOB ${id} · ${e.message}`; }
+  }, 1000);
+}
+```
+
+  - **`app.js`:** `import { initAssist } from "./assist.js";` and `await initAssist();` after `await initReport();`.
+  - **`station.css`:** append `#assist-proposal { white-space: pre-wrap; font-size: 15px; }`.
+
+- [ ] **Step 5: Verify.**
+  - `uv run pytest -q tests/orchestrator` and `uv run pytest -q`.
+  - Run `node --input-type=module --check` on `assist.js` and `app.js`.
+  - Start `make dev`, then `curl -s -X POST localhost:8700/api/assist/propose -H 'Content-Type: application/json' -d '{"procedure":"coronary_angiography","step_id":"anaesthetic_injection"}'` → `syringe`. Stop the server by PID.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add orchestrator/assist.py orchestrator/control.py tests/orchestrator/test_assist.py frontend
+git commit -m "feat(assist): ASSIST tab: procedure step proposes the object, YES hands it over with the production model"
+```
+
+---
+### Task 7: Policy server and client (`url:` policies, "deploy")
+
+**Files:**
+- Create: `serve/codec.py`, `serve/policy_server.py`, `serve/policy_client.py`, `tests/serve/test_policy_server.py`
+- Modify: `engines/policies.py` (error message only), `Makefile` (`policy-server` target)
+
+**Interfaces:**
+- Consumes:
+  - `contracts.PolicyAdapter`, `contracts.PolicyMeta`, `contracts.RandomPolicy`;
+  - `orchestrator.worker.check_bind`; `orchestrator.hosts.protect`;
+  - `serve.registry.Registry.resolve` (Task 1).
+- Produces:
+  - `serve.codec.encode_array(a) -> {"b64", "shape", "dtype"}` and `decode_array(d) -> np.ndarray`; dtypes are uint8, float32, float64 and int64.
+  - `serve.policy_server.create_policy_app(adapter_spec, checkpoint, model_version, io="panda_libero", token=None, bind_host=None) -> FastAPI`. The model loads in a background thread.
+    - `GET /health` (no token) → `{ok, ready, model_version, auth, error}`;
+    - `GET /meta` → `{model_version, io, adapter, checkpoint, meta}`, or 503 while loading;
+    - `POST /act {instruction, obs: {key: Array}}` → `{actions: Array, model_version, latency_ms}`; 503 while loading, 400 on a bad body, 500 `predict failed: …`.
+  - `main()` CLI: `python -m serve.policy_server [--adapter module:Class] [--checkpoint X --model-version Y | --registry cathlab-pick@production] [--io] [--host] [--port 8720] [--token]`.
+  - `serve.policy_client.PolicyClient(url, token=None, timeout_s=30.0, wait_ready_s=60.0)` (a `PolicyAdapter`, stdlib + numpy only): `.load(ckpt="")` waits for ready; `.predict(obs, instruction)` returns float32 `(chunk, action_dim)` and retries 503 until `wait_ready_s`; `.meta()`.
+  - Auth: header `X-Cathlab-Token` (arg or env `CATHLAB_WORKER_TOKEN`). The server refuses a non-loopback bind without a token. Without a token, the Host allow-list applies.
+
+- [ ] **Step 1: Write the failing tests** in `tests/serve/test_policy_server.py`:
+
+```python
+import socket
+import threading
+import time
+import numpy as np
+import pytest
+import uvicorn
+from contracts import DummySim, TaskSpec, load_yaml
+from engines.policies import make_policy
+from serve.codec import decode_array, encode_array
+from serve.policy_client import PolicyClient
+from serve.policy_server import create_policy_app
+
+
+class SlowRandom:
+    """Adapter whose load takes 0.6 s, to exercise 503 + client retry."""
+    def __init__(self):
+        from contracts import RandomPolicy
+        self.inner = RandomPolicy(action_dim=7, chunk_size=4)
+
+    def load(self, ckpt):
+        time.sleep(0.6)
+
+    def predict(self, obs, instruction):
+        assert obs["state"].shape == (8,) and obs["agentview"].dtype == np.uint8
+        return self.inner.predict(obs, instruction)
+
+    def meta(self):
+        return self.inner.meta()
+
+
+def free_port():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+@pytest.fixture
+def server():
+    started = []
+
+    def start(adapter, token=None):
+        port = free_port()
+        app = create_policy_app(adapter, "ckpt", "cathlab-pick@v9", token=token, bind_host="127.0.0.1")
+        srv = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="error"))
+        threading.Thread(target=srv.run, daemon=True).start()
+        end = time.time() + 10
+        while not srv.started and time.time() < end:
+            time.sleep(0.02)
+        started.append(srv)
+        return f"http://127.0.0.1:{port}"
+
+    yield start
+    for srv in started:
+        srv.should_exit = True
+
+
+def test_codec_round_trip():
+    for a in (np.arange(6, dtype=np.float32).reshape(2, 3), np.zeros((4, 4, 3), np.uint8), np.array([1, 2], np.int64)):
+        b = decode_array(encode_array(a))
+        assert b.dtype == a.dtype and b.shape == a.shape and np.array_equal(a, b) and b.flags.c_contiguous
+    with pytest.raises(ValueError):
+        encode_array(np.zeros(2, dtype=np.complex64))
+    with pytest.raises(ValueError):
+        decode_array({**encode_array(np.zeros(3, np.float32)), "shape": [4]})
+
+
+def test_client_waits_for_load_and_predicts(server):
+    url = server(f"{__name__}:SlowRandom")
+    client = PolicyClient(url, wait_ready_s=10)
+    obs = {"state": np.zeros(8, np.float32), "agentview": np.zeros((8, 8, 3), np.uint8)}
+    actions = client.predict(obs, "Hand me the vial")                        # retries 503 while loading
+    assert actions.shape == (4, 7) and actions.dtype == np.float32
+    assert client.meta().action_dim == 7
+    assert make_policy(f"url:{url}", action_dim=7).predict(obs, "x").shape == (4, 7)
+
+
+def test_token_and_errors(server):
+    url = server("contracts.policy:RandomPolicy", token="s3cret")
+    with pytest.raises(RuntimeError, match="401"):
+        PolicyClient(url, token="wrong", wait_ready_s=2).predict({"state": np.zeros(8, np.float32)}, "x")
+    client = PolicyClient(url, token="s3cret", wait_ready_s=5)
+    client.load()
+    assert client.predict({"state": np.zeros(8, np.float32)}, "x").shape == (10, 16)
+    with pytest.raises(RuntimeError, match="not ready"):
+        PolicyClient("http://127.0.0.1:9", wait_ready_s=0.3).load()
+
+
+def test_eval_runner_works_through_the_client(server):
+    from eval.runner import run_suite
+    url = server("contracts.policy:RandomPolicy")
+    task = load_yaml("configs/tasks/cathlab_pick.yaml", TaskSpec)
+    scene = load_yaml("configs/scenes/dummy.yaml", __import__("contracts").SceneSpec)
+    report = run_suite(PolicyClient(url, wait_ready_s=5), DummySim(), scene, task, [0], "cathlab-pick@v9", [])
+    assert len(report.episodes) == len(task.objects)
+```
+
+- [ ] **Step 2: Run them and confirm they fail**
+
+Run: `uv run pytest -q tests/serve/test_policy_server.py` → `ModuleNotFoundError: serve.codec`.
+
+- [ ] **Step 3: `serve/codec.py`:**
+
+```python
+"""Array wire format for the policy server (stdlib + numpy): base64 of the C-contiguous bytes + shape + dtype."""
+import base64
+import numpy as np
+
+DTYPES = ("uint8", "float32", "float64", "int64")
+
+
+def encode_array(a: np.ndarray) -> dict:
+    a = np.ascontiguousarray(a)
+    if a.dtype.name not in DTYPES:
+        raise ValueError(f"unsupported dtype {a.dtype.name}; use one of {DTYPES}")
+    return {"b64": base64.b64encode(a.tobytes()).decode("ascii"), "shape": list(a.shape), "dtype": a.dtype.name}
+
+
+def decode_array(d: dict) -> np.ndarray:
+    if d.get("dtype") not in DTYPES:
+        raise ValueError(f"unsupported dtype {d.get('dtype')!r}")
+    flat = np.frombuffer(base64.b64decode(d["b64"]), dtype=d["dtype"])
+    shape = [int(x) for x in d["shape"]]
+    if int(np.prod(shape)) != flat.size:
+        raise ValueError(f"shape {shape} does not match {flat.size} values")
+    return flat.reshape(shape).copy()
+```
+
+- [ ] **Step 4: `serve/policy_server.py`:**
+
+```python
+"""Policy server: one model version over HTTP + JSON (run it in the lerobot env, next to the GPU).
+
+    python -m serve.policy_server --checkpoint Rakeshdharan56/smolvla_panda_pick_v1 --model-version cathlab-pick@v3
+    python -m serve.policy_server --registry cathlab-pick@production          # checkpoint + version from the registry
+    # engines then evaluate / roll out with --policy url:http://<host>:8720
+
+GET /health (no token), GET /meta, POST /act {instruction, obs: {key: Array}} -> {actions: Array, model_version,
+latency_ms}. Arrays use serve/codec.py. 503 until the model is loaded (it loads in a background thread).
+"""
+import argparse
+import importlib
+import os
+import secrets
+import threading
+import time
+from pathlib import Path
+import numpy as np
+from fastapi import Depends, FastAPI, Header, HTTPException
+from pydantic import BaseModel
+from orchestrator.hosts import protect
+from serve.codec import decode_array, encode_array
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ADAPTER = "train.lerobot_adapter:LeRobotPolicyAdapter"
+
+
+class ActBody(BaseModel):
+    instruction: str
+    obs: dict[str, dict]
+
+
+def load_adapter_class(spec: str) -> type:
+    module, sep, cls = spec.partition(":")
+    if not sep:
+        module, _, cls = spec.rpartition(".")
+    return getattr(importlib.import_module(module), cls)
+
+
+def create_policy_app(adapter_spec: str, checkpoint: str, model_version: str, io: str = "panda_libero",
+                      token: str | None = None, bind_host: str | None = None) -> FastAPI:
+    app = FastAPI(title=f"cathlab policy server: {model_version}")
+    if not token:
+        protect(app, bind_host)
+    state = {"ready": False, "error": "", "adapter": None}
+
+    def _load() -> None:
+        try:
+            adapter = load_adapter_class(adapter_spec)()
+            adapter.load(checkpoint)
+            state.update(adapter=adapter, ready=True)
+        except Exception as e:  # noqa: BLE001 - reported on /health
+            state["error"] = f"{type(e).__name__}: {e}"[:500]
+
+    threading.Thread(target=_load, daemon=True).start()
+
+    def auth(x_cathlab_token: str | None = Header(None)) -> None:
+        if token and (x_cathlab_token is None or not secrets.compare_digest(x_cathlab_token, token)):
+            raise HTTPException(401, "missing or invalid X-Cathlab-Token")
+
+    def adapter_or_503():
+        if not state["ready"]:
+            raise HTTPException(503, state["error"] or "model loading")
+        return state["adapter"]
+
+    @app.get("/health")
+    def health() -> dict:
+        return {"ok": True, "ready": state["ready"], "model_version": model_version, "auth": bool(token),
+                "error": state["error"]}
+
+    @app.get("/meta")
+    def meta(_: None = Depends(auth)) -> dict:
+        adapter = adapter_or_503()
+        return {"model_version": model_version, "io": io, "adapter": adapter_spec, "checkpoint": checkpoint,
+                "meta": adapter.meta().model_dump()}
+
+    @app.post("/act")
+    def act(body: ActBody, _: None = Depends(auth)) -> dict:
+        adapter = adapter_or_503()
+        try:
+            obs = {k: decode_array(v) for k, v in body.obs.items()}
+        except (KeyError, ValueError, TypeError) as e:
+            raise HTTPException(400, f"bad obs: {e}") from e
+        t0 = time.perf_counter()
+        try:
+            actions = np.asarray(adapter.predict(obs, body.instruction), dtype=np.float32)
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(500, f"predict failed: {type(e).__name__}: {e}"[:500]) from e
+        if actions.ndim == 1:
+            actions = actions[None, :]
+        return {"actions": encode_array(actions), "model_version": model_version,
+                "latency_ms": (time.perf_counter() - t0) * 1000}
+
+    return app
+
+
+def main(argv: list[str] | None = None) -> None:
+    import uvicorn
+    import yaml
+    from orchestrator.worker import check_bind
+
+    cfg = yaml.safe_load((ROOT / "configs/serve.yaml").read_text()) or {}
+    ap = argparse.ArgumentParser(prog="python -m serve.policy_server", description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--adapter", default=DEFAULT_ADAPTER, help="module:Class with no-arg constructor + load(ckpt)")
+    ap.add_argument("--checkpoint", help="HF repo id or local path")
+    ap.add_argument("--model-version", help="label returned to clients, e.g. cathlab-pick@v3")
+    ap.add_argument("--registry", help="serve a registry version instead, e.g. cathlab-pick@production")
+    ap.add_argument("--registry-root", default=str(ROOT / cfg.get("registry_path", "var/registry")))
+    ap.add_argument("--io", default="panda_libero")
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=int(cfg.get("policy_server_port", 8720)))
+    ap.add_argument("--token", default=None, help="defaults to CATHLAB_WORKER_TOKEN")
+    a = ap.parse_args(argv)
+    if a.registry:
+        from serve.registry import Registry
+        m = Registry(a.registry_root).resolve(a.registry)
+        if m.card.adapter == "expert":
+            raise SystemExit("the scripted expert needs simulator state; it can't be served")
+        a.checkpoint, a.model_version = m.card.ckpt_uri, f"{m.card.model_name}@{m.card.version}"
+    if not a.checkpoint:
+        raise SystemExit("--checkpoint or --registry is required")
+    token = a.token or os.environ.get("CATHLAB_WORKER_TOKEN")
+    check_bind(a.host, token)
+    app = create_policy_app(a.adapter, a.checkpoint, a.model_version or a.checkpoint, a.io, token, a.host)
+    uvicorn.run(app, host=a.host, port=a.port)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+- [ ] **Step 5: `serve/policy_client.py`:**
+
+```python
+"""PolicyClient: a contracts.PolicyAdapter that calls serve/policy_server.py over HTTP (stdlib + numpy only, so it
+runs inside every engine env). Engines use it via --policy url:<server>."""
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+import numpy as np
+from contracts import PolicyAdapter, PolicyMeta
+from serve.codec import decode_array, encode_array
+
+
+class PolicyClient(PolicyAdapter):
+    def __init__(self, url: str, token: str | None = None, timeout_s: float = 30.0, wait_ready_s: float = 60.0):
+        self.url = url.rstrip("/")
+        self.token = token or os.environ.get("CATHLAB_WORKER_TOKEN")
+        self.timeout_s, self.wait_ready_s = timeout_s, wait_ready_s
+
+    def _request(self, method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
+        data = json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(self.url + path, data=data, method=method)
+        req.add_header("Content-Type", "application/json")
+        if self.token:
+            req.add_header("X-Cathlab-Token", self.token)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
+                return resp.status, json.loads(resp.read() or b"{}")
+        except urllib.error.HTTPError as e:
+            try:
+                payload = json.loads(e.read() or b"{}")
+            except ValueError:
+                payload = {}
+            return e.code, payload
+
+    def load(self, ckpt: str = "") -> None:
+        """Wait until the server has loaded its model (the checkpoint is chosen on the server)."""
+        deadline, last = time.time() + self.wait_ready_s, "no answer"
+        while True:
+            try:
+                status, health = self._request("GET", "/health")
+                if status == 200 and health.get("ready"):
+                    return
+                last = health.get("error") or "model loading"
+            except (urllib.error.URLError, OSError) as e:
+                last = str(e)
+            if time.time() >= deadline:
+                raise RuntimeError(f"policy server at {self.url} not ready: {last}")
+            time.sleep(0.25)
+
+    def predict(self, obs: dict, instruction: str) -> np.ndarray:
+        body = {"instruction": instruction, "obs": {k: encode_array(np.asarray(v)) for k, v in obs.items()}}
+        deadline = time.time() + self.wait_ready_s
+        while True:
+            status, payload = self._request("POST", "/act", body)
+            if status == 200:
+                return decode_array(payload["actions"]).astype(np.float32, copy=False)
+            if status == 503 and time.time() < deadline:
+                time.sleep(0.25)
+                continue
+            raise RuntimeError(f"policy server {status}: {payload.get('detail', payload)}")
+
+    def meta(self) -> PolicyMeta:
+        status, payload = self._request("GET", "/meta")
+        if status != 200:
+            raise RuntimeError(f"policy server {status}: {payload.get('detail', payload)}")
+        return PolicyMeta(**payload["meta"])
+```
+
+- [ ] **Step 6: Small edits.**
+  - **`engines/policies.py`:** change the RuntimeError text to `"policy server client unavailable (serve/policy_client.py)"`.
+  - **`Makefile`:** add `policy-server` to `.PHONY`, plus:
+
+```make
+policy-server:      ## serve the production model on :8720 (lerobot env; needs a promoted lerobot version)
+	conda run -n $(LEROBOT_ENV) --no-capture-output python -m serve.policy_server --registry cathlab-pick@production
+```
+
+- [ ] **Step 7: Run the tests and confirm they pass**
+
+`uv run pytest -q tests/serve` → all pass. Then `uv run pytest -q`.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add serve tests/serve engines/policies.py Makefile
+git commit -m "feat(serve): policy server and stdlib client (url: policies), codec, make policy-server"
+```
+
+---
+
+### Task 8: Docs, gates and status
+
+**Files:**
+- Modify:
+  - `docs/STATUS.md` (codebase readiness rows; "The loop after training" table), `docs/decisions.md` (one row);
+  - `harness/gates/rollout.yaml`, `harness/gates/report.yaml` (status, owner, reference, conformance);
+  - `docs/EXTENDING.md` (a "Close the loop" section), `README.md` (Control Station bullets), `docs/HARNESS.md` (nothing unless a path changed).
+
+**Interfaces:** documentation only. Every path, command and endpoint named must exist.
+
+- [ ] **Step 1: Gates.**
+  - **`harness/gates/rollout.yaml`:**
+    - `status: ready`, `owner: Rakesh`;
+    - `extension_point`: "serve/ (registry: versions, promotion rule, rollback; policy server + PolicyClient) and each engine's rollout stage";
+    - `reference` adds `serve/registry.py`, `serve/policy_server.py`, `serve/policy_client.py`, `orchestrator/loop.py`;
+    - the contract line about the promotion rule becomes "Promotion: CI low on the primary engine > production success rate, ≥ min_episodes, p95 ≤ latency budget (configs/serve.yaml); force never skips latency; rollback restores the previous promoted version";
+    - `conformance: "uv run pytest -q tests/serve tests/orchestrator/test_loop.py tests/engines"`.
+  - **`harness/gates/report.yaml`:**
+    - `status: ready`, `owner: Rakesh`;
+    - `extension_point`: "report/failure_report.py (build_report sections + next_run) and dataengine.variation.select_configs cells: split";
+    - `reference` adds `report/failure_report.py`, `dataengine/variation.py`;
+    - a contract line "next_run.json lists only train-split cells (held-out values are never trained on); every engine's generate accepts --split cells:<next_run.json>";
+    - `conformance: "uv run pytest -q tests/report tests/dataengine/test_targeted.py"`.
+  - Run `uv run pytest -q tests/harness`: gate references must exist.
+- [ ] **Step 2: `docs/EXTENDING.md`.** Add a section **"Close the loop (versions → report → next run)"**:
+  - the flow `PIPELINE eval → MODELS register → PROMOTE → REPORT → CREATE NEXT RUN → PIPELINE generate (cells:) → convert → train → eval`;
+  - the CLIs `python -m serve.registry …`, `python -m report.failure_report …`, `python -m serve.policy_server --registry cathlab-pick@production`;
+  - the policy strings accepted by engines and the control plane;
+  - how to add a report section (`add_report_section` template, gate `report`).
+- [ ] **Step 3: `README.md`.** Under the Control Station bullets, add:
+  - "**MODELS:** register evaluated checkpoints as versions (`cathlab-pick@vN`), promote by the CI rule, roll back."
+  - "**REPORT:** failure report (failing cells, sim2sim gap, recommendations) → CREATE NEXT RUN (targeted generate)."
+  - "**ASSIST:** the procedure step proposes the object; YES hands it over with the production model."
+- [ ] **Step 4: `docs/STATUS.md`.**
+  - In "Codebase readiness", update these rows to ✅ with what works:
+    - Serving + registry: registry, promotion, rollback, policy server and client;
+    - Failure report → next run;
+    - Loop controller: next run via the REPORT tab and the `cells:` split;
+    - UI: MODELS, REPORT, ASSIST.
+  - Update the "Awareness" row: ASSIST panel wired, VLM step tracking not wired to the UI yet.
+  - Change "The loop after training" table states to ✅ for Version, Promote/rollback, Deploy (server) and Failure report, and set their Code column to the new paths.
+  - Bump the "Last checked" line to the commit you're on.
+- [ ] **Step 5: `docs/decisions.md`.** Append the row:
+
+```
+| H31 | Plan B-loop: registry `cathlab-pick@vN` in var/registry, promotion = CI low on robosuite > production rate, ≥ 30 episodes, **p95 ≤ 500 ms per predict call** (VLAs return chunks; SmolVLA 271 ms, X-VLA 214 ms, ACT 20 ms measured); failure report next_run.json targets train-split cells only; every engine generates `--split cells:<next_run.json>`; control plane resolves `registry:` policies before dispatch; Sharan's S1–S3/S6 done by Rakesh | Close the sim loop on the control machine without GPUs; no eval leakage | Rakesh | [plan](plans/2026-10-23-platform-plan-b-loop.md) |
+```
+
+- [ ] **Step 6: Verify.** Run `uv run pytest -q`; `grep -rn "TODO\|TBD" docs/EXTENDING.md README.md docs/STATUS.md` must find nothing new.
+- [ ] **Step 7: Commit**
+
+```bash
+git add docs README.md harness/gates
+git commit -m "docs: close-the-loop guide, gates rollout/report ready, status and decisions for Plan B-loop"
+```
