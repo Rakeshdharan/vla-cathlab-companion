@@ -42,8 +42,12 @@
       </div>
     </section>
 
-    <!-- PIPELINE: stage strip -->
+    <!-- PIPELINE: run selector + stage strip + stage detail -->
     <section class="tab hidden" id="tab-pipeline">
+      <div class="row runbar">
+        <label class="panel-title" for="run-select">RUN</label>
+        <select id="run-select" class="field"></select>
+      </div>
       <div class="strip" id="strip"></div>
       <div class="pane">
         <div class="panel-title" id="stage-title">STAGE</div>
@@ -106,7 +110,7 @@
   </main>
 
   <footer class="bar bottom">
-    <button class="btn run" id="btn-run" disabled title="Pipeline stages arrive with Plan B">&#9654; RUN PIPELINE</button>
+    <button class="btn run" id="btn-run" disabled title="Run the selected stage">&#9654; RUN STAGE</button>
     <button class="btn stop" id="btn-stop" disabled>&#9632; STOP</button>
     <div class="status mono" id="status">READY</div>
   </footer>

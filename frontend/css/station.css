@@ -86,3 +86,10 @@ table.grid th { background: var(--panel-2); font-size: 12px; letter-spacing: .5p
 .badge.ready_for_review, .badge.done, .badge.pushed { border-color: var(--ok); color: var(--ok); }
 .badge.failed, .badge.cancelled, .badge.timeout { border-color: var(--bad); color: var(--bad); }
 .badge.agent_running, .badge.checks, .badge.running, .badge.worktree, .badge.guard { border-color: var(--blue); color: var(--blue); }
+
+.runbar { align-items: center; gap: 8px; padding: 8px 12px; }
+.runbar select { min-width: 420px; }
+.stage.ready { border-top-color: var(--blue); }
+.form .help { font-size: 11px; color: var(--muted); margin: -4px 0 6px; }
+.files { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.files img, .files video { max-width: 520px; border: 1px solid var(--line); }
