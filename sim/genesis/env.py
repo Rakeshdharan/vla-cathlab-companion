@@ -1,5 +1,6 @@
 """Genesis scene for the cathlab pick task: table, static tray, bottle/vial/syringe from a VariationSpec, Menagerie
 Panda with a delta-EE controller (IK + joint PD) that reproduces the robosuite OSC_POSE action convention."""
+import genesis as gs
 import numpy as np
 from dataengine.geometry import quat_mul, quat_rotate
 from dataengine.variation import ObjectSpec, VariationSpec, object_poses, train_configs
@@ -52,7 +53,6 @@ _GS_READY = False
 def init_genesis() -> None:
     """gs.init exactly once per process."""
     global _GS_READY
-    import genesis as gs
     if not _GS_READY:
         gs.init(backend=gs.gpu, logging_level="warning")
         _GS_READY = True
@@ -93,10 +93,10 @@ class CathlabGenesisEnv:
     def __init__(self, spec: VariationSpec, camera_size: int = 256, render: bool = True, dt: float = SIM_DT,
                  substeps: int = 1, control_hz: float = 20.0):
         init_genesis()
-        import genesis as gs
         self.spec = spec
         self.render_enabled = render
         self.camera_size = camera_size
+        self.dt, self.substeps = dt, substeps
         self.n_sub = max(1, round(1.0 / (control_hz * dt)))
         self.control_dt = 1.0 / control_hz
         self._arm_plan = None
