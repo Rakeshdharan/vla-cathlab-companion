@@ -19,19 +19,10 @@ from dataclasses import asdict
 from pathlib import Path
 
 from contracts import TaskSpec, load_yaml
-from dataengine.variation import TIERS, EpisodeConfig, VariationSpec, eval_configs, generation_order, train_configs
+from dataengine.variation import EpisodeConfig, VariationSpec, select_configs
 from engines.registry import ROOT
 
 
-def select_configs(spec: VariationSpec, split: str, start: int, n: int, shard: int, num_shards: int,
-                   eval_seed0: int = 100_000) -> list[EpisodeConfig]:
-    if split == "train":
-        cfgs = train_configs(spec)
-    elif split in TIERS:
-        cfgs = eval_configs(spec, split, list(range(eval_seed0, eval_seed0 + (start + n + 2) // 3 + 1)))
-    else:
-        raise SystemExit(f"--split must be 'train' or one of {TIERS}")
-    return generation_order(spec, cfgs)[start:start + n][shard::num_shards]
 
 
 def provenance(env) -> dict:
@@ -64,7 +55,7 @@ def add_provenance(meta_path: Path, prov: dict, axes_on: bool = True) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--split", default="train", help="'train' or an eval tier")
+    ap.add_argument("--split", default="train", help="'train', an eval tier, or cells:<next_run.json>")
     ap.add_argument("--start", type=int, default=0)
     ap.add_argument("--n", type=int, default=20, help="configs in the window (all shards together)")
     ap.add_argument("--out", required=True, help="dataset folder; raw shards go to <out>/raw/")

@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 from contracts import TaskSpec, load_yaml
 from dataengine.expert import ExpertParams, run_expert_episode
-from dataengine.variation import TIERS, EpisodeConfig, VariationSpec, eval_configs, generation_order, train_configs
+from dataengine.variation import TIERS, EpisodeConfig, VariationSpec, eval_configs, select_configs, train_configs
 
 
 def expert_params(pairs: list[str] | None = None) -> ExpertParams:
@@ -38,16 +38,6 @@ def check_configs(spec: VariationSpec, split: str, n: int, objects: list[str]) -
     return [c for c in eval_configs(spec, split, list(range(10_000, 10_000 + n))) if c.object in objects]
 
 
-def select_configs(spec: VariationSpec, split: str, start: int, n: int, shard: int, num_shards: int,
-                   eval_seed0: int = 100_000) -> list[EpisodeConfig]:
-    """Same windowing as scripts/robosuite_generate.py, so episode i is paired across engines."""
-    if split == "train":
-        cfgs = train_configs(spec)
-    elif split in TIERS:
-        cfgs = eval_configs(spec, split, list(range(eval_seed0, eval_seed0 + (start + n + 2) // 3 + 1)))
-    else:
-        raise ValueError(f"--split must be 'train' or one of {TIERS}")
-    return generation_order(spec, cfgs)[start:start + n][shard::num_shards]
 
 
 def run_check_expert(spec_path, n: int, split: str, objects: list[str] | None, params: list[str] | None,
