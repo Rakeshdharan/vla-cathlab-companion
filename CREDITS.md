@@ -6,6 +6,8 @@ CathLab Companion builds on these projects. Thank you to their authors. Each is 
 |---|---|---|---|
 | robosuite | Simulation framework for the Panda pick task | https://github.com/ARISE-Initiative/robosuite | MIT |
 | MuJoCo | Physics engine under robosuite | https://github.com/google-deepmind/mujoco | Apache-2.0 |
+| ManiSkill3 | Second Panda engine (PhysX 5), Panda URDF and EE-delta controller | https://github.com/haosulab/ManiSkill | Apache-2.0 |
+| SAPIEN | Simulator/renderer under ManiSkill3 | https://github.com/haosulab/SAPIEN | MIT |
 | LeRobot | Dataset format (v3), training, policies | https://github.com/huggingface/lerobot | Apache-2.0 |
 | SmolVLA | Baseline vision-language-action policy (via LeRobot) | https://huggingface.co/lerobot/smolvla_base | Apache-2.0 |
 | ACT | Non-language baseline policy (via LeRobot) | https://github.com/tonyzhaozh/act | MIT |
@@ -24,6 +26,7 @@ Papers and notes:
 - Zhao et al., *Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware* (ACT), arXiv:2304.13705.
 - Liu et al., *LIBERO: Benchmarking Knowledge Transfer for Lifelong Robot Learning*, arXiv:2306.03310.
 - Zhu et al., *robosuite: A Modular Simulation Framework and Benchmark for Robot Learning*, arXiv:2009.12293.
+- Tao et al., *ManiSkill3: GPU Parallelized Robotics Simulation and Rendering for Generalizable Embodied AI*, arXiv:2410.00425.
 
 The Siemens Healthineers hackathon materials (brief, provided scene and datasets) are restricted and are not
 redistributed here.
