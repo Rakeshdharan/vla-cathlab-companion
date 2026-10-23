@@ -45,3 +45,12 @@ def test_next_tool_is_none_when_no_later_step_needs_a_tool():
 def test_unknown_step_raises():
     with pytest.raises(KeyError):
         PROC.next_tool("nope")
+
+
+def test_every_procedure_tool_has_a_trained_instruction_in_the_real_task():
+    from contracts import TaskSpec, load_yaml
+
+    task = load_yaml(ROOT / "configs/tasks/cathlab_pick.yaml", TaskSpec)
+    PROC.validate_against(task)
+    for tool in {t for s in PROC.steps for t in s.tools}:
+        assert task.instructions(tool)[0] == f"Hand me the {tool}"
