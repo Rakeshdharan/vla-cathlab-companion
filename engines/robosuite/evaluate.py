@@ -38,7 +38,8 @@ def _backend(spec: VariationSpec, tier: str):
 def _policy(policy_arg: str, backend, spec: VariationSpec):
     if policy_arg == "expert":
         from engines.expert_policy import ExpertPolicy
-        policy = ExpertPolicy(backend.sim, spec, control_hz=FPS)
+        from sim.robosuite.params import ROBOSUITE_EXPERT_PARAMS
+        policy = ExpertPolicy(backend.sim, spec, params=ROBOSUITE_EXPERT_PARAMS, control_hz=FPS)
         backend.on_reset = policy.begin
     else:
         from engines.policies import make_policy
