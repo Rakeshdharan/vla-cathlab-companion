@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 Stage = Literal["reach", "grasp", "lift", "transport", "place"]
 STAGES: tuple[str, ...] = ("reach", "grasp", "lift", "transport", "place")
 DataSource = Literal["provided", "domain_rand", "mimicgen", "scripted", "teleop", "cosmos"]
-Backend = Literal["dummy", "isaac", "robosimstudio"]
+Backend = Literal["dummy", "robosuite", "isaac", "mujoco", "robosimstudio"]
 
 
 class TaskSpec(BaseModel):
