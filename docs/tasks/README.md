@@ -6,7 +6,7 @@ Foundation plan: [`../plans/2026-10-22-cathlab-loop-implementation.md`](../plans
 | Owner | File | Stages / modules |
 |---|---|---|
 | Rakesh (lead) | [rakesh.md](rakesh.md) | Contracts, shared sim core (`dataengine/`), **robosuite track**, 01 Ingest, 03 training, Loop, RoboSimStudio showcase, integration |
-| Sharan | [sharan.md](sharan.md) | Literature review + option catalogue, 02 Dataset Intelligence, 05 Version & Serve |
+| Sharan | [sharan.md](sharan.md) | **Serving + registry + CI + dataset intelligence + failure report + Docker** ([handoff](../handoffs/2026-10-23-sharan-serve-intel-session.md)) |
 | Navneet | [navneet.md](navneet.md) | **Isaac Sim engine** ([handoff](../handoffs/2026-10-23-isaac-engine-session.md)) + awareness / proactive assist, ElevenLabs voice |
 | Mitesh | [mitesh.md](mitesh.md) | Agreed with Rakesh (no longer on Isaac) |
 | Akanksh | [akanksh.md](akanksh.md) | VLA research & selection, 04 Evaluate, VLM judge, benchmarking |

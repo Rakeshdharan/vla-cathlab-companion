@@ -25,7 +25,7 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | Package | Owner |
 |---|---|
 | `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
-| `dataset_intel/`, `serve/`, `docs/research/` | Sharan |
+| `dataset_intel/`, `serve/`, `report/`, `docker/`, `compose.yaml`, `.github/workflows/`, `configs/{serve,intel,workers.docker}.yaml`, `docs/research/` | Sharan |
 | `awareness/` | Navneet |
 | `sim/isaac/`, `engines/isaac/`, `configs/variation/cathlab_fr3_isaac.yaml` | Navneet |
 | `assets/` | Rakesh |

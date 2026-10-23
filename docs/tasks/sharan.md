@@ -1,5 +1,7 @@
 # Sharan — Research, Dataset Intelligence, Version & Serve
 
+> **Current work (2026-10-23, H21): follow [`docs/handoffs/2026-10-23-sharan-serve-intel-session.md`](../handoffs/2026-10-23-sharan-serve-intel-session.md).** In priority order: S1 policy server, S2 policy client, S3 model registry with promote/rollback, S4 CI, S5 dataset intelligence, S6 failure report (stretch), S7 Docker + compose. That file replaces the older scope below, which is kept for history.
+
 > **Update (H6.5):** see the [simulation framework spec](../specs/2026-10-22-sim-framework-design.md).
 > - **Coverage map** = the variation grid: object × layout × object colour × table colour × `source_sim`. Read each episode's `config` from `meta/episodes_extra.jsonl`.
 > - **Gaps** are empty cells or cells where expert/policy success < threshold. Emit them as a list of `EpisodeConfig`-style cell keys for the loop.

@@ -59,6 +59,23 @@ Anything the UI does not offer is one step away from an agent: **Build with agen
 | `frontend/` | PIPELINE, DATA, MODELS, REPORT and ASSIST tabs wired; Agent Brief box on every tab; object import dialog |
 | `docker/`, `compose.yaml` | Containers |
 
+### Ownership (H21)
+
+**Sharan** builds, on his own machine with agent support from Rakesh ([handoff](../handoffs/2026-10-23-sharan-serve-intel-session.md)):
+- the policy server/client and registry (B4, B5);
+- CI;
+- dataset intelligence (the Intel part of B3);
+- the failure report (B6);
+- Docker (B12).
+
+**Rakesh** builds:
+- the engine SDK, objects and stage wiring (B1–B3);
+- the Train/Eval/Rollout stage glue;
+- the MuJoCo and Newton engines (B7, B8);
+- ASSIST (B9), gates and Agent Brief (B10), UI (B11).
+
+**Navneet** builds the Isaac engine.
+
 ## 4. Error handling
 
 - A stage is disabled with a reason when its engine lacks the capability, its worker is offline, or an input artifact is missing.
