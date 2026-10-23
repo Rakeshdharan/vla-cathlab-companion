@@ -101,6 +101,21 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 5. Failure report → `next_run.json` → CREATE NEXT RUN.
 6. ASSIST panel.
 
+## End-to-end check of the loop (H31, RTX 6000 Ada, real checkpoints)
+
+Run on `main` 1efd9d0 with a scratch registry (`var/e2e/registry`), all steps green:
+
+| Step | Command | Result |
+|---|---|---|
+| Register | `serve.registry register` v1 = `smolvla_panda_pick_v1`, v2 = `smolvla_panda_maniskill_v1`, each with robosuite + ManiSkill eval reports | ✅ 2 versions |
+| Promote | `promote cathlab-pick v1`, then `v2` | ✅ v1 production; v2 **refused** (latency p95 7.3 s, measured on the RTX 2000 laptop; it would also fail on 0 % robosuite success) |
+| Serve | `serve.policy_server --registry cathlab-pick@production` | ✅ serves `cathlab-pick@v1`; 401 without token |
+| Rollout | `engines.robosuite.cli rollout --policy url:http://127.0.0.1:8720 --object vial --seed 5001` | ✅ success in 123 steps, 174 ms/chunk, video |
+| Report | `report.failure_report --eval robosuite=… --eval maniskill=… --model cathlab-pick@v1` | ✅ report.md (failing cells, sim2sim gap) + `next_run.json` (2 train-split cells) |
+| Next run | `engines.maniskill.cli generate --split cells:next_run.json --n 4` | ✅ 4/4 kept, only the failing cells, distinct seeds/physics |
+
+Gotchas: on machines with an HTTP proxy, set `NO_PROXY=127.0.0.1,localhost` (otherwise localhost calls get 407 and 4 core tests fail: `tests/serve/test_policy_server.py`, `tests/orchestrator/test_control.py`). The policy server's env needs `fastapi uvicorn` next to lerobot.
+
 ## The loop after training
 
 Every stage below already has a contract (spec Part B P9–P12 and Sharan's [handoff](handoffs/2026-10-23-sharan-serve-intel-session.md)). **What's missing is the code on `main`**:
