@@ -1,8 +1,8 @@
 procedure_id: coronary_angiography
 steps:
-  - {step_id: access_prep, description: "Clinician preps and drapes the access site and prepares local anaesthetic", tools: [vial]}
-  - {step_id: anaesthetic_injection, description: "Clinician injects local anaesthetic at the access site", tools: [syringe]}
-  - {step_id: sheath_insertion, description: "Clinician inserts the introducer sheath into the artery", tools: []}
-  - {step_id: catheter_advance, description: "Clinician advances the guidewire and tracks the catheter to the coronary ostium", tools: []}
-  - {step_id: contrast_injection, description: "Clinician injects contrast from the bottle with a syringe for imaging", tools: [bottle, syringe]}
-  - {step_id: closure, description: "Clinician removes devices and applies pressure to close the access site", tools: []}
+  - {step_id: access_prep, description: "Clinician preps and drapes the access site and prepares local anaesthetic", tools: [vial], cue: "arranges vials and drapes the patient; no syringe in use yet"}
+  - {step_id: anaesthetic_injection, description: "Clinician injects local anaesthetic at the access site", tools: [syringe], cue: "holds a syringe at the patient's wrist"}
+  - {step_id: sheath_insertion, description: "Clinician inserts the introducer sheath into the artery", tools: [], cue: "holds a short clear plastic sheath tube against the patient's wrist, pushing it in"}
+  - {step_id: catheter_advance, description: "Clinician advances the guidewire and tracks the catheter to the coronary ostium", tools: [], cue: "feeds a long thin wire and catheter from the patient's wrist with both hands, a monitor glowing nearby"}
+  - {step_id: contrast_injection, description: "Clinician injects contrast from the bottle with a syringe for imaging", tools: [bottle, syringe], cue: "holds a contrast bottle and a syringe, drawing up or injecting"}
+  - {step_id: closure, description: "Clinician removes devices and applies pressure to close the access site", tools: [], cue: "presses a white gauze pad firmly on the patient's wrist, used items on the tray"}

@@ -12,6 +12,7 @@ class ProcedureStep(BaseModel):
     step_id: str
     description: str
     tools: list[str]
+    cue: str = ""
 
 
 class ProcedureSpec(BaseModel):

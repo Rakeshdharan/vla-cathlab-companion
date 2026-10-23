@@ -47,7 +47,7 @@ def test_declined_tool_is_reoffered_after_step_changes():
     asked = []
     readings = [VLMReading("sheath_insertion", 0.9, "a"), VLMReading("catheter_advance", 0.9, "b")]
     a, _ = make(readings, confirm=lambda q: asked.append(q) or False)
-    list(a.run(stream(2, dt=30.0)))
+    list(a.run(stream(3, dt=30.0)))
     assert len(asked) == 2
 
 
@@ -74,3 +74,28 @@ def test_no_proposal_when_step_unknown():
 def test_no_proposal_when_no_later_step_needs_a_tool():
     a, _ = make([VLMReading("closure", 0.9, "r")], confirm=lambda q: True)
     assert list(a.run(stream(3))) == []
+
+
+def test_question_is_addressed_to_the_doctor_and_names_the_tool():
+    a, spoken = make([VLMReading("access_prep", 0.9, "r")], confirm=lambda q: False)
+    list(a.run(stream(1)))
+    assert spoken == ["Doctor, do you need the syringe?"]
+
+
+def test_question_phrase_is_configurable():
+    a, spoken = make([VLMReading("access_prep", 0.9, "r")], confirm=lambda q: False, phrase="Pass the {tool}?")
+    list(a.run(stream(1)))
+    assert spoken == ["Pass the syringe?"]
+
+
+def test_emitted_instruction_is_a_str_that_also_carries_the_tool():
+    a, _ = make([VLMReading("access_prep", 0.9, "r")], confirm=lambda q: True)
+    (h,) = list(a.run(stream(1)))
+    assert h == "Hand me the syringe" and isinstance(h, str)
+    assert h.tool == "syringe" and h.instruction == "Hand me the syringe"
+
+
+def test_rollout_params_set_both_the_scene_target_and_the_text():
+    a, _ = make([VLMReading("access_prep", 0.9, "r")], confirm=lambda q: True)
+    (h,) = list(a.run(stream(1)))
+    assert h.rollout_params() == {"object": "syringe", "instruction": "Hand me the syringe"}
