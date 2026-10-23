@@ -173,6 +173,7 @@ async function runCurrent() {
   const s = current();
   if (!s || !s.enabled) return;
   const params = Object.fromEntries(new FormData($("#stage-form")).entries());
+  $("#btn-run").disabled = true;
   try {
     const job = await api.post(`/api/runs/${ps.runId}/stages/${s.id}`, { params });
     setStatus(`STARTED ${s.label.toUpperCase()} (${job.id})`);
