@@ -1,4 +1,4 @@
-# Session Handover: Aravind, part 2: FR3 model training on the Newton dataset (cloud GPU)
+# Session Handover: Aravind, part 2: FR3 SmolVLA on the Newton dataset (cloud GPU) + FR3 eval
 
 *From the master session, 2026-10-23 ~17:50 (≈ H26.5). Owner: **Aravind**, in his own repo [`aravinds1610/mujoco_cathlab_vla`](https://github.com/aravinds1610/mujoco_cathlab_vla). Continues [`2026-10-23-aravind-newton-fr3-session.md`](2026-10-23-aravind-newton-fr3-session.md). Paste this file into your agent as the first message, or say "fetch `docs/handoffs/2026-10-23-aravind-part2-fr3-training.md` from Rakeshdharan/vla-cathlab-companion and continue".*
 
@@ -23,15 +23,22 @@ Excellent work. The Newton track is the best-documented engine in the project. W
 **Cleanup the team made in parallel (FYI, nothing for you to change):**
 - **Isaac Sim is removed** from the platform. The FR3 Duo now lives only in your Newton/MuJoCo stack.
 - Panda engines on `main`: robosuite (MuJoCo) and **ManiSkill3 (PhysX 5)**, with `pick_maniskill` (369 episodes paired with robosuite). Genesis is optional.
-- Panda checkpoints on HF (trained on `pick_robosuite@v1`): `Rakeshdharan56/{smolvla,act,xvla}_panda_pick_v1`. The same three are now training on ManiSkill data.
+- Panda checkpoints on HF (trained on `pick_robosuite@v1`): `Rakeshdharan56/{smolvla,act,xvla}_panda_pick_v1`. SmolVLA and X-VLA are now training on ManiSkill data.
 - Team status page: [`docs/STATUS.md`](https://github.com/Rakeshdharan/vla-cathlab-companion/blob/main/docs/STATUS.md). Rakesh updates it from your HF repos.
 
-> **Model set (decided H26.5, same for Panda and FR3): ACT, SmolVLA, X-VLA, with the scripted expert as the baseline.** π0.5 and MolmoAct2 are dropped team-wide. Every table you produce has exactly these four rows.
+> **FR3 model set (decided 17:55): SmolVLA and X-VLA, with the scripted expert as the baseline. ACT is dropped for FR3.** π0.5 and MolmoAct2 are dropped team-wide.
+>
+> | FR3 model | Trained by | Where | Checkpoint | ETA |
+> |---|---|---|---|---|
+> | **SmolVLA** | **you** | cloud GPU | `aravindsuresh16/smolvla_fr3_pick_v1` | **~20:30** |
+> | **X-VLA** | Rakesh | RTX 6000 Ada | `Rakeshdharan56/xvla_fr3_pick_v1` (same dataset: `cathlab_fr3_newton_v1@v1.0.1`) | ~21:30 |
+>
+> **You evaluate both** in Newton + CPU MuJoCo (§4). Every FR3 table has three rows: expert, SmolVLA, X-VLA.
 
 ## 1. Goal of this session (in order)
 
-1. **Train SmolVLA, X-VLA and ACT** on `cathlab_fr3_newton_v1@v1.0.1` on a cloud GPU, and push the checkpoints to HF.
-2. **Evaluate them closed-loop in Newton**, then in CPU MuJoCo as a second physics engine. That is **evaluation only**: your `cpu_sim.py` twin already runs the same scene, so no MuJoCo dataset is needed. The result is the FR3 results table plus the FR3 sim2sim number.
+1. **Train SmolVLA** on `cathlab_fr3_newton_v1@v1.0.1` on a cloud GPU and push it to HF by ~20:30. X-VLA is trained by Rakesh; ACT is dropped.
+2. **Evaluate SmolVLA and Rakesh's X-VLA closed-loop in Newton**, then in CPU MuJoCo as a second physics engine. That is **evaluation only**: your `cpu_sim.py` twin already runs the same scene, so no MuJoCo dataset is needed. The result is the FR3 results table plus the FR3 sim2sim number.
 
 ## 2. Decisions (don't re-open)
 
@@ -43,27 +50,27 @@ Excellent work. The Newton track is the best-documented engine in the project. W
 
 ## 3. What to do: training (cloud GPU)
 
-**Setup:** one Python 3.12 venv with your LeRobot version (0.6.1, the one that wrote the datasets) plus the extras for the models you train, e.g. `pip install "lerobot[smolvla,xvla]==0.6.1"`. Check `torch.cuda.is_available()` and the GPU name first.
+**Setup:** one Python 3.12 venv with your LeRobot version (0.6.1, the one that wrote the datasets) plus the extras for the models you train, e.g. `pip install "lerobot[smolvla,xvla]==0.6.1"` (`xvla` too, because you evaluate Rakesh's X-VLA). Check `torch.cuda.is_available()` and the GPU name first.
 - Log in to HF (`hf auth login`) and W&B (project `cathlab-companion`, run name `<model>-fr3_newton_v1.0.1-aravind`). Keys go in env vars, never in git.
 - If the instance has a Blackwell GPU (RTX 50xx / RTX PRO 6000 / B200), torch must be built for CUDA ≥ 12.8.
 
-**Model plan** (in this order; stop when the budget runs out):
+**Model plan:**
 
 | # | Model | Base | Why | Starting recipe |
 |---|---|---|---|---|
 | M1 | **SmolVLA** | `lerobot/smolvla_base` | Small and fast. Its three camera slots match ours. Your adapter `smolvla_policy.py` already exists. Your v1 run was undertrained (3k steps, 0/60); this fixes that | `--rename_map` external→`camera1`, left_wrist→`camera2`, right_wrist→`camera3` (as in your README). **≥ 1 full pass:** 384 episodes ≈ 160k frames → batch 64 × ≥ 2,500 steps; aim for **15–20k steps**. 16-D state/action pad into its 32 slots |
-| M2 | **X-VLA** (0.9B) | `lerobot/xvla-base` | Frontier model, the same one the Panda line uses. Its base checkpoint has three image slots (`observation.images.image`, `image2`, `image3`). With `action_mode=auto` it reads our 16-D action and pads it to its 20-D head (16 ≤ 20) | `--rename_map` external→`image`, left_wrist→`image2`, right_wrist→`image3`; `--policy.dtype=bfloat16 --policy.action_mode=auto --policy.max_action_dim=20 --policy.freeze_vision_encoder=false --policy.freeze_language_encoder=false --policy.train_policy_transformer=true --policy.train_soft_prompts=true`; batch 32, ≤ 20k steps. The Panda run needed 7,500 steps × 32. **Smoke first:** if a camera slot mismatches (`image3` vs an `empty_camera_0`), adjust `--policy.empty_cameras` and log it. Assert the postprocessed action is `(*, 16)` |
-| M3 | **ACT** | from scratch | Non-language lower bound. With 3 objects present it can't know the target from the instruction, so expect wrong-object failures. That's the point | `--policy.type=act --policy.chunk_size=50 --policy.n_action_steps=50`, batch 64, 50k steps |
+| M2 | **X-VLA** (0.9B) | `lerobot/xvla-base` | **Trained by Rakesh on the RTX 6000 Ada**, not by you. Same dataset and tag. Checkpoint `Rakeshdharan56/xvla_fr3_pick_v1` (cameras external→`image`, left_wrist→`image2`, right_wrist→`image3`; `action_mode=auto`, 16-D) | Nothing to train. Evaluate it in §4 when Rakesh says it's on HF (~21:30) |
 
 - **Flags differ between LeRobot versions.** The Panda recipes in our [training handoff](2026-10-23-training-gpu-session.md) were verified on LeRobot 0.5.2 (`b06ad40`). On 0.6.1, confirm every flag with `lerobot-train --help` and log the deviation.
 - **Always smoke first:** 200 steps, `--policy.push_to_hub=false`, separate `--output_dir`. Check that a checkpoint is saved and the postprocessed action is `(*, 16)`.
-- Push each finished model to `aravindsuresh16/<model>_fr3_pick_v1` (B2).
+- Push SmolVLA to `aravindsuresh16/smolvla_fr3_pick_v1` (B2).
 - ✅ Per model: the HF repo loads; W&B shows loss falling. Record steps × batch, VRAM peak, wall time and final loss.
 
 ## 4. What to do: evaluation (the FR3 results)
 
 **T1: Closed-loop eval in Newton and CPU MuJoCo**
 - Wrap each checkpoint as a `PolicyAdapter`. Generalise `smolvla_policy.py` into one LeRobot adapter that resolves the policy class from the checkpoint config: `PreTrainedConfig.from_pretrained` → `lerobot.policies.factory.get_policy_class(cfg.type)` → `make_pre_post_processors(...)` → `predict_action_chunk` → postprocess.
+- Feed the **dataset key names** (`observation.images.external_camera`, …), as `smolvla_policy.py` already does. Each checkpoint's saved preprocessor contains the camera rename used in training (SmolVLA → `camera1–3`, X-VLA → `image`/`image2`/`image3`), so one adapter serves both models.
 - Execute the first `n_exec` actions (start with 25), then re-plan.
 - Run B3's protocol (5 tiers × 3 objects × seeds 5000–5003 = 60 episodes) **in both engines**, with the same seeds and the same layouts.
 - ✅ `reports/eval_<model>_<engine>.json` per model and engine: success by tier × object with Wilson CIs, failed-stage histogram, latency. The expert row is the reference (100 % from your report).
@@ -78,7 +85,6 @@ Write these into `docs/NEWTON_REPORT.md` §9 (new):
 | SmolVLA (Newton) | … | | | | | |
 | SmolVLA (MuJoCo) | … | | | | | |
 | X-VLA (Newton) / (MuJoCo) | … | | | | | |
-| ACT (Newton) / (MuJoCo) | … | | | | | |
 
 Plus **the FR3 sim2sim gap:** the same checkpoint's success in Newton vs MuJoCo, per tier, and the rank agreement of the models across the two engines.
 
@@ -86,10 +92,12 @@ Plus **the FR3 sim2sim gap:** the same checkpoint's success in Newton vs MuJoCo,
 
 | By | What |
 |---|---|
-| 18:30 | M1 SmolVLA training on the cloud GPU (smoke done) |
-| 20:30 | SmolVLA on HF; T1 eval for SmolVLA in both engines; message Rakesh with the numbers |
-| 22:00 | M2 (X-VLA) and M3 (ACT) on HF and evaluated if the budget allows; T2 tables in `NEWTON_REPORT.md` |
-| 22:30 | Final message to Rakesh: model links, the tables, cloud GPU type and cost |
+| now | SmolVLA training on the cloud GPU (smoke done) |
+| 20:30 | `smolvla_fr3_pick_v1` on HF; message Rakesh |
+| 21:00 | §4 T1 eval of SmolVLA + expert in Newton and MuJoCo; message Rakesh with the numbers |
+| ~21:30 | Rakesh's `xvla_fr3_pick_v1` lands on HF → evaluate it the same way |
+| 22:15 | T2 FR3 tables (expert, SmolVLA, X-VLA) in `NEWTON_REPORT.md` |
+| 22:30 | Final message to Rakesh: model link, the tables, cloud GPU type and cost. **Shut the cloud instance down** |
 
 ## 6. Report back
 
