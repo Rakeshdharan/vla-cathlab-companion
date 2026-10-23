@@ -449,6 +449,81 @@
       "max_ms": 0.07797498255968094
     }
   },
+  "robosuite/smolvla_panda_maniskill_v1": {
+    "model": "smolvla_panda_maniskill_v1",
+    "engine": "robosuite",
+    "trained_on": "maniskill",
+    "overall": {
+      "success_rate": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.06017393047793289,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 60,
+      "grasp": 0,
+      "lift": 0,
+      "transport": 0,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 916.7349470008048,
+      "p95_ms": 7337.841874264666,
+      "max_ms": 7400.8364927016355
+    }
+  },
   "robosuite/smolvla_panda_pick_v1": {
     "model": "smolvla_panda_pick_v1",
     "engine": "robosuite",
