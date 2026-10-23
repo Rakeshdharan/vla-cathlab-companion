@@ -57,6 +57,7 @@ Heavy dependencies (Isaac Sim, LeRobot, GraspGen, cuRobo, ElevenLabs) are option
 ## Git and commits
 
 - Branch: `feat/<owner>-<topic>`; small PRs to `main`; rebase before merge.
+- **`main` is the source of truth and moves often (Rakesh drives it).** Always branch from the tip: `git fetch && git switch -c feat/<owner>-<topic> origin/main`. Before opening or updating a PR, `git fetch && git rebase origin/main` and re-run `uv run pytest -q`. Never merge `main` into a feature branch. Don't add dependencies that already exist on `main` (check `pyproject.toml`); new ones go in an optional group, in their own small PR.
 - Commit messages: Conventional Commits (`feat(eval): …`, `fix(serve): …`, `docs: …`).
 - **Commits are authored by the human teammate only.** Do NOT add `Co-authored-by:` trailers for AI agents/assistants (Copilot, Claude, Codex, Cursor, etc.) and do not sign commits as an agent. The `.githooks/commit-msg` hook strips such trailers; enable it once per clone with `git config core.hooksPath .githooks`.
 - Never force-push `main`, and never commit `.env`, datasets, or checkpoints.
