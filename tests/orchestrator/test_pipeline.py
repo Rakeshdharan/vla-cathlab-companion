@@ -1,9 +1,11 @@
+import threading
 import time
 from pathlib import Path
 import httpx
 import pytest
 from fastapi.testclient import TestClient
 from orchestrator.control import create_control_app
+from orchestrator.pipeline import PipelineError
 from orchestrator.stages import STAGE_BY_ID, stage_argv
 from orchestrator.worker import create_worker_app
 
@@ -26,7 +28,7 @@ def router(clients: dict):
     return http
 
 
-def control(tmp_path, worker_online=True):
+def control(tmp_path, worker_online=True, engines_dir=None):
     (tmp_path / "catalog.yaml").write_text(CATALOG)
     (tmp_path / "workers.yaml").write_text('workers:\n  - {name: fake, url: "http://fake-worker"}\n')
     clients = {}
@@ -34,7 +36,7 @@ def control(tmp_path, worker_online=True):
         clients["http://fake-worker"] = TestClient(create_worker_app("fake", ["convert"], tmp_path / "worker"))
     app = create_control_app(ROOT, var_dir=tmp_path / "var", catalog_path=tmp_path / "catalog.yaml",
                              workers_path=tmp_path / "workers.yaml", frontend_dir=tmp_path / "none",
-                             engines_dir=ROOT / "tests/engines", worker_http=router(clients))
+                             engines_dir=engines_dir or ROOT / "tests/engines", worker_http=router(clients))
     return TestClient(app)
 
 
@@ -106,3 +108,81 @@ def test_cancel_running_stage(tmp_path):
     job = c.post(f"/api/runs/{run['id']}/stages/preview", json={"params": {}}).json()
     assert c.post(f"/api/jobs/{job['id']}/cancel").status_code == 200
     assert wait_done(c, job["id"])[0] in ("cancelled", "done")
+
+
+def test_convert_stage_gated_by_engine_convert_capability(tmp_path):
+    """convert must report the engine's own 'convert' capability, not 'generate'."""
+    engines_dir = tmp_path / "engines"
+    src = ROOT / "tests/engines/fake"
+    dst = engines_dir / "fake"
+    dst.mkdir(parents=True)
+    manifest = (src / "engine.yaml").read_text().replace("convert: ready", "convert: planned")
+    assert "convert: planned" in manifest
+    (dst / "engine.yaml").write_text(manifest)
+    (dst / "__init__.py").write_text("")
+
+    c = control(tmp_path, engines_dir=engines_dir)
+    run = c.post("/api/runs", json={"selection": {"simulator": "fake", "expert": "analytic", "objects": ["vial"]}}).json()
+    st = stages(c, run["id"])
+    assert st["convert"]["reason"] == "fake: 'convert' is planned"
+    assert not st["convert"]["enabled"]
+
+
+def test_start_does_not_double_dispatch_concurrent_calls(tmp_path):
+    c = control(tmp_path)
+    run = c.post("/api/runs", json={"selection": {"simulator": "fake", "expert": "analytic", "objects": ["vial"]}}).json()
+    pipeline = c.app.state.pipeline
+    run_obj = c.app.state.store.get_run(run["id"])
+
+    created = []
+    real_create_job = pipeline.store.create_job
+
+    def slow_create_job(*a, **kw):
+        # Stall right where the race window is: after the caller's "latest active?"
+        # check has already passed, but before the job row exists.
+        time.sleep(0.3)
+        job = real_create_job(*a, **kw)
+        created.append(job)
+        return job
+
+    pipeline.store.create_job = slow_create_job
+
+    results = []
+
+    def call():
+        try:
+            results.append(("ok", pipeline.start(run_obj, "preview", {})))
+        except PipelineError as e:
+            results.append(("error", str(e)))
+
+    t1 = threading.Thread(target=call)
+    t1.start()
+    time.sleep(0.05)  # thread 2 reaches its "latest active?" check while 1 is still inside create_job
+    t2 = threading.Thread(target=call)
+    t2.start()
+    t1.join(5)
+    t2.join(5)
+
+    assert len(created) == 1, f"expected exactly one stage job created, got {len(created)}"
+    kinds = sorted(r[0] for r in results)
+    assert kinds == ["error", "ok"]
+    err = next(r[1] for r in results if r[0] == "error")
+    assert "already running" in err
+
+
+def test_malformed_worker_reply_marks_job_failed(tmp_path):
+    c = control(tmp_path)
+    run = c.post("/api/runs", json={"selection": {"simulator": "fake", "expert": "analytic", "objects": ["vial"]}}).json()
+    pipeline = c.app.state.pipeline
+    real_http = pipeline._http
+
+    def bad_http(method, url, timeout=None, **kw):
+        if method == "POST" and url.rstrip("/").endswith("/jobs"):
+            return httpx.Response(200, json={}, request=httpx.Request(method, url))
+        return real_http(method, url, timeout=timeout, **kw)
+
+    pipeline._http = bad_http
+    r = c.post(f"/api/runs/{run['id']}/stages/preview", json={"params": {}})
+    assert r.status_code == 502
+    job_id = [j for j in c.get("/api/jobs").json() if j["name"] == "preview"][0]["id"]
+    assert c.get(f"/api/jobs/{job_id}").json()["state"] == "failed"

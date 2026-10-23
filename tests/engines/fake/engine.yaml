@@ -10,5 +10,6 @@ capabilities:
   preview: ready
   expert: {analytic: ready}
   generate: ready
+  convert: ready
   eval: planned
 entry: tests.engines.fake_engine_cli

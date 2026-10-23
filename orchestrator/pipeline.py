@@ -1,5 +1,6 @@
 """Run pipeline: which stages of a run can start, dispatch to workers, follow jobs, list their outputs."""
 import os
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
@@ -31,6 +32,7 @@ class Pipeline:
                  engines_fn: Callable[[], dict], http: Callable[..., httpx.Response] = worker_request):
         self.store, self.var_dir, self.repo_root = store, Path(var_dir), Path(repo_root)
         self._workers_fn, self._engines_fn, self._http = workers_fn, engines_fn, http
+        self._start_lock = threading.Lock()
 
     # workers ---------------------------------------------------------------------------------
     def health(self, entry) -> dict:
@@ -101,15 +103,16 @@ class Pipeline:
         reason, worker = self._check(run, stage, engines, self.workers())
         if reason:
             raise PipelineError(reason)
-        latest = self.latest(run.id, stage_id)
-        if latest is not None and latest.state in ACTIVE:
-            raise PipelineError(f"'{stage_id}' is already running ({latest.id})")
         try:
             flags = stage_argv(stage, params)
         except ValueError as e:
             raise PipelineError(str(e), 400) from e
         manifest = engines[run.selection["simulator"]]
-        job = self.store.create_job("stage", stage.id, params, run_id=run.id, worker=worker["name"])
+        with self._start_lock:
+            latest = self.latest(run.id, stage_id)
+            if latest is not None and latest.state in ACTIVE:
+                raise PipelineError(f"'{stage_id}' is already running ({latest.id})")
+            job = self.store.create_job("stage", stage.id, params, run_id=run.id, worker=worker["name"])
         rd = self.run_dir(run.id)
         out = rd / stage.id / job.id
         argv = [worker.get("executable") or "python", "-m", manifest.entry, stage.cli,
@@ -120,12 +123,14 @@ class Pipeline:
             r = self._http("POST", worker["url"].rstrip("/") + "/jobs",
                            json={"argv": argv, "name": f"{run.id}:{stage.id}", "cwd": str(self.repo_root)})
             r.raise_for_status()
+            worker_job_id = r.json()["id"]
         except Exception as e:  # noqa: BLE001
             self.store.update_job(job.id, state="failed",
                                   result={"error": f"dispatch failed: {e}"[:300], "argv": argv, "out": str(out)})
             raise PipelineError(f"could not start on worker '{worker['name']}': {e}", 502) from e
         return self.store.update_job(job.id, state="running", result={
-            "worker_job": r.json()["id"], "worker_url": worker["url"], "argv": argv, "out": str(out)})
+            "worker_job": worker_job_id, "worker_url": worker["url"], "argv": argv, "out": str(out)})
+
 
     # jobs ------------------------------------------------------------------------------------
     def _worker_url(self, job: Job, suffix: str = "") -> str:

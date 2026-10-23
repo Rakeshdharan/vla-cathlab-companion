@@ -37,7 +37,7 @@ STAGES: tuple = (
     StageDef("generate", "Generate data", "generate", "generate",
              params=(StageParam("n", "int", 30, "configs (all objects, balanced)"),
                      StageParam("start", "int", 0, "first config of the window"), StageParam("split", "str", "train"))),
-    StageDef("convert", "Convert to LeRobot", "convert", "generate", worker_capability="convert",
+    StageDef("convert", "Convert to LeRobot", "convert", "convert", worker_capability="convert",
              needs=("generate",), inputs={"dataset": "generate"}),
     StageDef("eval", "Evaluate", "eval", "eval",
              params=(StageParam("policy", "str", "expert", "expert | random | url:<policy server>"),
