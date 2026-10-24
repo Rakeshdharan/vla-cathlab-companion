@@ -130,6 +130,8 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 
 ## Next (owner)
 
+**Pitches today:** 09:00 tech pitch (10 min, at our table) and 12:00 jury pitch (4 min, slides). Plan, timeline and freeze (08:35): [`PITCH.md`](PITCH.md).
+
 **Production rollout videos (H37.5):** `cathlab-pick@v2` (SmolVLA) × robosuite / ManiSkill / Genesis × vial / syringe / bottle, seed 5001, on the Hub at [`Rakeshdharan56/cathlab_demo_media`](https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media) and listed in `configs/demo_videos.yaml` (ASSIST → RECORDED ROLLOUTS): **1/9 success = robosuite vial** (123 steps), robosuite syringe/bottle fail at grasp, all ManiSkill/Genesis fail at reach or grasp, as the 38 % / 0 % / 0 % evals predict. Targeted generate of the v2 `next_run.json` cells: 16/16 kept in each engine (`var/loop_v2/` on the RTX 6000 Ada).
 
 **Demo finish moves to the RTX 2000 Ada:** [`handoffs/2026-10-24-rtx2000-demo-finish-session.md`](handoffs/2026-10-24-rtx2000-demo-finish-session.md) (review R1–R7, demo script, `make demo-bootstrap`). The RTX 6000 Ada keeps the GPU jobs (rollout videos, targeted generate, `xvla_panda_pick_v2` evals).
@@ -138,8 +140,8 @@ Done since H31: policy adapter + server, registry/promote/rollback, failure repo
 
 1. ✅ **Real registry (H37):** `cathlab-pick@v1..v7` in `var/registry` (RTX 6000 Ada); production = **v2** (`smolvla_panda_pick_v1`, 38 % robosuite). v6 (X-VLA-Genesis) and v7 (`xvla_panda_pick_v2`, 13 / 13 / 17 %) refused by the rule. Targeted generate of v2's `next_run.json`: 16/16 per engine (`var/loop_v2/`).
 2. ✅ **`xvla_panda_pick_v2`** evaluated in all three engines (decisions H38), registered as v7, not promoted.
-3. ⏳ **Loop retrain (H39):** `xvla_panda_pick_v3` on `pick_panda_v3` = `pick_panda_v2` + the 48 targeted episodes (3 engines × 16, the two failing bottle cells of `cathlab-pick@v2`), X-VLA recipe 7,500 × 32, RTX 6000 Ada, ETA ~08:00 → auto eval in robosuite/ManiSkill/Genesis → register `cathlab-pick@v8` → promote attempt.
-4. ⏳ **Ablation for the 18 % transfer (H39):** `pick_genesis_noaxes` (same 384 configs, Genesis camera/light axes off, CPU backend like v1; note: current generators also apply the P6 success-hold rule) → `xvla_panda_genesis_noaxes_v1` (same recipe) after v3 (~10:00) → auto eval in the three engines.
+3. ⏳ **Loop retrain (H39):** `xvla_panda_pick_v3` on `pick_panda_v3` = `pick_panda_v2` + the 48 targeted episodes (3 engines × 16, the two failing bottle cells of `cathlab-pick@v2`), X-VLA recipe 7,500 × 32, RTX 6000 Ada, ETA ~08:00 → auto eval in robosuite/ManiSkill/Genesis **in parallel** (~08:20) → register `cathlab-pick@v8` → promote attempt.
+4. ❌ **Ablation for the 18 % transfer: dropped (H40, pitch at 09:00).** `pick_genesis_noaxes` raw data generated (384/384, axes off, CPU backend) and kept on the RTX 6000 Ada; not converted or trained.
 5. **FR3, Aravind:** eval `smolvla_cathlab_fr3_newton_v1` and `xvla_fr3_pick_v1` + the expert in Newton + MuJoCo → FR3 table + sim2sim gap.
 6. **Demo finish, RTX 2000 Ada:** [`handoffs/2026-10-24-rtx2000-demo-finish-session.md`](handoffs/2026-10-24-rtx2000-demo-finish-session.md).
 7. **Optional:** awareness VLM step tracking in ASSIST + voice, Newton `v1.1` (+768 episodes). ✅ done H39: `dataset_intel/`, `ingest/`, `pick_panda_v2` on the Hub.
