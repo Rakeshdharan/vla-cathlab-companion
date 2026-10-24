@@ -244,6 +244,8 @@ class Pipeline:
         return Path(job.result["out"]).resolve()
 
     def files(self, job: Job) -> list[dict]:
+        if "out" not in job.result:
+            return []
         base = self._out(job)
         if not base.exists():
             return []

@@ -188,3 +188,14 @@ def test_malformed_worker_reply_marks_job_failed(tmp_path):
     assert r.status_code == 502
     job_id = [j for j in c.get("/api/jobs").json() if j["name"] == "preview"][0]["id"]
     assert c.get(f"/api/jobs/{job_id}").json()["state"] == "failed"
+
+
+def test_files_empty_when_job_has_no_outputs(tmp_path):
+    c = control(tmp_path)
+    run = c.post("/api/runs", json={"selection": {"simulator": "fake", "expert": "analytic", "objects": ["vial"]}}).json()
+    store = c.app.state.store
+    job = store.create_job("stage", "register", {}, run_id=run["id"], worker="control")
+    store.update_job(job.id, state="done", result={})
+    files_response = c.get(f"/api/jobs/{job.id}/files")
+    assert files_response.status_code == 200
+    assert files_response.json() == []

@@ -5,7 +5,7 @@ import { openBrief } from "./brief.js";
 
 const ps = { runId: null, stages: [], current: null, jobId: null, offset: 0, timer: null, runs: [], engine: null };
 const GATES = { preview: "scene", check_expert: "expert", generate: "data_method", convert: "convert",
-  eval: "eval", rollout: "rollout", train: "train", register: "report", promote: "report" };
+  eval: "eval", rollout: "rollout", train: "train", register: "rollout", promote: "rollout" };
 const ACTIVE = ["queued", "running"];
 
 export function stageGate(stageId) { return GATES[stageId] || null; }
