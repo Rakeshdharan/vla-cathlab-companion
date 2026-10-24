@@ -27,14 +27,14 @@ a brief; `AGENTS.md`, templates and this guide all point back to them.
 
 | Gate | Title | Status | Owner | Extension point | Conformance |
 |---|---|---|---|---|---|
-| [`engine`](../harness/gates/engine.yaml) | Simulation engine plugin | partial | Rakesh (SDK, robosuite), Mitesh (ManiSkill3), Akanksh (Genesis) | `engines/<id>/` (`engine.yaml` + `cli.py` + a `SimBackend` + an `ExpertSim` adapter) | `python -m pytest -q tests/engines/test_conformance.py -k <id>` (in the engine's env) |
+| [`engine`](../harness/gates/engine.yaml) | Simulation engine plugin | ready | Rakesh (SDK, robosuite), Mitesh (ManiSkill3), Akanksh (Genesis) | `engines/<id>/` (`engine.yaml` + `cli.py` + a `SimBackend` + an `ExpertSim` adapter) | `python -m pytest -q tests/engines/test_conformance.py -k <id>` (in the engine's env) |
 | [`scene`](../harness/gates/scene.yaml) | Scene and variation axes | ready | Rakesh | A new versioned spec `configs/variation/cathlab_v<N>.yaml` + `dataengine/variation.py` axes + `sim/<engine>/randomize.py` | `uv run pytest -q tests/dataengine && MUJOCO_GL=egl conda run -n robosuite python scripts/robosuite_expert_check.py --n 20` |
 | [`objects`](../harness/gates/objects.yaml) | Objects on the table | partial | Rakesh | A new `VariationSpec` version, or mesh/Objaverse packages under `assets/objects/<name>/` + `assets/importers/` | `MUJOCO_GL=egl conda run -n robosuite python -m engines.robosuite.cli check-expert --out var/check --n 20 --objects <name>` (rate >= 0.8) |
 | [`expert`](../harness/gates/expert.yaml) | Expert controller | ready | Rakesh | `dataengine/expert.py` + an optional grasp provider in `dataengine/experts/<id>.py` | `MUJOCO_GL=egl conda run -n robosuite python -m engines.robosuite.cli check-expert --out var/check --n 20` (every rate >= 0.8) |
 | [`data_method`](../harness/gates/data_method.yaml) | Synthetic data method | partial | Rakesh (scripted), team (MimicGen, Cosmos, teleop) | `dataengine/registry.py` (`@register_method`) + `dataengine/<method>.py`, or an engine's `generate` stage | `uv run pytest -q tests/dataengine` |
 | [`convert`](../harness/gates/convert.yaml) | LeRobot conversion | ready | Rakesh | `scripts/npz_to_lerobot.py` (panda_libero), or an engine's `convert` stage | `uv run pytest -q tests/dataengine/test_npz_sink.py tests/dataengine/test_lerobot_sink.py` |
 | [`intel`](../harness/gates/intel.yaml) | Dataset intelligence | planned | Sharan | `dataset_intel/` (validators, coverage, readiness score) | `uv run pytest -q tests/dataset_intel` |
-| [`train`](../harness/gates/train.yaml) | Policy training | partial | Rakesh | `train/recipes/<model>.yaml` + a `PolicyAdapter` | `uv run pytest -q tests/test_contracts.py` |
+| [`train`](../harness/gates/train.yaml) | Policy training | ready | Rakesh | `train/recipes/<model>.yaml` + a `PolicyAdapter` | `uv run pytest -q tests/test_contracts.py` |
 | [`eval`](../harness/gates/eval.yaml) | Evaluation | partial | Rakesh (engine eval stages), Akanksh (metrics, VLM judge) | `eval/` (metrics, judge, failure analysis), or an engine's `eval` stage | `uv run pytest -q tests/test_metrics.py tests/test_runner.py tests/test_failures.py tests/engines` |
 | [`rollout`](../harness/gates/rollout.yaml) | Serving, registry and rollout | ready | Rakesh | `serve/` (registry: versions, promotion, rollback; policy server + `PolicyClient`), or an engine's `rollout` stage | `uv run pytest -q tests/serve tests/orchestrator/test_loop.py tests/engines` |
 | [`assist`](../harness/gates/assist.yaml) | Awareness assistant (ASSIST) | partial | Navneet (awareness), Rakesh (panel) | `awareness/` (procedure model, VLM step tracking, `Assistant`) -> `--instruction` on a rollout | `uv run pytest -q tests/test_awareness_assistant.py tests/test_awareness_engine.py tests/test_awareness_procedure.py` |
@@ -42,8 +42,8 @@ a brief; `AGENTS.md`, templates and this guide all point back to them.
 
 ## 3. Add an engine, step by step
 
-Mirror an existing plugin: `engines/robosuite/` (MuJoCo 3.3) or `engines/maniskill/` (ManiSkill3 / PhysX 5) — both
-`panda_libero` I/O, both pass `tests/engines/test_conformance.py`.
+Mirror an existing plugin: `engines/robosuite/` (MuJoCo 3.3), `engines/maniskill/` (ManiSkill3 / PhysX 5) or `engines/genesis/` (Genesis 1.4.5, own solver, CPU or GPU) — all
+`panda_libero` I/O, all pass `tests/engines/test_conformance.py`.
 
 1. Copy `engines/robosuite/` (or `engines/maniskill/`) to `engines/<id>/`.
 2. Edit `engines/<id>/engine.yaml` (honest capabilities: `ready | in_progress | planned` per stage; nothing is

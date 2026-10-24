@@ -1,6 +1,6 @@
 id: engine
 title: Simulation engine plugin
-status: partial
+status: ready
 owner: "Rakesh (SDK, robosuite), Mitesh (ManiSkill3), Akanksh (Genesis)"
 extension_point: "engines/<id>/ with engine.yaml + cli.py (+ a SimBackend and an ExpertSim adapter). One folder per simulator."
 contract:
