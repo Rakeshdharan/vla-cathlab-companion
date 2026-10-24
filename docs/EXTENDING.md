@@ -89,6 +89,10 @@ Once a checkpoint has an `EvalReport`, the loop from PIPELINE eval back to a new
 PIPELINE eval → MODELS register → PROMOTE → REPORT → CREATE NEXT RUN → PIPELINE generate (cells:) → convert → train → eval
 ```
 
+PIPELINE also has these steps as stages: **train** (`python -m train.recipe <model> --run` on a worker advertising
+`train`, recipes in `train/recipes/`), **register** (the run's latest eval report + the checkpoint → next
+`cathlab-pick@vN`) and **promote** (the same rule as below), the last two executed by the control plane itself.
+
 - `python -m serve.registry register --card <ModelCard.yaml> --eval robosuite=<eval_report.json> [--eval maniskill=...]`
   adds a version (`cathlab-pick@vN`) under `var/registry/`; `promote <name> <version>` applies the rule in
   `configs/serve.yaml` (CI low on the primary engine (robosuite) > production success rate, ≥ `min_episodes`,

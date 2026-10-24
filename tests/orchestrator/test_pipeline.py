@@ -28,12 +28,14 @@ def router(clients: dict):
     return http
 
 
-def control(tmp_path, worker_online=True, engines_dir=None):
+def control(tmp_path, worker_online=True, engines_dir=None, worker_capabilities=("convert",)):
+    tmp_path.mkdir(parents=True, exist_ok=True)
     (tmp_path / "catalog.yaml").write_text(CATALOG)
     (tmp_path / "workers.yaml").write_text('workers:\n  - {name: fake, url: "http://fake-worker"}\n')
     clients = {}
     if worker_online:
-        clients["http://fake-worker"] = TestClient(create_worker_app("fake", ["convert"], tmp_path / "worker"))
+        clients["http://fake-worker"] = TestClient(create_worker_app("fake", list(worker_capabilities),
+                                                                     tmp_path / "worker"))
     app = create_control_app(ROOT, var_dir=tmp_path / "var", catalog_path=tmp_path / "catalog.yaml",
                              workers_path=tmp_path / "workers.yaml", frontend_dir=tmp_path / "none",
                              engines_dir=engines_dir or ROOT / "tests/engines", worker_http=router(clients))

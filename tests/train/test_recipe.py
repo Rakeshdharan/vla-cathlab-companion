@@ -58,3 +58,11 @@ def test_local_dataset_root_matches_the_cross_sim_v2_run():
                          dataset_root="data/pick_panda_v2"))
     assert f["dataset.root"] == "data/pick_panda_v2" and "dataset.revision" not in f
     assert f["job_name"] == "xvla-pick_panda_v2-rakesh" and f["output_dir"] == "outputs/train/xvla_panda_pick_v2"
+
+
+def test_cli_accepts_the_pipeline_train_stage_argv(capsys):
+    from train.recipe import main
+    assert main(["--out", "var/runs/r1/train/j1", "--model", "xvla", "--dataset", "x/pick_genesis@v1",
+                 "--repo-id", "x/xvla_v9", "--steps", "10", "--io", "panda_libero"]) == 0
+    f = flags(shlex.split(capsys.readouterr().out))
+    assert f["output_dir"] == "var/runs/r1/train/j1" and f["steps"] == "10" and f["policy.path"] == "lerobot/xvla-base"

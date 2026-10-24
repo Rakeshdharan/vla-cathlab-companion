@@ -65,18 +65,22 @@ def build_argv(model: str, dataset: str, repo_id: str, io: str = "panda_libero",
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("model", help="recipe name: " + ", ".join(sorted(p.stem for p in RECIPES.glob("*.yaml"))))
+    ap.add_argument("model", nargs="?", help="recipe: " + ", ".join(sorted(p.stem for p in RECIPES.glob("*.yaml"))))
+    ap.add_argument("--model", dest="model_opt", help="same as the positional (used by the PIPELINE train stage)")
     ap.add_argument("--dataset", required=True, help="<hf-repo>@<revision> (revision optional with --dataset-root)")
     ap.add_argument("--dataset-root", help="local LeRobot dataset folder, e.g. data/pick_panda_v2")
     ap.add_argument("--repo-id", required=True, help="checkpoint repo, e.g. Rakeshdharan56/xvla_panda_genesis_v1")
     ap.add_argument("--io", default="panda_libero")
     ap.add_argument("--steps", type=int)
     ap.add_argument("--owner", default="rakesh")
-    ap.add_argument("--output-dir")
+    ap.add_argument("--output-dir", "--out", dest="output_dir")
     ap.add_argument("--wandb-mode", default="offline")
     ap.add_argument("--run", action="store_true", help="run it instead of printing it")
     args, extra = ap.parse_known_args(argv)
-    cmd = build_argv(args.model, args.dataset, args.repo_id, args.io, args.steps, args.owner, args.output_dir,
+    model = args.model_opt or args.model
+    if not model:
+        ap.error("give the recipe as the positional argument or --model")
+    cmd = build_argv(model, args.dataset, args.repo_id, args.io, args.steps, args.owner, args.output_dir,
                      args.wandb_mode, dataset_root=args.dataset_root, extra=extra)
     if not args.run:
         print(shlex.join(cmd))
