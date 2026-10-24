@@ -13,4 +13,8 @@ MUJOCO_GL=egl python -m engines.robosuite.cli rollout --policy lerobot:Rakeshdha
 python -m engines.maniskill.cli eval --policy lerobot:Rakeshdharan56/smolvla_panda_pick_v1 --out var/eval/maniskill/smolvla_panda_pick_v1
 ```
 
-Training recipes: [docs/handoffs/2026-10-23-maniskill-training-session.md](../docs/handoffs/2026-10-23-maniskill-training-session.md) §5.
+Training recipes are code: `train/recipes/{act,smolvla,xvla}.yaml` (policy args, camera rename per I/O profile,
+steps/batch/save) and `python -m train.recipe <model> --dataset <repo>@<rev> --repo-id <ckpt repo> [--io fr3_duo_16d]
+[--steps N] [--dataset-root data/<local>] [--run]`, which prints (or runs) the exact `lerobot-train` command in the
+lerobot env. `tests/train/test_recipe.py` checks it reproduces the `xvla_panda_genesis_v1` and `xvla_panda_pick_v2`
+commands. History of each run: [docs/handoffs/2026-10-23-maniskill-training-session.md](../docs/handoffs/2026-10-23-maniskill-training-session.md) §5.

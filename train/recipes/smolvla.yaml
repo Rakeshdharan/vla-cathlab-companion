@@ -1,0 +1,6 @@
+# SmolVLA fine-tuned from smolvla_libero (smolvla_panda_pick_v1, smolvla_panda_maniskill_v1).
+model: smolvla
+policy: {path: lerobot/smolvla_libero, use_amp: true}
+rename:
+  panda_libero: {observation.images.agentview: observation.images.camera1, observation.images.eye_in_hand: observation.images.camera2}
+train: {batch_size: 32, steps: 8500, save_freq: 2500, log_freq: 100, num_workers: 24}
