@@ -15,6 +15,7 @@ from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
 from orchestrator.datasets import load_datasets, local_manifests
 from orchestrator.loop import create_loop_router
+from orchestrator.loop_stages import make_local_actions
 from orchestrator.assist import create_assist_router
 from serve.registry import Registry
 from orchestrator.pipeline import Pipeline, PipelineError, worker_request
@@ -66,6 +67,7 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     pipeline = Pipeline(store, var_dir, repo_root, workers_fn=lambda: load_workers(workers_path).workers,
                         engines_fn=lambda: load_engines(engines_dir), http=worker_http or worker_request,
                         resolve_policy=registry.policy_for)
+    pipeline.local_actions = make_local_actions(pipeline, registry, repo_root)
     app.state.pipeline = pipeline
 
     def run_or_404(run_id: str):

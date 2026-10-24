@@ -18,7 +18,7 @@ make demo-ui                   # try the UI with a throwaway repo and a fake age
 ```
 
 - **PROJECT:** pick simulator, embodiment, objects, expert, variation and model from the catalog. Anything not ready offers **Build with agent**.
-- **PIPELINE:** pick a run, run stages (preview → check expert → generate → convert → eval → rollout) on the workers, follow logs and outputs.
+- **PIPELINE:** pick a run, run stages (preview → check expert → generate → convert → train → eval → rollout → register → promote) on the workers or the control plane, follow logs and outputs.
 - **MODELS:** register evaluated checkpoints as versions (`cathlab-pick@vN`), promote by the CI rule, roll back.
 - **REPORT:** failure report (failing cells, sim2sim gap, recommendations) → CREATE NEXT RUN (targeted generate).
 - **ASSIST:** the procedure step proposes the object; YES hands it over with the production model.

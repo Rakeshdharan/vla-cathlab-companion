@@ -5,7 +5,7 @@ import { openBrief } from "./brief.js";
 
 const ps = { runId: null, stages: [], current: null, jobId: null, offset: 0, timer: null, runs: [], engine: null };
 const GATES = { preview: "scene", check_expert: "expert", generate: "data_method", convert: "convert",
-  eval: "eval", rollout: "rollout" };
+  eval: "eval", rollout: "rollout", train: "train", register: "report", promote: "report" };
 const ACTIVE = ["queued", "running"];
 
 export function stageGate(stageId) { return GATES[stageId] || null; }
@@ -81,7 +81,8 @@ function renderDetail() {
     updateFooter();
     return;
   }
-  box.append(el("div", s.reason ? "p" : "ok", s.reason ? `BLOCKED: ${s.reason}` : `Runs on worker ${s.worker}.`));
+  box.append(el("div", s.reason ? "p" : "ok", s.reason ? `BLOCKED: ${s.reason}`
+    : (s.worker ? `Runs on worker ${s.worker}.` : "Runs in the control plane (model registry).")));
   const gate = stageGate(s.id);
   if (gate) {
     const b = el("button", "btn agent", "AGENT BRIEF FOR THIS STAGE");

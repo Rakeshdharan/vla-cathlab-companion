@@ -31,8 +31,10 @@ def worker_request(method: str, url: str, timeout: float = 5.0, **kw) -> httpx.R
 class Pipeline:
     def __init__(self, store: Store, var_dir: Path, repo_root: Path, workers_fn: Callable[[], list],
                  engines_fn: Callable[[], dict], http: Callable[..., httpx.Response] = worker_request,
-                 resolve_policy: Callable[[str], str] | None = None):
+                 resolve_policy: Callable[[str], str] | None = None,
+                 local_actions: dict[str, Callable[[Run, dict], dict]] | None = None):
         self.store, self.var_dir, self.repo_root = store, Path(var_dir), Path(repo_root)
+        self.local_actions = local_actions or {}
         self._workers_fn, self._engines_fn, self._http = workers_fn, engines_fn, http
         self._start_lock = threading.Lock()
         self._resolve_policy = resolve_policy
@@ -67,14 +69,17 @@ class Pipeline:
                 load_cells(nr)
             except (OSError, ValueError, KeyError):
                 return f"next run file missing: {nr}", None
+        if stage.local:
+            return self._needs(run, stage), None
         engine_id = run.selection.get("simulator")
         manifest = engines.get(engine_id)
         if manifest is None:
             return f"no engine plugin '{engine_id}' (engines/{engine_id}/engine.yaml)", None
-        cap = stage.capability_for(run.selection)
-        status = manifest.status(cap)
-        if status != "ready":
-            return f"{engine_id}: '{cap}' is {status.replace('_', ' ')}", None
+        if not stage.module:
+            cap = stage.capability_for(run.selection)
+            status = manifest.status(cap)
+            if status != "ready":
+                return f"{engine_id}: '{cap}' is {status.replace('_', ' ')}", None
         if stage.worker_capability:
             worker = next((w for w in workers if w["healthy"] and stage.worker_capability in w.get("capabilities", [])),
                           None)
@@ -84,11 +89,14 @@ class Pipeline:
             worker = next((w for w in workers if w["name"] == manifest.worker), None)
             if worker is None or not worker["healthy"]:
                 return f"worker '{manifest.worker}' is offline", None
+        return self._needs(run, stage), worker
+
+    def _needs(self, run: Run, stage: StageDef) -> str | None:
         for need in stage.needs:
             job = self.latest(run.id, need)
             if job is None or job.state != "done":
-                return f"needs '{need}' to finish first", worker
-        return None, worker
+                return f"needs '{need}' to finish first"
+        return None
 
     def run_defaults(self, run: Run, stage: StageDef) -> dict:
         """Param defaults that come from the run itself: a next run's generate targets its failing cells."""
@@ -144,6 +152,8 @@ class Pipeline:
             flags = stage_argv(stage, self.effective_params(run, stage, params))
         except ValueError as e:
             raise PipelineError(str(e), 400) from e
+        if stage.local:
+            return self._run_local(run, stage, self.effective_params(run, stage, params))
         manifest = engines[run.selection["simulator"]]
         with self._start_lock:
             latest = self.latest(run.id, stage_id)
@@ -152,8 +162,11 @@ class Pipeline:
             job = self.store.create_job("stage", stage.id, params, run_id=run.id, worker=worker["name"])
         rd = self.run_dir(run.id)
         out = rd / stage.id / job.id
-        argv = [worker.get("executable") or "python", "-m", manifest.entry, stage.cli,
-                "--run", str(rd / "run.yaml"), "--out", str(out), *flags]
+        exe = worker.get("executable") or "python"
+        if stage.module:
+            argv = [exe, "-m", stage.module, *stage.module_args, "--out", str(out), *flags]
+        else:
+            argv = [exe, "-m", manifest.entry, stage.cli, "--run", str(rd / "run.yaml"), "--out", str(out), *flags]
         for flag, source in stage.inputs.items():
             argv += [f"--{flag}", self.latest(run.id, source).result["out"]]
         try:
@@ -168,6 +181,21 @@ class Pipeline:
         return self.store.update_job(job.id, state="running", result={
             "worker_job": worker_job_id, "worker_url": worker["url"], "argv": argv, "out": str(out)})
 
+
+    def _run_local(self, run: Run, stage: StageDef, params: dict) -> Job:
+        action = self.local_actions.get(stage.id)
+        if action is None:
+            raise PipelineError(f"stage '{stage.id}' is not available here", 501)
+        with self._start_lock:
+            job = self.store.create_job("stage", stage.id, params, run_id=run.id, worker=None)
+        try:
+            result = action(run, params)
+        except (ValueError, KeyError, OSError) as e:
+            msg = str(e).strip("'\"")
+            return self.store.update_job(job.id, state="failed", result={"error": msg[:500]})
+        if result.get("error"):
+            return self.store.update_job(job.id, state="failed", result=result)
+        return self.store.update_job(job.id, state="done", result=result)
 
     # jobs ------------------------------------------------------------------------------------
     def _worker_url(self, job: Job, suffix: str = "") -> str:
@@ -192,7 +220,8 @@ class Pipeline:
     def log(self, job: Job, offset: int = 0) -> dict:
         job = self.refresh(job)
         if "worker_job" not in job.result:
-            return {"text": job.result.get("error", ""), "offset": offset, "state": job.state}
+            text = job.result.get("error") or job.result.get("message", "")
+            return {"text": text[offset:], "offset": len(text), "state": job.state}
         try:
             r = self._http("GET", self._worker_url(job, "/log"), params={"offset": offset})
             r.raise_for_status()
