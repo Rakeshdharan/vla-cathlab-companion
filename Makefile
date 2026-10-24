@@ -10,7 +10,7 @@ GENESIS_PY ?= $(HOME)/venvs/genesis/bin/python
 GENESIS_BACKEND ?= cpu
 
 .PHONY: install test dev worker-robosuite worker-maniskill worker-genesis worker-lerobot agent demo-ui harness-list \
-	conformance-robosuite conformance-maniskill conformance-genesis policy-server demo-bootstrap
+	conformance-robosuite conformance-maniskill conformance-genesis policy-server demo-bootstrap demo-reset
 
 install:            ## core env (uv) with dev deps
 	uv sync
@@ -60,3 +60,6 @@ policy-server:      ## serve the production model on :8720 (lerobot env; needs a
 
 demo-bootstrap:     ## rebuild var/registry + the production failure report from the committed eval reports
 	uv run python -m scripts.demo_bootstrap
+
+demo-reset:         ## wipe var/registry + the bootstrap's report dirs, then rebuild from scratch
+	uv run python -m scripts.demo_bootstrap --reset
