@@ -118,6 +118,9 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
         full = (var_dir / path).resolve()
         if var_dir.resolve() not in full.parents:
             raise HTTPException(400, "path is outside var/")
+        allowed_suffixes = {'.mp4', '.webm', '.gif', '.png', '.jpg', '.jpeg'}
+        if full.suffix.lower() not in allowed_suffixes:
+            raise HTTPException(400, "only video/image files can be served")
         if not full.is_file():
             raise HTTPException(404, f"no file '{path}'")
         return FileResponse(full)
