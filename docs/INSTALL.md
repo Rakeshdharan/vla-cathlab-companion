@@ -84,6 +84,15 @@ Then point the `lerobot` entry in `configs/workers.yaml` (or your own file passe
 `make demo-ui` starts the UI against a throwaway git repo with a fake agent. Try AGENT → Free task with paths `configs/`
 and check `test -f configs/new.txt`, then Start agent → DIFF → PUSH BRANCH.
 
+## 6. Docker and CI
+
+- Control plane + UI in a container (core deps only; workers stay in their own envs, `CATHLAB_WORKERS`):
+  `docker build -f docker/control.Dockerfile -t cathlab-control .` (behind a proxy add
+  `--build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy`), then
+  `docker run --rm -p 8700:8700 -v "$PWD/var:/app/var" cathlab-control`.
+- CI (`.github/workflows/ci.yml`): `uv sync --frozen && uv run pytest -q` on Python 3.10 and 3.12 for every push to
+  `main` and every PR. Engine tests stay out of CI (they need each simulator's env).
+
 ## Ports
 
 | Port | Service |

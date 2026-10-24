@@ -1,0 +1,24 @@
+# Core test suite (GPU-, simulator- and network-free; AGENTS.md). Engine tests run in each engine's env, not here.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.10", "3.12"]
+    env:
+      NO_PROXY: 127.0.0.1,localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run pytest -q

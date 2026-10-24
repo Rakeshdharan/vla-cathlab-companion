@@ -1,0 +1,10 @@
+.git
+.venv*
+var
+data
+outputs
+reports/**/videos
+**/__pycache__
+*.mp4
+*.gif
+.env
