@@ -128,4 +128,6 @@ def test_api_videos_skips_non_dict_rollout_json(tmp_path):
 
 
 def test_repo_demo_videos_config_is_valid():
-    assert load_videos(ROOT / "configs/demo_videos.yaml") == []
+    videos = load_videos(ROOT / "configs/demo_videos.yaml")
+    assert all(v.url and v.url.startswith("https://") and v.path is None for v in videos)
+    assert any(v.success and v.engine == "robosuite" for v in videos)
