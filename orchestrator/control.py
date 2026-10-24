@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from engines.registry import ENGINES_DIR, load_engines
 from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
+from orchestrator.crossphysics import TABLE as CROSS_PHYSICS_TABLE, load_cross_physics
 from orchestrator.datasets import load_datasets, local_manifests
 from orchestrator.loop import create_loop_router
 from orchestrator.loop_stages import make_local_actions
@@ -95,6 +96,10 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     @app.get("/api/catalog")
     def catalog() -> dict:
         return load_catalog(catalog_path).model_dump()
+
+    @app.get("/api/cross-physics")
+    def cross_physics() -> dict:
+        return load_cross_physics(repo_root / CROSS_PHYSICS_TABLE)
 
     @app.get("/api/datasets")
     def datasets() -> dict:

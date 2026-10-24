@@ -6,7 +6,36 @@ import { refreshRuns } from "./pipeline.js";
 
 const rs = { current: null };
 
+const pct = (x) => `${Math.round(x * 100)}%`;
+
+export async function refreshCrossPhysics() {
+  let t;
+  try {
+    t = await api.get("/api/cross-physics");
+  } catch (e) { setStatus(`CROSS-PHYSICS: ${e.message}`); return; }
+  const head = el("tr");
+  ["MODEL", "TRAINED ON", ...t.engines.map((e) => e.toUpperCase())].forEach((h) => head.append(el("th", "", h)));
+  $("#xphys thead").replaceChildren(head);
+  $("#xphys tbody").replaceChildren(...t.rows.map((r) => {
+    const tr = el("tr");
+    tr.append(el("td", "mono", r.model), el("td", "mono", r.trained_on || "—"));
+    for (const e of t.engines) {
+      const c = r.cells[e];
+      const td = el("td", "mono", c ? `${pct(c.rate)} (${pct(c.ci_low)}–${pct(c.ci_high)}), n=${c.n}` : "—");
+      if (c && c.in_domain) td.style.fontWeight = "bold";
+      tr.append(td);
+    }
+    return tr;
+  }));
+  $("#xphys-info").textContent = t.source
+    ? `Rows: trained on · columns: evaluated in. Bold = in-domain. Source: ${t.source}.`
+    : "No cross-physics table yet: run python -m train.cross_physics_report.";
+}
+
 export async function initReport() {
+  $("#btn-xphys-refresh").addEventListener("click", refreshCrossPhysics);
+  document.querySelector('#tabs button[data-tab="report"]').addEventListener("click", refreshCrossPhysics);
+  await refreshCrossPhysics();
   $("#btn-build-report").addEventListener("click", build);
   $("#btn-next-run").addEventListener("click", createNextRun);
   document.querySelector('#tabs button[data-tab="report"]').addEventListener("click", refreshPickers);
