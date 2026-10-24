@@ -53,6 +53,8 @@ def local_rollouts(store, var_dir: str | Path, limit: int = MAX_LOCAL) -> list[d
             rollout = json.loads(rollout_path.read_text())
         except (OSError, json.JSONDecodeError):
             continue
+        if not isinstance(rollout, dict):
+            continue
         video = rollout.get("video")
         video_url = f"/api/jobs/{job.id}/file?path={video}" if video else None
         out.append({"job_id": job.id, "run_id": job.run_id, "object": rollout.get("object"),

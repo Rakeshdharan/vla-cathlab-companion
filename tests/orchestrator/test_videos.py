@@ -94,5 +94,38 @@ def test_videos_file_rejects_non_media_suffixes(tmp_path):
     assert c.get("/api/videos/file", params={"path": "demo.gif"}).status_code == 200
 
 
+def test_api_videos_skips_non_dict_rollout_json(tmp_path):
+    cfg = tmp_path / "demo_videos.yaml"
+    cfg.write_text(VIDEOS)
+    var = tmp_path / "var"
+    app = create_control_app(ROOT, var_dir=var, catalog_path=ROOT / "configs/catalog.yaml",
+                             workers_path=tmp_path / "none.yaml", frontend_dir=ROOT / "frontend",
+                             videos_path=cfg)
+    c = TestClient(app)
+
+    # Create a done rollout job with invalid (non-dict) rollout.json
+    out = var / "runs" / "r1" / "rollout" / "j1"
+    out.mkdir(parents=True)
+    (out / "rollout.json").write_text("[]")  # Array instead of dict
+    job = app.state.store.create_job("stage", "rollout", {}, run_id="r1", worker="w")
+    app.state.store.update_job(job.id, state="done", result={"out": str(out)})
+
+    # Create a valid rollout job for comparison
+    out2 = var / "runs" / "r2" / "rollout" / "j2"
+    out2.mkdir(parents=True)
+    (out2 / "rollout.json").write_text(
+        '{"success": true, "steps": 10, "failed_stage": null, "object": "syringe", "policy": "assist", '
+        '"instruction": "inject", "video": "rollout.mp4"}')
+    (out2 / "rollout.mp4").write_bytes(b"fake-mp4")
+    job2 = app.state.store.create_job("stage", "rollout", {}, run_id="r2", worker="w")
+    app.state.store.update_job(job2.id, state="done", result={"out": str(out2)})
+
+    # /api/videos should still return 200 and include only the valid job
+    body = c.get("/api/videos").json()
+    assert c.get("/api/videos").status_code == 200
+    assert len(body["local"]) == 1
+    assert body["local"][0]["job_id"] == job2.id
+
+
 def test_repo_demo_videos_config_is_valid():
     assert load_videos(ROOT / "configs/demo_videos.yaml") == []
