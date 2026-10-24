@@ -329,14 +329,14 @@ Run on the RTX 2000 Ada (WSL2, 8 GB), 2026-10-24 07:28–07:42, `main` at `0986d
 | C13 | Train policy (inspect only) | PASS | params model=smolvla, dataset, repo-id, steps, io, dataset-root; runs on worker lerobot (not started) |
 | D1 | Open DATA | PASS | 5 published datasets with HF links (pick_robosuite, pick_maniskill, pick_genesis, pick_panda_v2, FR3 Newton) |
 | D2 | REFRESH | PASS | LOCAL GENERATE OUTPUTS lists the C5 generate and C6 convert outputs (3 episodes) |
-| E1 | Open MODELS | PASS | PRODUCTION `cathlab-pick@v2`; rule sentence; v1…v8; HISTORY v1 → v2 |
+| E1 | Open MODELS | PASS | PRODUCTION `cathlab-pick@v2`; rule sentence; v1…v8 (after `43841e3`: v8 = `xvla_panda_pick_v3`, refused `CI low 21% <= 38%`); HISTORY v1 → v2 |
 | E2 | PROMOTE v6 | PASS | `NOT PROMOTED v6: does not beat production v2: CI low 11% <= 38%` |
 | E3 | FORCE v4 | PASS | `NOT PROMOTED v4: latency p95 7338 ms > budget 500 ms` |
 | E4 | REPORT on v7 | PASS | REPORT tab, model `cathlab-pick@v7`, its 3 eval reports selected |
 | E5 | REGISTER (form) | PASS | `REGISTERED cathlab-pick@v9` |
 | E6 | ROLLBACK | PASS | `ROLLED BACK: production is v1`; HISTORY `ROLLBACK v1 rolled back from v2`; then `make demo-reset` → production v2 |
 | E7 | REFRESH | PASS | table reloads |
-| F1 | CROSS-PHYSICS | PASS | 8 rows × 3 engines, in-domain bold; `xvla_panda_pick_v2` (3 engines) 13 / 13 / 17 % all bold |
+| F1 | CROSS-PHYSICS | PASS | 8 rows × 3 engines (9 after `43841e3`), in-domain bold; `xvla_panda_pick_v2` 13 / 13 / 17 %, loop retrain `xvla_panda_pick_v3` 32 / 13 / 22 %, all bold |
 | F2 | Select `rep-cathlab-pick-v2` | PASS | 38 / 0 / 0 %; `2 train-split failing cells, 16 targeted episodes`; CREATE NEXT RUN enabled |
 | F3 | CREATE NEXT RUN | PASS | `NEXT RUN … CREATED`; PIPELINE opens, Generate `split=cells:…/rep-cathlab-pick-v2/next_run.json` |
 | F4 | BUILD REPORT for v7, k=4 | PASS | `REPORT rep-… READY`; listed (genesis 17 · maniskill 13 · robosuite 13 %, 1 cell) |
