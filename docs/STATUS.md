@@ -129,6 +129,8 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 
 ## Next (owner)
 
+**Demo finish moves to the RTX 2000 Ada:** [`handoffs/2026-10-24-rtx2000-demo-finish-session.md`](handoffs/2026-10-24-rtx2000-demo-finish-session.md) (review R1–R7, demo script, `make demo-bootstrap`). The RTX 6000 Ada keeps the GPU jobs (rollout videos, targeted generate, `xvla_panda_pick_v2` evals).
+
 Done since H31: policy adapter + server, registry/promote/rollback, failure report → `next_run.json`, the 21-cell cross-physics table, the Genesis engine + data + column, recipes as code, P6 data-quality rules, DATA tab, train/register/promote PIPELINE stages, frozen-file guard, CI + Docker.
 
 1. **Real registry (H37):** `cathlab-pick@v1..v6` registered with robosuite + ManiSkill + Genesis evals in `var/registry` of the RTX 6000 Ada checkout; **production = v2 (`smolvla_panda_pick_v1`, 38 % robosuite)** by the rule (v1 ACT promoted first, then replaced; v6 X-VLA-Genesis refused, CI low 11 % ≤ 38 %). Failure report + `next_run.json` for `cathlab-pick@v2` in `var/reports/cathlab-pick_v2` (2 train cells × 8). **Queued after `xvla_panda_pick_v2` (~04:19):** targeted generate in all three engines and production rollout videos (robosuite, ManiSkill, Genesis × 3 objects) → `var/loop_v2/`. Navneet.
