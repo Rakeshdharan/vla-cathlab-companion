@@ -1,0 +1,13 @@
+# Dataset intelligence (dataset_intel/, spec Part B S5): validator thresholds and readiness weights.
+frozen_seconds: 2.0          # state unchanged this long (outside short gripper holds) -> frozen
+frozen_eps: 1.0e-6           # max |state change| per step that still counts as unchanged
+action_jump:                 # max per-step change of the non-gripper action dims, per I/O profile
+  panda_libero: 1.5          # normalised EEF deltas in [-1, 1]; waypoint switches stay below this
+  fr3_duo_16d: 0.25          # joint targets (rad) at 30 fps
+length_iqr_k: 1.5            # Tukey fences for length outliers
+idle_fraction_max: 0.20      # no-op frames above this fraction -> warning
+weights:                     # readiness = weighted mean of the available components
+  valid: 0.4                 # episodes without error-severity issues
+  coverage: 0.3              # filled train-grid cells (needs --extra)
+  balance: 0.2               # min/max episodes per object (needs --extra)
+  idle: 0.1                  # 1 - mean idle fraction
