@@ -10,7 +10,7 @@ from dataengine.expert import ExpertParams, run_expert_episode
 from dataengine.fake_sim import FakeExpertSim
 from dataengine.generate import MemorySink, generate_scripted
 from dataengine.npz_sink import NpzSink, merge_raw_shards, validate_shard
-from dataengine.quality import is_noop
+from dataengine.quality import engine_provenance, is_noop
 from dataengine.variation import VariationSpec, train_configs
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +23,14 @@ def test_is_noop_needs_no_motion_and_an_unchanged_gripper():
     assert is_noop(still, still) and is_noop(still, None)                    # LIBERO's definition
     assert not is_noop(still, np.array([0, 0, 0, 0, 0, 0, 1.0]))          # gripper toggles: keep
     assert not is_noop(np.array([0.01, 0, 0, 0, 0, 0, -1.0]), still)        # moves: keep
+
+
+def test_engine_provenance_merges_engine_versions_into_base_provenance():
+    """Every engine (robosuite/maniskill/genesis) stamps its versions this way (E4): same base_provenance() keys
+    (git_commit, git_dirty, python) plus `engine` and whatever engine-specific version kwargs it passes."""
+    prov = engine_provenance("maniskill", mani_skill="3.0", sapien="3.0", torch="2.0", physics="PhysX 5 (CPU)")
+    assert prov["engine"] == "maniskill" and prov["mani_skill"] == "3.0" and prov["physics"] == "PhysX 5 (CPU)"
+    assert "git_commit" in prov and "python" in prov
 
 
 def test_generate_drops_noop_frames_and_records_provenance(tmp_path, monkeypatch):

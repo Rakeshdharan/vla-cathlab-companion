@@ -25,3 +25,10 @@ def base_provenance() -> dict:
     except (OSError, subprocess.SubprocessError):
         commit, dirty = None, None
     return {"git_commit": commit, "git_dirty": dirty, "python": platform.python_version()}
+
+
+def engine_provenance(engine: str, **versions) -> dict:
+    """base_provenance() + this engine's name and version fields (e.g. robosuite/mujoco, mani_skill/sapien/torch,
+    genesis/torch), all under the one `provenance` dict every engine's generator passes as `extra_meta` to
+    dataengine.generate.generate_scripted (data-quality rule E4: uniform shape across engines)."""
+    return {**base_provenance(), "engine": engine, **versions}

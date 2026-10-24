@@ -82,16 +82,13 @@ def run_check_expert(spec_path, n: int, split: str, objects: list[str] | None, p
     return summary
 
 
-def versions() -> dict[str, str]:
-    import subprocess
+def versions() -> dict:
     import mani_skill
     import sapien
     import torch
-    root = Path(__file__).resolve().parents[2]
-    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=root, capture_output=True,
-                            text=True).stdout.strip()
-    return {"mani_skill": mani_skill.__version__, "sapien": sapien.__version__, "torch": torch.__version__,
-            "physics": "PhysX 5 (CPU)", "git_commit": commit}
+    from dataengine.quality import engine_provenance
+    return engine_provenance("maniskill", mani_skill=mani_skill.__version__, sapien=sapien.__version__,
+                             torch=torch.__version__, physics="PhysX 5 (CPU)")
 
 
 def run_generate(spec_path, task_path, out: Path, split: str, start: int, n: int, shard: int, num_shards: int,
@@ -109,25 +106,16 @@ def run_generate(spec_path, task_path, out: Path, split: str, start: int, n: int
     t0 = time.time()
     try:
         report, _ = generate_scripted(sim, spec, task, cfgs, NpzSink(shard_dir), shard_dir, "maniskill", dataset_id,
-                                      version, created_by or getpass.getuser(), params=expert_params())
+                                      version, created_by or getpass.getuser(), params=expert_params(),
+                                      extra_meta=versions())
     finally:
         sim.env.close()
-    _stamp_versions(shard_dir / "meta" / "episodes_extra.jsonl", versions())
     minutes = (time.time() - t0) / 60
     rate = report.attempted / max(minutes, 1e-9)
     print(f"kept {report.succeeded}/{report.attempted} ({report.success_rate:.0%}); per object "
           f"{ {o: f'{s}/{a}' for o, (a, s) in report.per_object.items()} }", flush=True)
     print(f"{rate:.1f} episodes/min attempted ({minutes:.1f} min)", flush=True)
     return {"attempted": report.attempted, "succeeded": report.succeeded, "episodes_per_min": rate}
-
-
-def _stamp_versions(path: Path, info: dict) -> None:
-    """Data-quality rule E4: every episode records the engine/physics versions and the git commit."""
-    if not path.exists():
-        return
-    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
-    path.write_text("".join(json.dumps({**r, **{k: v for k, v in info.items() if k not in r}}) + "\n"
-                            for r in rows))
 
 
 def run_preview(spec_path, out_png: Path, n: int = 8) -> Path:
