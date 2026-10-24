@@ -1,6 +1,6 @@
 id: train
 title: Policy training
-status: partial
+status: ready
 owner: Rakesh
 extension_point: "train/recipes/<model>.yaml + a PolicyAdapter for the model (lerobot env, GPU worker)"
 contract:
