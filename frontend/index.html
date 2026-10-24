@@ -60,8 +60,15 @@
 
     <section class="tab hidden" id="tab-data">
       <div class="pane">
-        <div class="panel-title">DATASETS</div>
-        <div class="muted">No datasets registered yet. Generate and Intel stages populate this view.</div>
+        <div class="row runbar">
+          <span class="panel-title">PUBLISHED DATASETS</span>
+          <button class="btn" id="btn-data-refresh" type="button">REFRESH</button>
+        </div>
+        <div class="muted">From configs/datasets.yaml (LeRobot v3; pinned revisions are what training uses).</div>
+        <table class="grid" id="datasets-published"><thead></thead><tbody></tbody></table>
+        <div class="panel-title">LOCAL GENERATE OUTPUTS</div>
+        <div class="muted" id="datasets-local-empty">No generate outputs yet: run GENERATE in PIPELINE.</div>
+        <table class="grid" id="datasets-local"><thead></thead><tbody></tbody></table>
       </div>
     </section>
 

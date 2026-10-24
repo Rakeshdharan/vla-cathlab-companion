@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from engines.registry import ENGINES_DIR, load_engines
 from orchestrator.catalog import load_catalog, selection_problems
 from orchestrator.hosts import protect
+from orchestrator.datasets import load_datasets, local_manifests
 from orchestrator.loop import create_loop_router
 from orchestrator.assist import create_assist_router
 from serve.registry import Registry
@@ -49,10 +50,11 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
                        catalog_path: str | Path | None = None, workers_path: str | Path | None = None,
                        frontend_dir: str | Path | None = None, harness=None, bind_host: str | None = None,
                        engines_dir: str | Path | None = None, worker_http=None,
-                       eval_roots: list | None = None) -> FastAPI:
+                       eval_roots: list | None = None, datasets_path: str | Path | None = None) -> FastAPI:
     repo_root = Path(repo_root)
     var_dir = Path(var_dir) if var_dir else repo_root / "var"
     catalog_path = Path(catalog_path or repo_root / "configs/catalog.yaml")
+    datasets_path = Path(datasets_path or repo_root / "configs/datasets.yaml")
     workers_path = Path(workers_path or os.environ.get("CATHLAB_WORKERS", repo_root / "configs/workers.yaml"))
     frontend_dir = Path(frontend_dir or repo_root / "frontend")
     store = Store(var_dir / "control.db")
@@ -91,6 +93,11 @@ def create_control_app(repo_root: str | Path = ROOT, var_dir: str | Path | None 
     @app.get("/api/catalog")
     def catalog() -> dict:
         return load_catalog(catalog_path).model_dump()
+
+    @app.get("/api/datasets")
+    def datasets() -> dict:
+        return {"published": [d.view() for d in load_datasets(datasets_path).datasets],
+                "local": local_manifests(var_dir)}
 
     @app.post("/api/selection/check")
     def check(body: SelectionBody) -> dict:

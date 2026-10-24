@@ -6,6 +6,7 @@ import { initBrief } from "./brief.js";
 import { initModels } from "./models.js";
 import { initReport } from "./report.js";
 import { initAssist } from "./assist.js";
+import { initData } from "./data.js";
 
 // ---- tabs -------------------------------------------------------------------------------
 export function showTab(name) {
@@ -190,6 +191,7 @@ async function boot() {
   await initModels();
   await initReport();
   await initAssist();
+  await initData();
   refreshWorkers();
   refreshJobs();
   setInterval(refreshWorkers, 5000);
