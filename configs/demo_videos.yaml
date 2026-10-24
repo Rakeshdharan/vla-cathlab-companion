@@ -1,0 +1,5 @@
+# Recorded rollout videos for the demo (ASSIST → RECORDED ROLLOUTS). url: http(s) link (e.g. HF), or path: a file
+# under var/ (served by the control plane). Add the production rollout videos here when they are uploaded.
+videos: []
+#  - {label: "SmolVLA v2 hands over the vial (robosuite)", engine: robosuite, object: vial,
+#     model: cathlab-pick@v2, success: true, url: "https://huggingface.co/.../resolve/main/robosuite_vial.mp4"}

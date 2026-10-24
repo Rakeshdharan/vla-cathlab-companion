@@ -93,6 +93,10 @@ table.grid th { background: var(--panel-2); font-size: 12px; letter-spacing: .5p
 .form .help { font-size: 11px; color: var(--muted); margin: -4px 0 6px; }
 .files { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
 .files img, .files video { max-width: 520px; border: 1px solid var(--line); }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.vcard { margin: 0; background: #fff; border: 1px solid var(--line); padding: 4px; }
+.vcard video, .vcard img { width: 100%; }
+.vcard figcaption { font: 11px var(--mono); }
 
 .drawer { position: fixed; top: 48px; right: 0; bottom: 44px; width: 560px; background: #fff;
   border-left: 2px solid var(--line); padding: 12px; overflow: auto; z-index: 10; display: flex;

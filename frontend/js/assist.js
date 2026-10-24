@@ -11,9 +11,11 @@ export async function initAssist() {
   sel.addEventListener("change", renderSteps);
   $("#assist-yes").addEventListener("click", handover);
   $("#assist-no").addEventListener("click", () => { as.proposal = null; renderProposal(); });
-  document.querySelector('#tabs button[data-tab="assist"]').addEventListener("click", refreshRuns);
+  $("#btn-videos-refresh").addEventListener("click", refreshGallery);
+  document.querySelector('#tabs button[data-tab="assist"]').addEventListener("click", () => { refreshRuns(); refreshGallery(); });
   renderSteps();
   await refreshRuns();
+  await refreshGallery();
 }
 
 async function refreshRuns() {
@@ -22,6 +24,31 @@ async function refreshRuns() {
   const keep = sel.value;
   sel.replaceChildren(...runs.map((r) => new Option(`${r.id} · ${r.selection.simulator}`, r.id)));
   if (keep) sel.value = keep;
+}
+
+function videoCard(src, caption) {
+  const fig = el("figure", "vcard");
+  if (/\.gif$/i.test(src)) { const img = el("img"); img.src = src; fig.append(img); }
+  else { const v = el("video"); v.src = src; v.controls = true; v.muted = true; v.loop = true; fig.append(v); }
+  fig.append(el("figcaption", "", caption));
+  return fig;
+}
+
+async function refreshGallery() {
+  const body = await api.get("/api/videos").catch(() => ({ recorded: [], local: [] }));
+  const recorded = body.recorded || [];
+  const local = body.local || [];
+  const gallery = $("#assist-gallery");
+  if (!recorded.length && !local.length) {
+    gallery.replaceChildren(el("span", "muted", "No recorded rollouts yet: run a handover, or list videos in configs/demo_videos.yaml."));
+    return;
+  }
+  const cards = [
+    ...recorded.map((v) => videoCard(v.src, v.label + (v.success === true ? " ✓" : v.success === false ? " ✗" : ""))),
+    ...local.filter((v) => v.video_url).map((v) => videoCard(v.video_url,
+      `${v.object} · ${v.policy} · ${v.success ? "✓ success" : "✗ failed at " + v.failed_stage} · ${v.steps} steps`)),
+  ];
+  gallery.replaceChildren(...cards);
 }
 
 function renderSteps() {
@@ -89,6 +116,7 @@ function follow(id) {
           if (f.path.endsWith(".mp4")) { const v = el("video"); v.src = url; v.controls = true; v.autoplay = true; $("#assist-files").append(v); }
           else { const img = el("img"); img.src = url; $("#assist-files").append(img); }
         }
+        await refreshGallery();
       }
     } catch (e) { $("#assist-job").textContent = `JOB ${id} · ${e.message}`; }
   }, 1000);
