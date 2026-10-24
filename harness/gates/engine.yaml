@@ -10,11 +10,11 @@ contract:
   - "manifest.backend = 'module:Class' implementing contracts.SimBackend with the io profile's obs keys and shapes; StepInfo.stage_flags over contracts.STAGES"
   - "An ExpertSim adapter (dataengine.expert.ExpertSim) so the shared waypoint expert and engines.expert_policy.ExpertPolicy run unchanged"
 conformance: "python -m pytest -q tests/engines/test_conformance.py -k <id>   # in the engine's env"
-paths: ["engines/", "sim/", "tests/engines/", "tests/sim/", "configs/catalog.yaml", "docs/decisions.md", "CREDITS.md"]
+paths: ["engines/", "sim/", "tests/engines/", "tests/sim/", "configs/catalog.yaml", "CREDITS.md"]
 reference: [engines/robosuite/engine.yaml, engines/robosuite/cli.py, engines/robosuite/evaluate.py, sim/robosuite/expert_sim.py, sim/robosuite/backend.py, engines/maniskill/engine.yaml, engines/maniskill/cli.py]
-context: [AGENTS.md, docs/EXTENDING.md, engines/registry.py, engines/cli_base.py, contracts/sim.py, dataengine/expert.py, docs/specs/2026-10-23-multi-engine-platform-design.md, docs/handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md]
+context: [AGENTS.md, docs/EXTENDING.md, engines/registry.py, engines/cli_base.py, contracts/sim.py, dataengine/expert.py]
 templates: [add_engine, add_sim_backend]
 conventions:
   - "Core frame: robot base, table top z = 0, quaternions wxyz (sim/robosuite/README.md)"
   - "The same EpisodeConfig seed is the same episode in every engine (dataengine.variation)"
-  - "Flip a capability to ready only after its check passes; record the evidence in docs/decisions.md"
+  - "Flip a capability to ready only after its check passes; record the evidence in the PR description"

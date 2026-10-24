@@ -17,4 +17,6 @@ Conventions:
 
 Requires the `robosuite` conda env (Python 3.10, robosuite 1.5.2, **mujoco 3.3.7**) and `MUJOCO_GL=egl`. Tests in `tests/sim/` skip without robosuite.
 
-Data collection: [docs/tasks/robosuite-collection.md](../../docs/tasks/robosuite-collection.md).
+Data collection: `scripts/robosuite_generate.py` (shards) → `scripts/npz_to_lerobot.py` (convert); see
+[docs/data.md](../../docs/data.md) and the `extend_dataset` harness template
+([harness/tasks/extend_dataset.yaml](../../harness/tasks/extend_dataset.yaml)).

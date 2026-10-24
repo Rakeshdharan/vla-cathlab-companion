@@ -26,15 +26,15 @@ TCP_OFFSET = 0.097            # robosuite grip site: 0.097 m along hand +z
 HAND_TO_EE = np.array([np.cos(np.pi / 4), 0.0, 0.0, -np.sin(np.pi / 4)])
 PANDA_MJCF = "xml/franka_emika_panda/panda_no_tendon.xml"
 # 5 ms (10 steps per 20 Hz action): at 10 ms the 11-20 g vial chattered at ~6 rad/s between the 20 N fingers and was
-# shaken out during transport (docs/decisions.md).
+# shaken out during transport (history on the pre-dev branch).
 SIM_DT = 0.005
 ARM_DOFS = np.arange(7)
 FINGER_DOFS = np.array([7, 8])
 # Controller
 MAX_DPOS, MAX_DROT = 0.05, 0.5           # action scaling (robosuite OSC_POSE output_max)
 # robosuite OSC_POSE does not reach the commanded delta within one 20 Hz step: at steady state it moves ~25 % of the
-# translation and ~13 % of the rotation per step (measured, docs/decisions.md). The same fractions are applied here so
-# an action produces the same TCP motion in both engines.
+# translation and ~13 % of the rotation per step (measured; history on the pre-dev branch). The same fractions are
+# applied here so an action produces the same TCP motion in both engines.
 POS_GAIN, ROT_GAIN = 0.235, 0.125
 MAX_DQ = 0.2                             # rad per control step
 IK_DAMPING = 0.02
@@ -56,7 +56,7 @@ BACKEND_ENV = "CATHLAB_GENESIS_BACKEND"
 
 def genesis_backend() -> str:
     """'gpu' (default) or 'cpu'. One world is launch-bound on GPU: on a GPU shared with training, the CPU backend ran
-    an episode ~15x faster (docs/decisions.md)."""
+    an episode ~15x faster (measured; history on the pre-dev branch)."""
     name = os.environ.get(BACKEND_ENV, "gpu").lower()
     if name not in ("gpu", "cpu"):
         raise ValueError(f"{BACKEND_ENV} must be 'gpu' or 'cpu', got {name!r}")

@@ -4,10 +4,10 @@ status: ready
 owner: Rakesh
 extension_point: "report/failure_report.py (build_report sections + next_run) and dataengine.variation.select_configs cells: split"
 contract:
-  - "report.md + report.json + next_run.json as defined in docs/handoffs/2026-10-23-sharan-serve-intel-session.md (S6)"
+  - "report.md + report.json + next_run.json as defined in report/failure_report.py (build_report, next_run)"
   - "next_run.json lists only train-split cells (held-out values are never trained on); every engine's generate accepts --split cells:<next_run.json>"
 conformance: "uv run pytest -q tests/report tests/dataengine/test_targeted.py"
-paths: ["report/", "tests/report/", "docs/decisions.md"]
-reference: [eval/failures.py, docs/handoffs/2026-10-23-sharan-serve-intel-session.md, report/failure_report.py, dataengine/variation.py]
+paths: ["report/", "tests/report/"]
+reference: [eval/failures.py, report/failure_report.py, dataengine/variation.py]
 context: [AGENTS.md, docs/EXTENDING.md, contracts/reports.py, contracts/gaps.py]
 templates: [add_report_section]

@@ -6,11 +6,11 @@ description: >
 catalog_target: ""
 params:
   - {name: goal, type: text, help: "what to build or fix, with done-criteria"}
-  - {name: paths, type: str, help: "comma-separated allowed paths, e.g. 'eval/, tests/eval/, docs/decisions.md'"}
+  - {name: paths, type: str, help: "comma-separated allowed paths, e.g. 'eval/, tests/eval/'"}
   - {name: check, type: command, default: "uv run pytest -q", help: "acceptance command"}
 context:
   - AGENTS.md
-  - docs/specs/2026-10-23-control-station-design.md
+  - docs/EXTENDING.md
 prompt: |
   {goal}
 allowed_paths:

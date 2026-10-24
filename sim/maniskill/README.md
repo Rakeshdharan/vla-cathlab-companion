@@ -10,7 +10,7 @@ ManiSkill3 track for the cathlab pick task (Franka Panda, LIBERO I/O, **PhysX 5*
 | `backend.py` | `ManiSkillBackend`: `contracts.SimBackend`; `reset(scene, seed, obj)` → `eval_configs(spec, tier, [seed])` |
 | `params.py` | `MANISKILL_EXPERT_PARAMS` |
 
-Conventions (measured against robosuite, see `docs/decisions.md` H24):
+Conventions (measured against robosuite; history on the pre-dev branch):
 - World frame = core frame (base at z 0.112, table top at z 0).
 - TCP = `panda_hand` ⊕ 0.097 m along hand z, orientation hand · Rz(−90°) (robosuite grip site). State = TCP position + hand axis-angle + `[q1, −q2]`.
 - Action boundary: rotation **and** gripper signs flipped before `env.step` (ManiSkill 3.0.1 scales rotation by `rot_lower` < 0; gripper +1 = open).

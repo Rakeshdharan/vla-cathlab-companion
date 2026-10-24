@@ -4,10 +4,10 @@ status: planned
 owner: Sharan
 extension_point: "dataset_intel/ (validators, coverage over the variation grid, readiness score)"
 contract:
-  - "IntelReport as defined in docs/handoffs/2026-10-23-sharan-serve-intel-session.md (S5)"
+  - "IntelReport as defined in dataset_intel/model.py (dataset, issues, coverage, readiness)"
   - "Runs on a LeRobot dataset folder without a GPU; writes intel.json + intel.md"
 conformance: "uv run pytest -q tests/dataset_intel"
-paths: ["dataset_intel/", "tests/dataset_intel/", "docs/decisions.md"]
-reference: [docs/handoffs/2026-10-23-sharan-serve-intel-session.md, dataengine/variation.py]
+paths: ["dataset_intel/", "tests/dataset_intel/"]
+reference: [dataset_intel/model.py, dataset_intel/report.py, dataengine/variation.py]
 context: [AGENTS.md, docs/EXTENDING.md, docs/data.md]
 templates: []

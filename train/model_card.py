@@ -15,8 +15,7 @@ def section(a: argparse.Namespace) -> str:
         rows.append(("Note", a.note))
     table = "\n".join(f"| {k} | {v} |" for k, v in rows)
     return (f"{MARKER}\n## Training (cathlab-companion)\n\n| | |\n|---|---|\n{table}\n\n"
-            "Code, eval and recipes: https://github.com/Rakeshdharan/vla-cathlab-companion "
-            "(`docs/handoffs/2026-10-23-maniskill-training-session.md`). "
+            "Code, eval and recipes: https://github.com/Rakeshdharan/vla-cathlab-companion. "
             "Evaluate with `python -m engines.<robosuite|maniskill>.cli eval --policy lerobot:<this repo>`.\n")
 
 

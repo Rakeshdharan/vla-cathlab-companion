@@ -28,14 +28,13 @@ prompt: |
      via engines.cli_base.run_cli, lazy simulator imports.
   2. sim/{engine_id}/: ExpertSim adapter (core frame) and SimBackend (io profile panda_libero unless told otherwise).
   3. tests/engines/: CLI dry-run tests runnable in the core env; the conformance test must pass in the engine's env.
-  4. Catalog item `{engine_id}` in section simulator; CREDITS.md rows; one docs/decisions.md row with the
-     conformance evidence.
+  4. Catalog item `{engine_id}` in section simulator; CREDITS.md rows; record the conformance evidence in the PR
+     description.
 allowed_paths:
   - "engines/{engine_id}/"
   - "sim/{engine_id}/"
   - tests/engines/
   - configs/catalog.yaml
-  - docs/decisions.md
   - CREDITS.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}

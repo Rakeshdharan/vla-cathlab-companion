@@ -25,7 +25,6 @@ allowed_paths:
   - dataengine/
   - tests/dataengine/
   - docs/data.md
-  - docs/decisions.md
   - CREDITS.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}

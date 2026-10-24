@@ -1,7 +1,7 @@
 """Registry of named data-generation methods (domain_rand, mimicgen, scripted, teleop, cosmos).
 
 The built-in methods are placeholders that return a GenerationReceipt; the working robosuite generator is
-scripts/robosuite_generate.py (see docs/tasks/robosuite-collection.md).
+scripts/robosuite_generate.py.
 """
 from pydantic import BaseModel
 from contracts import GapSpec

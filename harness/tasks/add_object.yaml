@@ -17,7 +17,7 @@ params:
   - {name: spec_out, type: str, pattern: "^(?!cathlab_v1$)[a-z][a-z0-9_]*$", default: cathlab_v2, help: "new variation spec file name (never edit cathlab_v1)"}
 context:
   - AGENTS.md
-  - docs/specs/2026-10-22-sim-framework-design.md
+  - docs/EXTENDING.md
   - configs/variation/cathlab_v1.yaml
   - dataengine/variation.py
   - dataengine/expert.py
@@ -37,7 +37,7 @@ prompt: |
   3. Add `{name}` to `objects` in configs/tasks/cathlab_pick.yaml and an item {{id: {name}, label: "{label}", status: ready}}
      to the `objects` section of configs/catalog.yaml.
   4. Make sure layouts still separate all objects (min_separation, reach corridor) and the expert grasp template suits the
-     object; tune `sim/robosuite/params.py` only if needed and explain why in docs/decisions.md (one new table row).
+     object; tune `sim/robosuite/params.py` only if needed and explain why in the PR description (one new table row).
   5. Add or extend a test under tests/ that loads configs/variation/{spec_out}.yaml and checks the new object exists in every palette.
 allowed_paths:
   - configs/variation/
@@ -46,7 +46,6 @@ allowed_paths:
   - dataengine/variation.py
   - sim/robosuite/
   - tests/
-  - docs/decisions.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}
   - {name: robosuite-tests, cmd: "conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python -m pytest -q tests/sim"}

@@ -23,7 +23,6 @@ allowed_paths:
   - assets/
   - tests/assets/
   - pyproject.toml
-  - docs/decisions.md
   - CREDITS.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}

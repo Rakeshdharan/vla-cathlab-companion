@@ -1,4 +1,4 @@
-# ACT from scratch (act_panda_pick_v1). Kept as the robosuite baseline; dropped for newer datasets (docs/decisions.md H27).
+# ACT from scratch (act_panda_pick_v1). Kept as the robosuite baseline; dropped for newer datasets (history on the pre-dev branch).
 model: act
 policy: {type: act, chunk_size: 50, n_action_steps: 50}
 rename: {}

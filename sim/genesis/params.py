@@ -1,4 +1,4 @@
-"""Expert parameters for the Genesis delta-EE controller (see docs/decisions.md for the measurements)."""
+"""Expert parameters for the Genesis delta-EE controller (measured; history on the pre-dev branch)."""
 from dataengine.expert import ExpertParams
 
 GENESIS_EXPERT_PARAMS = ExpertParams(

@@ -1,4 +1,4 @@
-# Datasets the DATA tab lists (GET /api/datasets). Update when a dataset lands (docs/STATUS.md has the narrative).
+# Datasets the DATA tab lists (GET /api/datasets). Update when a dataset lands; see docs/data.md.
 # visibility: public | private | local (local = not on the Hub; local_path is relative to the repo root).
 datasets:
   - {repo_id: Rakeshdharan56/pick_robosuite, revision: v1, embodiment: panda, io: panda_libero, engine: robosuite,

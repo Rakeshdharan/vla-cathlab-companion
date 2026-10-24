@@ -8,7 +8,7 @@ contract:
   - "Suites: objects x tiers x seeds (configs/eval/suite_v2.yaml); seeds >= 5000; the expert is the reference row"
   - "Metrics read EvalReport JSON only, so they work for every engine"
 conformance: "uv run pytest -q tests/test_metrics.py tests/test_runner.py tests/test_failures.py tests/engines"
-paths: ["eval/", "engines/", "configs/eval/", "tests/", "docs/decisions.md"]
+paths: ["eval/", "engines/", "configs/eval/", "tests/"]
 reference: [engines/robosuite/evaluate.py, eval/metrics.py, eval/failures.py, contracts/reports.py, configs/eval/suite_v2.yaml]
 context: [AGENTS.md, docs/EXTENDING.md, eval/README.md]
 templates: [add_eval_metric]

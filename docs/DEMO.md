@@ -4,8 +4,7 @@
 
 Audience: judges / reviewers who have not seen the Control Station before. Covers REPORT → MODELS → REPORT
 (failure report) → CREATE NEXT RUN → ASSIST. For the full UI and stage list see [README.md](../README.md);
-for the pipeline internals see [docs/STATUS.md](STATUS.md) and
-[docs/handoffs/2026-10-24-rtx2000-demo-finish-session.md](handoffs/2026-10-24-rtx2000-demo-finish-session.md).
+for the pipeline internals see [docs/HARNESS.md](HARNESS.md) and [docs/EXTENDING.md](EXTENDING.md).
 
 ## 1. Before the demo (setup checklist, ~10 min)
 

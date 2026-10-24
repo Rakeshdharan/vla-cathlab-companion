@@ -9,5 +9,5 @@ description: Extend the CathLab Companion platform (new engine, object, data met
 2. Generate the brief: `python -m harness brief "<request>" --stage <gate> [--engine <id>]`; follow it.
 3. If a harness template matches (`python -m harness list`), prefer `python -m harness run <template> --param ...`.
 4. Run the gate's conformance command and `uv run pytest -q`; update status flags only for what now works.
-5. Rules: AGENTS.md; human-only commit authorship (no AI Co-authored-by); no data or secrets in git; CREDITS.md and
-   docs/decisions.md rows.
+5. Rules: AGENTS.md; human-only commit authorship (no AI Co-authored-by); no data or secrets in git; add a
+   CREDITS.md row and record the decision and the evidence (check results) in the PR description.
