@@ -144,4 +144,5 @@ Done since H31: policy adapter + server, registry/promote/rollback, failure repo
 4. ❌ **Ablation for the 18 % transfer: dropped (H40, pitch at 09:00).** `pick_genesis_noaxes` raw data generated (384/384, axes off, CPU backend) and kept on the RTX 6000 Ada; not converted or trained.
 5. **FR3, Aravind:** eval `smolvla_cathlab_fr3_newton_v1` and `xvla_fr3_pick_v1` + the expert in Newton + MuJoCo → FR3 table + sim2sim gap.
 6. **Demo finish, RTX 2000 Ada:** [`handoffs/2026-10-24-rtx2000-demo-finish-session.md`](handoffs/2026-10-24-rtx2000-demo-finish-session.md).
+6b. ⏳ **Control Station user guide (wiki) + end-to-end click test, RTX 2000 Ada (H40):** `docs/GUIDE.md` covering every tab, button and pipeline stage with the expected result, validated by the click script A1–H5: [`handoffs/2026-10-24-rtx2000-ui-guide-session.md`](handoffs/2026-10-24-rtx2000-ui-guide-session.md). Doubles as the 09:00 rehearsal.
 7. **Optional:** awareness VLM step tracking in ASSIST + voice, Newton `v1.1` (+768 episodes). ✅ done H39: `dataset_intel/`, `ingest/`, `pick_panda_v2` on the Hub.
