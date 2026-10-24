@@ -77,3 +77,11 @@ def test_path_guard_rejects_absolute_and_dotdot_paths():
     allowed = ["configs/", "*"]
     files = ["/etc/passwd", "configs/../contracts/x.py", "..\\x", "C:\\x", "configs/ok.yaml"]
     assert path_violations(files, allowed) == ["/etc/passwd", "configs/../contracts/x.py", "..\\x", "C:\\x"]
+
+
+def test_frozen_paths_are_rejected_even_when_allowed():
+    from harness.guard import FROZEN_PATHS, frozen_violations
+    assert "configs/variation/cathlab_v1.yaml" in FROZEN_PATHS
+    files = ["configs/variation/cathlab_v1.yaml", "configs/variation/cathlab_v2.yaml"]
+    assert path_violations(files, ["configs/variation/", "*"]) == ["configs/variation/cathlab_v1.yaml"]
+    assert frozen_violations(files) == ["configs/variation/cathlab_v1.yaml"]
