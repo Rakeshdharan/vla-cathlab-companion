@@ -23,7 +23,7 @@
 | SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ✅ [`smolvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_maniskill_v1), 8,500 × 32 (v1 recipe), 1 h 54 m, loss 0.011 | ⏳ `aravindsuresh16/smolvla_fr3_pick_v1`, from `smolvla_base`, **Aravind, cloud GPU, ~20:30** |
 | X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ✅ [`xvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_maniskill_v1), **2,500 × 32** (time-boxed, v1: 7,500), 36 m, loss 0.028 | ✅ [`xvla_fr3_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_fr3_pick_v1), from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, 1 h 08 m, loss 0.001: **Aravind evaluates** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
-| **Panda v2** (co-training) | ❌ dropped at H28.5 (no more SmolVLA training; GPU queue is X-VLA only until freeze) | | — |
+| **Panda v2** (co-training, X-VLA) | ⏳ `Rakeshdharan56/xvla_panda_pick_v2` on `pick_panda_v2` = robosuite + ManiSkill + Genesis `v1` merged (1,136 eps, 181k frames; local, not on HF yet), v1 X-VLA recipe 7,500 × 32, RTX 6000 Ada, **ETA ~04:20** | | — |
 
 **ACT is dropped for the new datasets** (it stays as the robosuite-trained baseline). FR3 checkpoints are evaluated by Aravind in Newton + MuJoCo. The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Smokes and schedule (RTX 6000 Ada, 48 GB; runs are sequential because no two fit together):
 
@@ -33,6 +33,7 @@
 | X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ✅ 22:03 |
 | X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ✅ 22:40 |
 | **X-VLA-Genesis** → `Rakeshdharan56/xvla_panda_genesis_v1` | ~34 GB | 1.03 | 7,500 (= v1 recipe) on `pick_genesis@v1` (383 eps, 66k frames) | 23:02 → ✅ 00:53 (1 h 51 m, loss 0.013, 3.6 epochs) |
+| **X-VLA v2 (3 engines)** → `Rakeshdharan56/xvla_panda_pick_v2` | 34.0 GB | 0.86 (1.17 step/s) | 7,500 (= v1 recipe) on local `pick_panda_v2` (1,136 eps, 181k frames, ~1.3 epochs) | 02:31 → ~04:20; at 03:24 step 3,687, loss 0.027, ckpt 2,500 saved |
 
 `train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
@@ -143,7 +144,7 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
    - SmolVLA on a cloud GPU from `cathlab_fr3_newton_v1@v1.0.1` (~20:30); X-VLA-FR3 comes from the RTX 6000 Ada (~21:30);
    - eval of both + the expert in Newton + MuJoCo → FR3 table + sim2sim gap.
 4. **Version v1 → promote the best Panda model → rollout video → failure report → `next_run.json`.** Rakesh, after 1–2.
-5. **Panda v2:** merged robosuite + ManiSkill (753 episodes) plus the loop-targeted cells; SmolVLA first, then evaluate and promote if better. RTX 6000 Ada (T6 of the ManiSkill handoff).
+5. **Panda v2:** ⏳ **X-VLA** co-trained on robosuite + ManiSkill + Genesis (`pick_panda_v2`, 1,136 eps) → `xvla_panda_pick_v2`, ETA ~04:20 (RTX 6000 Ada); then eval in all three engines (ManiSkill cell on the RTX 6000 Ada only) and promote if better. SmolVLA v2 not planned.
 6. **Genesis:** ✅ merged with `pick_genesis@v1`; ✅ third physics column; ✅ `xvla_panda_genesis_v1` evaluated in all three engines (02:28): 27 % Genesis, **18 % robosuite** (first non-zero cross-engine transfer), 0 % ManiSkill. The table is complete (21 cells).
 7. **CI + Docker:** proposed for Mitesh (free).
 8. **Optional:** Newton `v1.1` (+768 episodes).
