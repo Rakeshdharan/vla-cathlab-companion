@@ -20,6 +20,7 @@ MODELS = {
     "smolvla_panda_maniskill_v1": ("SmolVLA", "maniskill"),
     "xvla_panda_maniskill_v1": ("X-VLA", "maniskill"),
     "xvla_panda_genesis_v1": ("X-VLA", "genesis"),
+    "xvla_panda_pick_v2": ("X-VLA", "robosuite+maniskill+genesis"),
 }
 
 
@@ -78,7 +79,7 @@ def render(reports: dict[tuple[str, str], EvalReport]) -> str:
                 cells.append("—")
                 continue
             o = overall(r)
-            tag = " **in-domain**" if src == e else ""
+            tag = " **in-domain**" if e in src.split("+") else ""
             cells.append(_cell(o["success_rate"], o["ci_low"], o["ci_high"], o["n"]) + tag)
         lines.append(f"| {label} (`{m}`) | {src} | " + " | ".join(cells) + " |")
 

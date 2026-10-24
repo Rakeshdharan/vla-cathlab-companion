@@ -21,10 +21,10 @@ def load_cross_physics(path: str | Path) -> dict:
         row = rows.setdefault(e["model"], {"model": e["model"], "trained_on": trained, "cells": {}})
         o = e["overall"]
         row["cells"][e["engine"]] = {"rate": o["success_rate"], "ci_low": o["ci_low"], "ci_high": o["ci_high"],
-                                     "n": o["n"], "in_domain": trained == e["engine"]}
+                                     "n": o["n"], "in_domain": trained is not None and e["engine"] in trained.split("+")}
     def order(r: dict) -> tuple:
         t = r["trained_on"]
-        return (t is not None, ENGINE_ORDER.index(t) if t in ENGINE_ORDER else len(ENGINE_ORDER), r["model"])
+        return (t is not None, ENGINE_ORDER.index(t) if t in ENGINE_ORDER else len(ENGINE_ORDER), r["model"])  # merged last
 
     ordered = sorted(rows.values(), key=order)
     return {"source": TABLE, "engines": engines, "rows": ordered}

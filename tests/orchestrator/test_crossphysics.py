@@ -15,6 +15,9 @@ def test_committed_table_reshapes_into_rows_and_engine_columns():
     assert round(smol["cells"]["robosuite"]["rate"], 3) == 0.383 and smol["cells"]["robosuite"]["n"] == 60
     assert not smol["cells"]["maniskill"]["in_domain"]
     assert round(rows["xvla_panda_genesis_v1"]["cells"]["robosuite"]["rate"], 3) == 0.183
+    v2 = rows["xvla_panda_pick_v2"]
+    assert t["rows"][-1]["model"] == "xvla_panda_pick_v2" and v2["trained_on"] == "robosuite+maniskill+genesis"
+    assert all(v2["cells"][e]["in_domain"] for e in t["engines"])
 
 
 def test_api_cross_physics(tmp_path):

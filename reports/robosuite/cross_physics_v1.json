@@ -524,6 +524,81 @@
       "max_ms": 536.9162964168931
     }
   },
+  "genesis/xvla_panda_pick_v2": {
+    "model": "xvla_panda_pick_v2",
+    "engine": "genesis",
+    "trained_on": "robosuite+maniskill+genesis",
+    "overall": {
+      "success_rate": 0.16666666666666666,
+      "ci_low": 0.09313077201321032,
+      "ci_high": 0.28031851497207827,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.1,
+        "ci_low": 0.027865893984153206,
+        "ci_high": 0.30103820641179335,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.35,
+        "ci_low": 0.18118954786794464,
+        "ci_high": 0.5671494897805354,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 24,
+      "grasp": 22,
+      "lift": 3,
+      "transport": 1,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 82.52641884610057,
+      "p95_ms": 107.85314863547683,
+      "max_ms": 441.18734363000806
+    }
+  },
   "maniskill/act_panda_pick_v1": {
     "model": "act_panda_pick_v1",
     "engine": "maniskill",
@@ -1049,6 +1124,81 @@
       "max_ms": 469.55345831811394
     }
   },
+  "maniskill/xvla_panda_pick_v2": {
+    "model": "xvla_panda_pick_v2",
+    "engine": "maniskill",
+    "trained_on": "robosuite+maniskill+genesis",
+    "overall": {
+      "success_rate": 0.13333333333333333,
+      "ci_low": 0.06914026978309641,
+      "ci_high": 0.24165394590072103,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.16666666666666666,
+        "ci_low": 0.04696414761482223,
+        "ci_high": 0.44803635738467273,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.16666666666666666,
+        "ci_low": 0.04696414761482223,
+        "ci_high": 0.44803635738467273,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.25,
+        "ci_low": 0.11186005278940309,
+        "ci_high": 0.4687050099580636,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.1,
+        "ci_low": 0.027865893984153206,
+        "ci_high": 0.30103820641179335,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 40,
+      "grasp": 11,
+      "lift": 0,
+      "transport": 1,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 75.82457514945418,
+      "p95_ms": 102.97769033582875,
+      "max_ms": 763.6966774472965
+    }
+  },
   "robosuite/act_panda_pick_v1": {
     "model": "act_panda_pick_v1",
     "engine": "robosuite",
@@ -1572,6 +1722,81 @@
       "p50_ms": 113.43266628682613,
       "p95_ms": 214.36214238754462,
       "max_ms": 688.3814799133687
+    }
+  },
+  "robosuite/xvla_panda_pick_v2": {
+    "model": "xvla_panda_pick_v2",
+    "engine": "robosuite",
+    "trained_on": "robosuite+maniskill+genesis",
+    "overall": {
+      "success_rate": 0.13333333333333333,
+      "ci_low": 0.06914026978309641,
+      "ci_high": 0.24165394590072103,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.3333333333333333,
+        "ci_low": 0.13811783989736134,
+        "ci_high": 0.609382412602386,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.25,
+        "ci_low": 0.11186005278940309,
+        "ci_high": 0.4687050099580636,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.1,
+        "ci_low": 0.027865893984153206,
+        "ci_high": 0.30103820641179335,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 34,
+      "grasp": 18,
+      "lift": 0,
+      "transport": 0,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 77.86837557796389,
+      "p95_ms": 103.44831245252861,
+      "max_ms": 395.5016451422122
     }
   }
 }
