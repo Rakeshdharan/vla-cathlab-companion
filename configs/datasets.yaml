@@ -10,8 +10,8 @@ datasets:
   - {repo_id: Rakeshdharan56/pick_genesis, revision: v1, embodiment: panda, io: panda_libero, engine: genesis,
      physics: "Genesis 1.4.5", episodes: 383, frames: 66447, fps: 20, visibility: public,
      notes: "paired with robosuite + Genesis camera jitter / light direction"}
-  - {repo_id: Rakeshdharan56/pick_panda_v2, embodiment: panda, io: panda_libero, engine: merged,
-     physics: "robosuite + ManiSkill + Genesis", episodes: 1136, frames: 181025, fps: 20, visibility: local,
+  - {repo_id: Rakeshdharan56/pick_panda_v2, revision: v1, embodiment: panda, io: panda_libero, engine: merged,
+     physics: "robosuite + ManiSkill + Genesis", episodes: 1136, frames: 181025, fps: 20, visibility: public,
      local_path: data/pick_panda_v2, notes: "merge of the three v1 sets (cross-sim co-training, xvla_panda_pick_v2)"}
   - {repo_id: aravindsuresh16/cathlab_fr3_newton_v1, revision: v1.0.1, embodiment: fr3_duo, io: fr3_duo_16d,
      engine: newton, physics: "Newton 1.6 (MuJoCo-Warp)", episodes: 384, frames: 159568, fps: 30, visibility: public,
