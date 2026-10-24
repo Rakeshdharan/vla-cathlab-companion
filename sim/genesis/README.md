@@ -16,8 +16,8 @@ Conventions (as robosuite):
 - State = TCP position + hand axis-angle + fingers `[+q1, −q2]`. Images upright RGB uint8.
 - Action = `[dpos/0.05 m, drot/0.5 rad (base frame, about the TCP), gripper −1 open / +1 close]`.
 
-Deviations from robosuite (controller dynamics, physics step, lighting, randomisation limits) are in
-[docs/decisions.md](../../docs/decisions.md) (H25.5 rows).
+Deviations from robosuite (controller dynamics, physics step, lighting, randomisation limits) are measured in the
+code and tests here (history on the pre-dev branch).
 
 Requires `~/venvs/genesis` (Python 3.11, genesis-world 1.4.5, CUDA torch); run with `PYTHONPATH=<repo>`. Engine
 stages: `python -m engines.genesis.cli <stage>`. Tests in `tests/sim/test_genesis_env.py` skip without genesis

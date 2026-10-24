@@ -17,25 +17,22 @@ params:
   - {name: hf_repo, type: str, required: false, help: "e.g. <org>/pick_robosuite; empty = don't upload"}
 context:
   - AGENTS.md
-  - docs/tasks/robosuite-collection.md
+  - docs/data.md
   - scripts/robosuite_generate.py
   - scripts/npz_to_lerobot.py
   - scripts/preview_episodes.py
-  - docs/data.md
 prompt: |
-  Produce episodes {start}..{start}+{n} of split `{split}` from configs/variation/{spec}.yaml, following
-  docs/tasks/robosuite-collection.md exactly:
+  Produce episodes {start}..{start}+{n} of split `{split}` from configs/variation/{spec}.yaml:
   1. Run {num_shards} shards of scripts/robosuite_generate.py in parallel in the `robosuite` conda env with MUJOCO_GL=egl,
      `--spec configs/variation/{spec}.yaml --split {split} --start {start} --n {n} --num-shards {num_shards} --out {out}
      --dataset-id {dataset_id} --version {version}`. Wait for all shards.
   2. Convert with scripts/npz_to_lerobot.py in the `lerobot` conda env (`--dataset {out}`).
   3. Write a preview GIF of episode 0 to {out}/preview.gif with scripts/preview_episodes.py.
-  4. If `hf_repo` is non-empty ("{hf_repo}"), upload {out}/lerobot as a dataset repo with tags `{version}` and `v3.0`,
-     as the guide describes (never upload provided Siemens data).
-  5. Add one row to docs/decisions.md with: spec, split, window, expert success per object, episodes kept,
-     throughput, output folder and HF link.
+  4. If `hf_repo` is non-empty ("{hf_repo}"), upload {out}/lerobot as a dataset repo with tags `{version}` and `v3.0`
+     (never upload provided Siemens data).
+  5. In the PR description record: spec, split, window, expert success per object, episodes kept, throughput,
+     output folder and HF link. Add a row to docs/data.md if this is a new published dataset.
 allowed_paths:
-  - docs/decisions.md
   - docs/data.md
 acceptance:
   - {name: dataset-exists, cmd: "test -f {out}/lerobot/meta/info.json"}

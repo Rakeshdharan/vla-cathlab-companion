@@ -24,14 +24,13 @@ prompt: |
      (all existing tests must pass unchanged).
   3. `--expert {expert_id}` option in scripts/robosuite_expert_check.py and scripts/robosuite_generate.py.
   4. Tests in tests/dataengine/ with a fake provider. Catalog item `{expert_id}` in section `expert`: in_progress until
-     the robosuite expert check reaches 80 % with it, then ready. One row in docs/decisions.md with the measured rate.
+     the robosuite expert check reaches 80 % with it, then ready. State the measured rate in the PR description.
 allowed_paths:
   - dataengine/
   - scripts/robosuite_expert_check.py
   - scripts/robosuite_generate.py
   - tests/
   - configs/catalog.yaml
-  - docs/decisions.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}
   - {name: robosuite-tests, cmd: "conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python -m pytest -q tests/sim"}

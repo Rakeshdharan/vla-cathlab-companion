@@ -12,7 +12,7 @@ params:
   - {name: spec_out, type: str, pattern: "^[a-z][a-z0-9_]*$", default: cathlab_v2, help: "new or existing versioned spec (never edit cathlab_v1)"}
 context:
   - AGENTS.md
-  - docs/specs/2026-10-22-sim-framework-design.md
+  - docs/EXTENDING.md
   - dataengine/variation.py
   - configs/variation/cathlab_v1.yaml
   - sim/robosuite/randomize.py
@@ -27,7 +27,7 @@ prompt: |
   3. Apply it in sim/robosuite/randomize.py (apply_episode_config) on every reset.
   4. In configs/catalog.yaml set the `{axis_id}` item in section `variation` to status ready (add the item if missing).
   5. Tests: unit test for the sampling in tests/dataengine/, and a robosuite test in tests/sim/ that two configs differ on the axis.
-  6. One row in docs/decisions.md.
+  6. Record the decision in the PR description.
 allowed_paths:
   - dataengine/variation.py
   - configs/variation/
@@ -35,7 +35,6 @@ allowed_paths:
   - sim/robosuite/randomize.py
   - sim/robosuite/env.py
   - tests/
-  - docs/decisions.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}
   - {name: robosuite-tests, cmd: "conda run -n robosuite --no-capture-output env MUJOCO_GL=egl python -m pytest -q tests/sim"}

@@ -1,13 +1,14 @@
 # AGENTS.md — CathLab Companion
 
-Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in robosuite + ManiSkill3 (engine plugins under `engines/`; Isaac Sim was dropped at H24), LIBERO I/O, task "Hand me the {bottle | vial | syringe}". See [docs/specs/2026-10-22-sim-framework-design.md](docs/specs/2026-10-22-sim-framework-design.md). We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"). 36 h, 5 people, each working with coding agents in this one repo.
+Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in robosuite + ManiSkill3 + Genesis (engine plugins under `engines/`; Isaac Sim was dropped early on), LIBERO I/O, task "Hand me the {bottle | vial | syringe}". We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"), and failures feed back into new synthetic data and retraining.
 
 Read these before non-trivial work:
-- Design spec: [docs/specs/2026-10-22-cathlab-learning-loop-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md)
-- Foundation plan: [docs/plans/2026-10-22-cathlab-loop-implementation.md](docs/plans/2026-10-22-cathlab-loop-implementation.md)
-- Workstreams and owners: [docs/tasks/README.md](docs/tasks/README.md) (one file per person)
-- Decisions log: [docs/decisions.md](docs/decisions.md)
-- Provided datasets, HF repos and schema: [docs/data.md](docs/data.md)
+- How the platform fits together, stage gates, and how to extend it: [docs/EXTENDING.md](docs/EXTENDING.md)
+- Control Station user guide: [docs/GUIDE.md](docs/GUIDE.md)
+- Agent harness (templates, worktrees, briefs): [docs/HARNESS.md](docs/HARNESS.md)
+- Install: [docs/INSTALL.md](docs/INSTALL.md)
+- Provided and generated datasets, HF repos and schema: [docs/data.md](docs/data.md)
+- Planning history (specs, plans, handoffs, status, decisions, pitch) lives on the `pre-dev` branch.
 
 ## Architecture
 
@@ -25,7 +26,7 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 | Package | Owner |
 |---|---|
 | `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
-| `dataset_intel/`, `serve/`, `report/`, `docker/`, `compose.yaml`, `.github/workflows/`, `configs/{serve,intel,workers.docker}.yaml`, `docs/research/` | Sharan |
+| `dataset_intel/`, `serve/`, `report/`, `docker/`, `compose.yaml`, `.github/workflows/`, `configs/{serve,intel,workers.docker}.yaml` | Sharan |
 | `awareness/` | Navneet |
 | `sim/maniskill/`, `engines/maniskill/` | Mitesh (Rakesh built v1) |
 | `sim/genesis/`, `engines/genesis/` | Akanksh |
@@ -60,13 +61,13 @@ Heavy dependencies (simulators, LeRobot, GraspGen, cuRobo, ElevenLabs) are optio
 
 - **TDD:** write the failing test first, using `DummySim` / `RandomPolicy` / tiny fixtures.
 - **Contracts are frozen.** A change to `contracts/` needs a dedicated PR reviewed by Rakesh, and must update every implementer in the same PR.
-- **Stay in your lane:** edit only the packages of the workstream you're working on. If you need something from another package, write the request in the PR description or in `docs/decisions.md`.
+- **Stay in your lane:** edit only the packages of the workstream you're working on. If you need something from another package, write the request in the PR description.
 - Task stages are exactly `reach, grasp, lift, transport, place`. Dataset `source` is one of `provided, domain_rand, mimicgen, scripted, teleop, cosmos`.
 - Config lives in `configs/` (YAML, validated by pydantic models). Don't hard-code paths, object lists or seeds.
 - Large artifacts (datasets, checkpoints, videos, USD assets > 10 MB) never go into git. Use HF Hub / W&B Artifacts and reference them by URI in manifests/model cards.
 - Secrets (HF, W&B, ElevenLabs, VLM API keys) come from a git-ignored `.env`. Never print, log or commit keys.
 - W&B project `cathlab-companion`; run name `<model>-<dataset_version>-<owner>`.
-- Record every non-obvious choice as one line in `docs/decisions.md`. These feed the pitch.
+- Record every non-obvious choice as one line in the PR description.
 - Only comment code that needs clarification. Each package has a short `README.md`.
 
 ## Git and commits

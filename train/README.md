@@ -17,4 +17,4 @@ Training recipes are code: `train/recipes/{act,smolvla,xvla}.yaml` (policy args,
 steps/batch/save) and `python -m train.recipe <model> --dataset <repo>@<rev> --repo-id <ckpt repo> [--io fr3_duo_16d]
 [--steps N] [--dataset-root data/<local>] [--run]`, which prints (or runs) the exact `lerobot-train` command in the
 lerobot env. `tests/train/test_recipe.py` checks it reproduces the `xvla_panda_genesis_v1` and `xvla_panda_pick_v2`
-commands. History of each run: [docs/handoffs/2026-10-23-maniskill-training-session.md](../docs/handoffs/2026-10-23-maniskill-training-session.md) §5.
+commands. Training recipes record the run in each checkpoint's model card (`train/model_card.py`).

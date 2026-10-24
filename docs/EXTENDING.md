@@ -64,8 +64,8 @@ Mirror an existing plugin: `engines/robosuite/` (MuJoCo 3.3), `engines/maniskill
    `python -m pytest -q tests/engines/test_conformance.py -k <id>`.
 6. Add a worker entry in `configs/workers.yaml` and start it:
    `python -m orchestrator.worker --name <id> --capabilities scene,generate,eval --port 87xx`.
-7. Add the catalog item (`configs/catalog.yaml`), a `CREDITS.md` row for the simulator, and a `docs/decisions.md` row
-   recording what passed.
+7. Add the catalog item (`configs/catalog.yaml`) and a `CREDITS.md` row for the simulator, and record what passed
+   in the PR description.
 
 ## 4. Add an object, data method, metric or report section
 
@@ -136,4 +136,4 @@ Same seven lines as `harness/brief.py`'s `RULES`:
 - Never commit data, checkpoints, .env or secrets; outputs go under var/ or data/ (git-ignored).
 - Never edit configs/variation/cathlab_v1.yaml (the published v1 dataset depends on it); add a new versioned spec.
 - Add a row to CREDITS.md for every project, model, dataset or paper you use.
-- Record decisions and evidence (check results) in docs/decisions.md.
+- Record decisions and evidence (check results) in the PR description.

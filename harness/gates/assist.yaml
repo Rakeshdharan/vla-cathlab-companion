@@ -7,7 +7,7 @@ contract:
   - "awareness.assistant.Assistant proposes the next object for the current procedure step; the user confirms; the instruction drives the production model's rollout"
   - "No network calls in tests; the VLM is behind an interface with a fake"
 conformance: "uv run pytest -q tests/test_awareness_assistant.py tests/test_awareness_engine.py tests/test_awareness_procedure.py"
-paths: ["awareness/", "configs/procedures/", "tests/", "docs/decisions.md"]
+paths: ["awareness/", "configs/procedures/", "tests/"]
 reference: [awareness/assistant.py, awareness/engine.py, awareness/procedure.py]
 context: [AGENTS.md, awareness/README.md]
 templates: []

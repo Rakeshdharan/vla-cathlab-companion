@@ -8,7 +8,7 @@ contract:
   - "--policy url:<policy server> uses serve.policy_client.PolicyClient (HTTP + JSON, X-Cathlab-Token)"
   - "Promotion: CI low on the primary engine > production success rate, ≥ min_episodes, p95 ≤ latency budget (configs/serve.yaml); force never skips latency; rollback restores the previous promoted version"
 conformance: "uv run pytest -q tests/serve tests/orchestrator/test_loop.py tests/engines"
-paths: ["serve/", "engines/", "tests/serve/", "tests/engines/", "docs/decisions.md"]
+paths: ["serve/", "engines/", "tests/serve/", "tests/engines/"]
 reference: [engines/robosuite/evaluate.py, engines/policies.py, serve/registry.py, serve/policy_server.py, serve/policy_client.py, orchestrator/loop.py]
 context: [AGENTS.md, docs/EXTENDING.md, configs/serve.yaml]
 templates: []

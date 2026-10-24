@@ -1,17 +1,15 @@
 # eval/ — CathLab Evaluation Harness
 
-**Owner:** Akanksh · Spec: `docs/specs/…-design.md` §4, §6, §8.2
+## Modules
 
-## Deliverables
-
-| File | Deliverable | Due | Status |
-|---|---|---|---|
-| `runner.py` | `run_episode` / `run_suite` (frozen API) | H2 | ✅ |
-| `metrics.py` | Wilson CI, by-tier, by-object, latency, grounding | H10 | ✅ |
-| `judge.py` | VLM success judge (DummyJudge + GeminiJudge) | H18 | ✅ |
-| `cli.py` | `python -m eval.cli --policy X --sim Y --suite Z` | H10 | ✅ |
-| `benchmark.py` | Benchmark table + matplotlib plots | H20/H28 | ✅ |
-| `failures.py` | Failure clustering → GapSpec (feeds loop/) | H22 | ✅ |
+| File | What |
+|---|---|
+| `runner.py` | `run_episode` / `run_suite` (frozen API) |
+| `metrics.py` | Wilson CI, by-tier, by-object, latency, grounding |
+| `judge.py` | VLM success judge (DummyJudge + GeminiJudge) |
+| `cli.py` | `python -m eval.cli --policy X --sim Y --suite Z` |
+| `benchmark.py` | Benchmark table + matplotlib plots |
+| `failures.py` | Failure clustering → GapSpec (feeds `report/`) |
 
 ## Quick Start
 

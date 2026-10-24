@@ -8,7 +8,7 @@ contract:
   - "A grasp provider returns (tcp_position, tcp_quat_wxyz, approach) like dataengine.expert.grasp_pose; heavy models are imported lazily"
   - "check-expert writes expert_check.json: {split, params, per_object: {obj: {success, attempted, rate, mean_steps, max_steps}}, failures}"
 conformance: "MUJOCO_GL=egl conda run -n robosuite python -m engines.robosuite.cli check-expert --out var/check --n 20   # every rate >= 0.8"
-paths: ["dataengine/", "scripts/robosuite_expert_check.py", "scripts/robosuite_generate.py", "engines/", "tests/", "configs/catalog.yaml", "docs/decisions.md", "CREDITS.md"]
+paths: ["dataengine/", "scripts/robosuite_expert_check.py", "scripts/robosuite_generate.py", "engines/", "tests/", "configs/catalog.yaml", "CREDITS.md"]
 reference: [dataengine/expert.py, sim/robosuite/expert_sim.py, scripts/robosuite_expert_check.py, engines/expert_policy.py]
 context: [AGENTS.md, docs/EXTENDING.md, dataengine/variation.py]
 templates: [add_expert]

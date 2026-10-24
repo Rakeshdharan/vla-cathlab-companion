@@ -1,4 +1,4 @@
-"""Expert parameters tuned for ManiSkill's pd_ee_delta_pose Panda (see docs/decisions.md for the measurements)."""
+"""Expert parameters tuned for ManiSkill's pd_ee_delta_pose Panda (measured; history on the pre-dev branch)."""
 from dataengine.expert import ExpertParams
 
 MANISKILL_EXPERT_PARAMS = ExpertParams(

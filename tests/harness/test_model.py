@@ -42,10 +42,10 @@ def test_path_guard():
 
 def test_placeholders_in_allowed_paths_and_checks():
     t = TaskTemplate(id="f", title="Free", description="d", params=[Param(name="paths"), Param(name="obj")],
-                     prompt="x", allowed_paths=["{paths}", "docs/decisions.md"],
+                     prompt="x", allowed_paths=["{paths}", "docs/EXTENDING.md"],
                      acceptance=[Check(name="c", cmd="check --objects {obj}")])
     params = {"paths": "sim/robosuite/, tests/sim/", "obj": "hoop"}
-    assert allowed_for(t, params) == ["sim/robosuite/", "tests/sim/", "docs/decisions.md"]
+    assert allowed_for(t, params) == ["sim/robosuite/", "tests/sim/", "docs/EXTENDING.md"]
     assert checks_for(t, params)[0].cmd == "check --objects hoop"
 
 

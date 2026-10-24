@@ -1,4 +1,4 @@
-# ManiSkill3 engine plugin (PhysX 5). Contract: docs/handoffs/2026-10-23-rtx4090-maniskill-genesis-session.md §5.
+# ManiSkill3 engine plugin (PhysX 5). Contract: harness/gates/engine.yaml.
 id: maniskill
 label: "ManiSkill3 3.0.1 (SAPIEN 3 / PhysX 5): Panda, cathlab table scene"
 env: {kind: conda, name: maniskill}

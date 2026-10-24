@@ -11,8 +11,7 @@ params:
   - {name: notes, type: text, required: false, help: "scene file, env name, known constraints"}
 context:
   - AGENTS.md
-  - docs/specs/2026-10-22-sim-framework-design.md
-  - docs/handoffs/2026-10-23-aravind-newton-fr3-session.md
+  - docs/EXTENDING.md
   - contracts/sim.py
   - dataengine/expert.py
   - dataengine/variation.py
@@ -27,12 +26,11 @@ prompt: |
   2. `sim/{sim}/backend.py`: contracts.SimBackend for policy eval with stage flags reach/grasp/lift/transport/place.
   3. `sim/{sim}/README.md` (env setup, how to run, conventions) and tests in tests/sim/ that skip without the simulator.
   4. Update the `{sim}` item in configs/catalog.yaml: status in_progress until the expert reaches 80 %, then ready
-     (state the measured rate in docs/decisions.md).
+     (state the measured rate in the PR description).
 allowed_paths:
   - sim/{sim}/
   - tests/sim/
   - configs/
-  - docs/decisions.md
 acceptance:
   - {name: core-tests, cmd: "uv run pytest -q"}
 timeout_min: 60

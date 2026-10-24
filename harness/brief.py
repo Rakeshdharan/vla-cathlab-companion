@@ -10,7 +10,7 @@ RULES = (
     "Never commit data, checkpoints, .env or secrets; outputs go under var/ or data/ (git-ignored).",
     "Never edit configs/variation/cathlab_v1.yaml (the published v1 dataset depends on it); add a new versioned spec.",
     "Add a row to CREDITS.md for every project, model, dataset or paper you use.",
-    "Record decisions and evidence (check results) in docs/decisions.md.",
+    "Record decisions and evidence (check results) in the PR description.",
 )
 
 
@@ -80,5 +80,5 @@ def build_brief(request: str, stage_ids: list[str], engine_ids: list[str], gates
     lines += ["```", "", "## Done when", "",
               "- The conformance commands above pass and the new behaviour has tests.",
               "- Status flags change only for what now works (configs/catalog.yaml, engines/<id>/engine.yaml).",
-              "- docs/decisions.md has a row with the evidence; CREDITS.md lists what you used.", ""]
+              "- The decision and the evidence (check results) are in the PR description; CREDITS.md lists what you used.", ""]
     return "\n".join(lines)
