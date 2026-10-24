@@ -6,14 +6,12 @@ Same windows and shards as scripts/robosuite_generate.py: `generation_order(spec
 [start:start+n][shard::num_shards]`, so episode i is paired with robosuite's episode i (same EpisodeConfig). On top,
 the Genesis-only axes (agentview jitter + key-light direction, seeded by the config; sim/genesis/randomize.py) are on
 unless --no-genesis-axes. Each shard writes <out>/raw/shard_<i>-of-<k>/ with episodes/*.npz,
-meta/episodes_extra.jsonl (+ engine/physics versions, git commit and the episode's genesis_axes per line) and
-manifest.yaml. Only successful expert episodes are kept.
+meta/episodes_extra.jsonl (+ provenance: engine/physics versions and the git commit, same shape as every engine;
+and the episode's genesis_axes per line) and manifest.yaml. Only successful expert episodes are kept.
 """
 import argparse
 import getpass
 import json
-import platform
-import subprocess
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -26,30 +24,24 @@ from engines.registry import ROOT
 
 
 def provenance(env) -> dict:
-    """Engine/physics versions and the git commit, recorded with every episode (data-quality rule E4)."""
+    """Engine/physics versions (data-quality rule E4), merged by dataengine.quality.engine_provenance() into the
+    uniform `provenance` dict (same shape for every engine) passed as generate_scripted(extra_meta=...)."""
     from importlib.metadata import version
     import torch
-    try:
-        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True,
-                                check=True).stdout.strip()
-        dirty = bool(subprocess.run(["git", "status", "--porcelain", "--", "sim", "engines", "dataengine"],
-                                    cwd=ROOT, capture_output=True, text=True).stdout.strip())
-    except (OSError, subprocess.CalledProcessError):
-        commit, dirty = None, None
+    from dataengine.quality import engine_provenance
     from sim.genesis.env import genesis_backend
-    return {"engine": "genesis", "genesis": version("genesis-world"), "torch": torch.__version__,
-            "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-            "backend": genesis_backend(),
-            "python": platform.python_version(), "sim_dt": env.dt, "substeps": env.substeps,
-            "control_hz": round(1.0 / env.control_dt), "git_commit": commit, "git_dirty": dirty}
+    return engine_provenance("genesis", genesis=version("genesis-world"), torch=torch.__version__,
+                             cuda=torch.version.cuda, gpu=torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+                             backend=genesis_backend(), sim_dt=env.dt, substeps=env.substeps,
+                             control_hz=round(1.0 / env.control_dt))
 
 
-def add_provenance(meta_path: Path, prov: dict, axes_on: bool = True) -> None:
-    """dataengine.generate writes fixed keys per episode; add `provenance` and the episode's `genesis_axes` (None when
-    disabled) to each line of this shard."""
+def add_genesis_axes(meta_path: Path, axes_on: bool = True) -> None:
+    """dataengine.generate writes fixed keys (including `provenance`, from extra_meta=provenance(sim.env)) per
+    episode; add the episode's `genesis_axes` (None when disabled) to each line of this shard."""
     from sim.genesis.randomize import genesis_axes
     lines = [json.loads(line) for line in meta_path.read_text().splitlines() if line.strip()]
-    meta_path.write_text("".join(json.dumps({**m, "provenance": prov, "genesis_axes": asdict(
+    meta_path.write_text("".join(json.dumps({**m, "genesis_axes": asdict(
         genesis_axes(EpisodeConfig(**m["config"]))) if axes_on else None}) + "\n" for m in lines))
 
 
@@ -87,9 +79,9 @@ def main(argv: list[str] | None = None) -> None:
     t0 = time.time()
     try:
         report, _ = generate_scripted(sim, spec, task, cfgs, sink, shard_dir, "genesis", args.dataset_id,
-                                      args.version, args.created_by, params=GENESIS_EXPERT_PARAMS)
-        add_provenance(shard_dir / "meta" / "episodes_extra.jsonl", provenance(sim.env),
-                       axes_on=not args.no_genesis_axes)
+                                      args.version, args.created_by, params=GENESIS_EXPERT_PARAMS,
+                                      extra_meta=provenance(sim.env))
+        add_genesis_axes(shard_dir / "meta" / "episodes_extra.jsonl", axes_on=not args.no_genesis_axes)
     finally:
         sim.env.close()
     minutes = (time.time() - t0) / 60

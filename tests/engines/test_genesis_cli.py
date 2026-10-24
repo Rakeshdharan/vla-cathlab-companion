@@ -58,20 +58,21 @@ def test_preview_can_disable_genesis_axes(tmp_path, capsys):
     assert "--no-genesis-axes" in argv_of(capsys, "preview", "--out", str(tmp_path), "--no-genesis-axes")
 
 
-def test_add_provenance_records_per_episode_genesis_axes(tmp_path):
+def test_add_genesis_axes_records_per_episode(tmp_path):
     from dataclasses import asdict
     from dataengine.variation import VariationSpec, train_configs
-    from engines.genesis.generate import add_provenance
+    from engines.genesis.generate import add_genesis_axes
     from sim.genesis.randomize import genesis_axes
     cfgs = train_configs(VariationSpec.load(SPEC))[:2]
     meta = tmp_path / "episodes_extra.jsonl"
-    meta.write_text("".join(json.dumps({"episode_index": i, "config": c.model_dump()}) + "\n"
+    meta.write_text("".join(json.dumps({"episode_index": i, "config": c.model_dump(),
+                                        "provenance": {"engine": "genesis"}}) + "\n"
                             for i, c in enumerate(cfgs)))
-    add_provenance(meta, {"engine": "genesis"}, axes_on=True)
+    add_genesis_axes(meta, axes_on=True)
     lines = [json.loads(line) for line in meta.read_text().splitlines()]
     assert [m["provenance"] for m in lines] == [{"engine": "genesis"}] * 2
     assert [m["genesis_axes"] for m in lines] == [json.loads(json.dumps(asdict(genesis_axes(c)))) for c in cfgs]
-    add_provenance(meta, {"engine": "genesis"}, axes_on=False)
+    add_genesis_axes(meta, axes_on=False)
     assert all(json.loads(line)["genesis_axes"] is None for line in meta.read_text().splitlines())
 
 

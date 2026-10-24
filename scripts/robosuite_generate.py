@@ -7,7 +7,8 @@
 Configs follow dataengine.variation.generation_order (objects interleaved, seeded shuffle per object), so any
 --start/--n window and every shard is object-balanced and varied, the same window is generated in every engine, and
 --n 384 covers the whole train grid. Each shard writes <out>/raw/shard_<i>-of-<k>/ with
-episodes/*.npz, meta/episodes_extra.jsonl and manifest.yaml. Only successful expert episodes are kept.
+episodes/*.npz, meta/episodes_extra.jsonl (+ provenance: robosuite/mujoco versions and the git commit, same shape
+as every engine) and manifest.yaml. Only successful expert episodes are kept.
 """
 import argparse
 import getpass
@@ -24,6 +25,13 @@ from dataengine.npz_sink import NpzSink  # noqa: E402
 from dataengine.variation import VariationSpec, select_configs  # noqa: E402
 
 
+def provenance() -> dict:
+    """robosuite/mujoco versions (data-quality rule E4), merged by dataengine.quality.engine_provenance() into the
+    uniform `provenance` dict (same shape for every engine); imported lazily, this runs in the robosuite env."""
+    import mujoco
+    import robosuite
+    from dataengine.quality import engine_provenance
+    return engine_provenance("robosuite", robosuite=robosuite.__version__, mujoco=mujoco.__version__)
 
 
 def main() -> None:
@@ -55,7 +63,8 @@ def main() -> None:
     print(f"shard {args.shard}/{args.num_shards}: {len(cfgs)} configs -> {shard_dir}", flush=True)
     t0 = time.time()
     report, manifest = generate_scripted(sim, spec, task, cfgs, sink, shard_dir, "robosuite", args.dataset_id,
-                                         args.version, args.created_by, params=ROBOSUITE_EXPERT_PARAMS)
+                                         args.version, args.created_by, params=ROBOSUITE_EXPERT_PARAMS,
+                                         extra_meta=provenance())
     minutes = (time.time() - t0) / 60
     print(f"kept {report.succeeded}/{report.attempted} ({report.success_rate:.0%}); per object "
           f"{ {o: f'{s}/{a}' for o, (a, s) in report.per_object.items()} }")
