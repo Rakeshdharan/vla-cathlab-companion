@@ -1,0 +1,5 @@
+# ACT from scratch (act_panda_pick_v1). Kept as the robosuite baseline; dropped for newer datasets (docs/decisions.md H27).
+model: act
+policy: {type: act, chunk_size: 50, n_action_steps: 50}
+rename: {}
+train: {batch_size: 64, steps: 50000, save_freq: 10000, log_freq: 100, num_workers: 16}
