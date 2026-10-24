@@ -54,7 +54,8 @@ sections:
     items:
       - {id: smolvla, label: "SmolVLA (baseline)", status: ready}
       - {id: act, label: "ACT", status: ready}
-      - {id: pi05, label: "π0.5", status: planned, harness_task: add_policy_adapter}
+      - {id: xvla, label: "X-VLA", status: ready}
+      - {id: pi05, label: "π0.5 (dropped)", status: planned, harness_task: add_policy_adapter}
 
 defaults:
   simulator: robosuite
