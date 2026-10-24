@@ -40,7 +40,8 @@ def test_npz_sink_writes_one_file_per_kept_episode(tmp_path):
     assert [f.name for f in files] == ["episode_000000.npz", "episode_000001.npz"]
     frames = list(iter_npz_frames(files[0]))
     meta = [json.loads(l) for l in (tmp_path / "meta/episodes_extra.jsonl").read_text().splitlines()]
-    assert len(frames) == meta[0]["steps"] and frames[0]["task"] == meta[0]["instruction"]
+    assert len(frames) == meta[0]["frames"] == meta[0]["steps"] - meta[0]["dropped_noops"]
+    assert frames[0]["task"] == meta[0]["instruction"]
     assert frames[0]["observation.state"].shape == (8,) and frames[0]["action"].dtype == np.float32
     assert frames[0]["observation.images.agentview"].shape == (32, 32, 3)
 
