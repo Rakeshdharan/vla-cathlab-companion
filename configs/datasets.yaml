@@ -1,0 +1,18 @@
+# Datasets the DATA tab lists (GET /api/datasets). Update when a dataset lands (docs/STATUS.md has the narrative).
+# visibility: public | private | local (local = not on the Hub; local_path is relative to the repo root).
+datasets:
+  - {repo_id: Rakeshdharan56/pick_robosuite, revision: v1, embodiment: panda, io: panda_libero, engine: robosuite,
+     physics: "MuJoCo 3.3.7 (robosuite 1.5.2)", episodes: 384, frames: 69191, fps: 20, visibility: public,
+     notes: "full cathlab_v1 train grid, expert 100 %"}
+  - {repo_id: Rakeshdharan56/pick_maniskill, revision: v1, embodiment: panda, io: panda_libero, engine: maniskill,
+     physics: "PhysX 5 (ManiSkill3 3.0.1)", episodes: 369, frames: 45387, fps: 20, visibility: public,
+     notes: "paired with robosuite; expert bottle 100 / vial 90 / syringe 100 %"}
+  - {repo_id: Rakeshdharan56/pick_genesis, revision: v1, embodiment: panda, io: panda_libero, engine: genesis,
+     physics: "Genesis 1.4.5", episodes: 383, frames: 66447, fps: 20, visibility: public,
+     notes: "paired with robosuite + Genesis camera jitter / light direction"}
+  - {repo_id: Rakeshdharan56/pick_panda_v2, embodiment: panda, io: panda_libero, engine: merged,
+     physics: "robosuite + ManiSkill + Genesis", episodes: 1136, frames: 181025, fps: 20, visibility: local,
+     local_path: data/pick_panda_v2, notes: "merge of the three v1 sets (cross-sim co-training, xvla_panda_pick_v2)"}
+  - {repo_id: aravindsuresh16/cathlab_fr3_newton_v1, revision: v1.0.1, embodiment: fr3_duo, io: fr3_duo_16d,
+     engine: newton, physics: "Newton 1.6 (MuJoCo-Warp)", episodes: 384, frames: 159568, fps: 30, visibility: public,
+     notes: "use v1.0.1 (widened q01/q99 of the idle left arm)"}
