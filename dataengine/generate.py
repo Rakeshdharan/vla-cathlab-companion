@@ -6,6 +6,7 @@ from typing import Protocol
 import numpy as np
 from contracts import DatasetManifest, TaskSpec, save_yaml
 from dataengine.expert import ExpertParams, ExpertSim, Q_DOWN, run_expert_episode
+from dataengine.quality import base_provenance, is_noop
 from dataengine.variation import EpisodeConfig, VariationSpec
 
 
@@ -66,16 +67,30 @@ class GenerationReport:
 def generate_scripted(sim: ExpertSim, spec: VariationSpec, task: TaskSpec, configs: list[EpisodeConfig],
                       sink: EpisodeSink, out_dir: str | Path, source_sim: str, dataset_id: str, version: str,
                       created_by: str, params: ExpertParams = ExpertParams(),
-                      q_down: np.ndarray = Q_DOWN) -> tuple[GenerationReport, DatasetManifest]:
-    """Keep only successful episodes. Writes <out_dir>/meta/episodes_extra.jsonl and <out_dir>/manifest.yaml."""
+                      q_down: np.ndarray = Q_DOWN, drop_noops: bool = True,
+                      extra_meta: dict | None = None) -> tuple[GenerationReport, DatasetManifest]:
+    """Keep only successful episodes (success held `params.success_hold` steps), drop no-op frames, and write
+    <out_dir>/meta/episodes_extra.jsonl (+ frames, dropped_noops, provenance = git commit + `extra_meta`) and
+    <out_dir>/manifest.yaml."""
     out_dir = Path(out_dir)
     (out_dir / "meta").mkdir(parents=True, exist_ok=True)
     report = GenerationReport()
+    provenance = {**base_provenance(), **(extra_meta or {})}
     with open(out_dir / "meta" / "episodes_extra.jsonl", "a") as meta:
         for cfg in configs:
             instruction = instruction_for(task, cfg)
-            result = run_expert_episode(sim, spec, cfg, params, q_down,
-                                        record=lambda o, a: sink.add_frame(build_frame(o, a, instruction)))
+            kept = {"frames": 0, "dropped": 0, "prev": None}
+
+            def record(obs, action, instruction=instruction, kept=kept):
+                noop = drop_noops and is_noop(action, kept["prev"])
+                kept["prev"] = np.asarray(action)
+                if noop:
+                    kept["dropped"] += 1
+                    return
+                kept["frames"] += 1
+                sink.add_frame(build_frame(obs, action, instruction))
+
+            result = run_expert_episode(sim, spec, cfg, params, q_down, record=record)
             counts = report.per_object.setdefault(cfg.object, [0, 0])
             counts[0] += 1
             report.attempted += 1
@@ -84,7 +99,8 @@ def generate_scripted(sim: ExpertSim, spec: VariationSpec, task: TaskSpec, confi
                 counts[1] += 1
                 meta.write(json.dumps({"episode_index": report.succeeded, "source_sim": source_sim,
                                        "instruction": instruction, "steps": result.steps,
-                                       "config": cfg.model_dump()}) + "\n")
+                                       "frames": kept["frames"], "dropped_noops": kept["dropped"],
+                                       "config": cfg.model_dump(), "provenance": provenance}) + "\n")
                 report.succeeded += 1
             else:
                 sink.discard_episode()

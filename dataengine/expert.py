@@ -39,6 +39,7 @@ class ExpertParams:
     transit_height: float = 0.32  # min TCP height for horizontal moves; clears the 0.25 m bottle
     min_grasp_tcp_z: float = 0.0  # lowest grasp TCP height, so fingertips below the TCP clear the table
     retreat_steps: int = 10       # end the episode this many steps into the retreat once the task has succeeded
+    success_hold: int = 10        # success must hold this many consecutive steps up to the end (data-quality rule P6)
 
 
 @dataclass
@@ -136,15 +137,20 @@ def run_expert_episode(sim: ExpertSim, spec: VariationSpec, cfg: EpisodeConfig,
     obs = sim.reset(cfg)
     waypoints = plan_waypoints(spec, cfg.object, sim.get_object_pose(cfg.object), params, q_down,
                                ee_pose=sim.get_ee_pose())
-    steps, idx, held, info, trace, retreating = 0, 0, 0, None, [], 0
-    while idx < len(waypoints) and steps < params.max_steps:
-        wp = waypoints[idx]
+    steps, idx, held, info, trace, retreating, streak = 0, 0, 0, None, [], 0, 0
+
+    def holding_success() -> bool:   # all waypoints done, task succeeded, but not yet for success_hold steps
+        return idx >= len(waypoints) and info is not None and info.success and streak < params.success_hold
+
+    while (idx < len(waypoints) or holding_success()) and steps < params.max_steps:
+        wp = waypoints[min(idx, len(waypoints) - 1)]
         action = waypoint_action(sim.get_ee_pose(), wp, params)
         if record is not None:
             record(obs, action)
         obs, info = sim.step(action)
         steps += 1
-        if _reached(sim.get_ee_pose(), wp, params):
+        streak = streak + 1 if info.success else 0
+        if idx < len(waypoints) and _reached(sim.get_ee_pose(), wp, params):
             if held >= wp.hold:
                 trace.append(wp.name)
                 idx, held = idx + 1, 0
@@ -152,7 +158,8 @@ def run_expert_episode(sim: ExpertSim, spec: VariationSpec, cfg: EpisodeConfig,
                 held += 1
         if idx == len(waypoints) - 1 and info.success:
             retreating += 1
-            if retreating >= params.retreat_steps:
+            if retreating >= params.retreat_steps and streak >= params.success_hold:
                 break
-    success = bool(info is not None and info.success and sim.tray_contains(cfg.object))
+    success = bool(info is not None and info.success and streak >= params.success_hold
+                   and sim.tray_contains(cfg.object))
     return ExpertResult(success=success, steps=steps, final_info=info, waypoints_reached=idx, trace=trace)

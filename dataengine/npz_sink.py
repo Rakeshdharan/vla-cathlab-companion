@@ -51,10 +51,41 @@ def iter_npz_frames(path: str | Path) -> Iterator[dict]:
         yield {**{key: arr[i] for key, arr in arrays.items()}, "task": task}
 
 
+def validate_shard(shard: str | Path) -> list[str]:
+    """Count checks before aggregating: manifest n_episodes == metadata lines == .npz files, and each episode's
+    recorded frame count (when present) == its .npz length."""
+    shard = Path(shard)
+    problems = []
+    lines = [json.loads(line) for line in (shard / "meta" / "episodes_extra.jsonl").read_text().splitlines()
+             if line.strip()]
+    files = sorted((shard / "episodes").glob("episode_*.npz"))
+    manifest = shard / "manifest.yaml"
+    if manifest.exists():
+        import yaml
+        n = int(yaml.safe_load(manifest.read_text())["n_episodes"])
+        if not n == len(lines) == len(files):
+            problems.append(f"{shard.name}: {n} in manifest, {len(lines)} metadata lines, {len(files)} .npz files")
+    for meta in lines:
+        npz = shard / "episodes" / f"episode_{meta['episode_index']:06d}.npz"
+        if not npz.is_file():
+            problems.append(f"{shard.name}: missing {npz.name}")
+        elif "frames" in meta:
+            with np.load(npz) as data:
+                if len(data["action"]) != meta["frames"]:
+                    problems.append(f"{shard.name}: {npz.name} has {len(data['action'])} frames, "
+                                    f"metadata says {meta['frames']}")
+    return problems
+
+
 def merge_raw_shards(shard_dirs: list[str | Path]) -> Iterator[tuple[dict, Path]]:
-    """Yield (episode metadata re-indexed across shards, npz path) in the given shard order."""
+    """Yield (episode metadata re-indexed across shards, npz path) in the given shard order. Every shard is validated
+    first (validate_shard); any count mismatch raises ValueError before a single episode is yielded."""
+    shard_dirs = list(map(Path, shard_dirs))
+    problems = [p for shard in shard_dirs for p in validate_shard(shard)]
+    if problems:
+        raise ValueError("raw shards fail the count checks: " + "; ".join(problems))
     index = 0
-    for shard in map(Path, shard_dirs):
+    for shard in shard_dirs:
         for line in (shard / "meta" / "episodes_extra.jsonl").read_text().splitlines():
             meta = json.loads(line)
             npz = shard / "episodes" / f"episode_{meta['episode_index']:06d}.npz"
