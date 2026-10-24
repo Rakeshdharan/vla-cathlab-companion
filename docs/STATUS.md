@@ -94,7 +94,7 @@ Training details: [`handoffs/2026-10-23-training-gpu-session.md`](handoffs/2026-
 | Dataset intelligence | `dataset_intel/` | ✅ | `python -m dataset_intel.report <root> [--extra] [--io]`: 7 validators, train-grid coverage, readiness score; real runs on pick_robosuite/maniskill/panda_v2 and fr3_duo_handover_84ep (decisions H39) | UI surface (DATA tab could show readiness) |
 | Failure report → next run | `report/` | ✅ | `report/failure_report.py`: `build_report` sections (failing cells, sim2sim gap, stage histogram, recommendations) + `next_run.json` (train-split cells only); CREATE NEXT RUN in the REPORT tab | — |
 | Loop controller | `orchestrator/loop.py` | ✅ | Next run via the REPORT tab's CREATE NEXT RUN → `dataengine.variation.select_configs` `cells:` split, consumed by every engine's `generate --split cells:<next_run.json>` | — |
-| Ingest | `ingest/` | ⬜ | Provided FR3 data on HF (private) | Validation report (low priority) |
+| Ingest | `ingest/` | ✅ | `python -m ingest.validate <root> --io <profile>`: contract vs IO profile + stats + dataset_intel readiness; provided FR3 84ep/10ep and pick_panda_v2 pass | LLM paraphrase enrichment (templates in `configs/tasks/` are used instead) |
 | CI + Docker | `.github/workflows/ci.yml`, `docker/control.Dockerfile` | ✅ | Core pytest on Python 3.10/3.12 for every push to `main` and PR (`uv sync --frozen`); control plane + UI image (built and smoke-tested H37) | `compose.yaml` for workers (optional) |
 | Docs + agent setup | `AGENTS.md`, `docs/EXTENDING.md`, `docs/HARNESS.md`, `docs/INSTALL.md`, `.github/{instructions,skills,prompts,agents}` | ✅ | Install, harness guide, extending guide (robosuite + ManiSkill examples), engine README, per-area agent instructions, repo skill | — |
 
