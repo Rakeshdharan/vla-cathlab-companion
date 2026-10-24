@@ -28,6 +28,7 @@ make demo-ui                   # try the UI with a throwaway repo and a fake age
 
 | Doc | What |
 |---|---|
+| [docs/GUIDE.md](docs/GUIDE.md) | Control Station user guide: every tab, button and pipeline stage, troubleshooting, click-test results |
 | [docs/specs/…-design.md](docs/specs/2026-10-22-cathlab-learning-loop-design.md) | Architecture, stages, option catalogue, timeline |
 | [docs/plans/…-implementation.md](docs/plans/2026-10-22-cathlab-loop-implementation.md) | Foundation implementation plan (contracts + eval runner) |
 | [docs/tasks/](docs/tasks/README.md) | Per-member workstreams and integration checkpoints |

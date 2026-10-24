@@ -128,6 +128,10 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 | **Rollout** | One live episode of the production model with video, from the Control Station (ASSIST/PIPELINE) | Rakesh | ✅ `engines/<id>/cli rollout --policy url:<server>` | ✅ e2e on a scratch registry (H31); production rollout videos in 3 engines queued after `xvla_panda_pick_v2` (H37) |
 | **Failure report → next loop** | Failing cells (engine × tier × object × layout/colour), stage histogram, wrong-object grasps, sim2sim gap, `next_run.json` with exactly those cells → generate → v2 data → retrain | Rakesh (was Sharan, S6) | ✅ `report/failure_report.py` | ✅ |
 
+## UI click test (H40, RTX 2000 Ada)
+
+44/45 steps of the end-to-end click test PASS (H2 n/a: no agent jobs here), incl. live production rollouts (SmolVLA vial 125 and 149 steps) and expert handover; results and **known issues** in [GUIDE.md](GUIDE.md#known-issues) (ManiSkill offline on WSL2, SmolVLA `.mp4` needs H.264-capable Chrome/Edge, hard-reload after pull, PROMOTE stage lamp shows *failed* on a refusal). Fixed in `71649b1`: brief gate for register/promote, OUTPUTS 404 noise, X-VLA in the catalog.
+
 ## Next (owner)
 
 **Pitches today:** 09:00 tech pitch (10 min, at our table) and 12:00 jury pitch (4 min, slides). Plan, timeline and freeze (08:35): [`PITCH.md`](PITCH.md).
