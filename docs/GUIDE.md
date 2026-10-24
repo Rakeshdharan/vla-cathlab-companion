@@ -294,6 +294,8 @@ relevant stage contracts, tests, templates and rules for any coding agent.
 | PROMOTE stage shows lamp **failed** when the rule says NOT PROMOTED | PIPELINE | Expected: the reason is in the log (e.g. `insufficient eval on robosuite: 3 < 30 episodes`) |
 | A 409 on CREATE RUN shows only the first problem message in the footer | PROJECT | The SELECTION CHECK list shows every problem |
 | SmolVLA live rollouts take ~2–4 min on the 8 GB laptop (~444 ms per predict) and the syringe can fail at grasp | ASSIST / PIPELINE | Demo the **vial** (succeeded in 125 and 149 steps today); RECORDED ROLLOUTS or the scripted expert as fallback |
+| PIPELINE strip lists stages by definition, not loop order (Eval/Rollout before Train). Stages are independent tools gated by `needs`; Eval/Rollout evaluate whatever `policy` says (default `expert` = reference) | PIPELINE | Loop order: Train → Evaluate with `lerobot:<repo-id>` → Register → Promote → Rollout `registry:cathlab-pick@production` → REPORT |
+| **Register attaches the run's latest eval report to the typed `ckpt` without checking that the eval ran that checkpoint** | PIPELINE → Register | Only register after an Evaluate whose policy was `lerobot:<that ckpt>`; never after an `expert` eval (fix planned: take ckpt from the eval's policy) |
 | DOWNLOAD .MD in the AGENT BRIEF could not be confirmed by browser automation (blob link) | AGENT BRIEF | Check by hand once |
 
 Fixed during the click test (commit `71649b1`): AGENT BRIEF FOR THIS STAGE on REGISTER/PROMOTE now ticks the `rollout` gate
