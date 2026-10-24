@@ -32,6 +32,7 @@ make demo-ui                   # try the UI with a throwaway repo and a fake age
 | [docs/plans/…-implementation.md](docs/plans/2026-10-22-cathlab-loop-implementation.md) | Foundation implementation plan (contracts + eval runner) |
 | [docs/tasks/](docs/tasks/README.md) | Per-member workstreams and integration checkpoints |
 | [docs/decisions.md](docs/decisions.md) | Decisions log |
+| [docs/DEMO.md](docs/DEMO.md) | 5-minute Control Station demo walk-through, with fallbacks |
 | [AGENTS.md](AGENTS.md) | Rules for coding agents (and humans) working in this repo |
 
 ## Quick start
