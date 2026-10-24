@@ -10,7 +10,7 @@ GENESIS_PY ?= $(HOME)/venvs/genesis/bin/python
 GENESIS_BACKEND ?= cpu
 
 .PHONY: install test dev worker-robosuite worker-maniskill worker-genesis worker-lerobot agent demo-ui harness-list \
-	conformance-robosuite conformance-maniskill conformance-genesis policy-server
+	conformance-robosuite conformance-maniskill conformance-genesis policy-server demo-bootstrap
 
 install:            ## core env (uv) with dev deps
 	uv sync
@@ -57,3 +57,6 @@ conformance-genesis:  ## engine + scene tests in the Genesis venv
 
 policy-server:      ## serve the production model on :8720 (lerobot env; needs a promoted lerobot version)
 	conda run -n $(LEROBOT_ENV) --no-capture-output python -m serve.policy_server --registry cathlab-pick@production
+
+demo-bootstrap:     ## rebuild var/registry + the production failure report from the committed eval reports
+	uv run python -m scripts.demo_bootstrap
