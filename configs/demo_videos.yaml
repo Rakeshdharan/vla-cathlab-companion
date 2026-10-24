@@ -1,5 +1,22 @@
 # Recorded rollout videos for the demo (ASSIST → RECORDED ROLLOUTS). url: http(s) link (e.g. HF), or path: a file
-# under var/ (served by the control plane). Add the production rollout videos here when they are uploaded.
-videos: []
-#  - {label: "SmolVLA v2 hands over the vial (robosuite)", engine: robosuite, object: vial,
-#     model: cathlab-pick@v2, success: true, url: "https://huggingface.co/.../resolve/main/robosuite_vial.mp4"}
+# under var/ (served by the control plane). Production cathlab-pick@v2 (smolvla_panda_pick_v1), seed 5001, in_distribution,
+# recorded on the RTX 6000 Ada (H37.5). Left half: agentview, right half: eye_in_hand.
+videos:
+  - {label: "SmolVLA v2 hands over the vial (robosuite)", engine: robosuite, object: vial, model: cathlab-pick@v2, success: true,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/robosuite_vial_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at grasp (syringe) (robosuite)", engine: robosuite, object: syringe, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/robosuite_syringe_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at grasp (bottle) (robosuite)", engine: robosuite, object: bottle, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/robosuite_bottle_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at grasp (vial) (ManiSkill)", engine: maniskill, object: vial, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/maniskill_vial_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at reach (syringe) (ManiSkill)", engine: maniskill, object: syringe, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/maniskill_syringe_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at reach (bottle) (ManiSkill)", engine: maniskill, object: bottle, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/maniskill_bottle_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at reach (vial) (Genesis)", engine: genesis, object: vial, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/genesis_vial_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at reach (syringe) (Genesis)", engine: genesis, object: syringe, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/genesis_syringe_rollout.mp4"}
+  - {label: "SmolVLA v2 fails at reach (bottle) (Genesis)", engine: genesis, object: bottle, model: cathlab-pick@v2, success: false,
+     url: "https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media/resolve/main/rollouts/production_cathlab-pick-v2/genesis_bottle_rollout.mp4"}

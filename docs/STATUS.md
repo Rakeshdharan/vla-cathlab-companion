@@ -24,7 +24,7 @@
 | SmolVLA | ✅ [`smolvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_pick_v1), 8,500 × 32, from `smolvla_libero` | ✅ [`smolvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/smolvla_panda_maniskill_v1), 8,500 × 32 (v1 recipe), 1 h 54 m, loss 0.011 | ✅ [`aravindsuresh16/smolvla_cathlab_fr3_newton_v1`](https://huggingface.co/aravindsuresh16/smolvla_cathlab_fr3_newton_v1), from `smolvla_base`, **16,000 × 10** (cloud GPU, pushed 21:05; dataset revision not pinned): **Aravind evaluates** |
 | X-VLA | ✅ [`xvla_panda_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v1), 7,500 × 32, from `xvla-base` (`auto`) | ✅ [`xvla_panda_maniskill_v1`](https://huggingface.co/Rakeshdharan56/xvla_panda_maniskill_v1), **2,500 × 32** (time-boxed, v1: 7,500), 36 m, loss 0.028 | ✅ [`xvla_fr3_pick_v1`](https://huggingface.co/Rakeshdharan56/xvla_fr3_pick_v1), from `xvla-base` (`auto`, 16-D, 3 cams), **3,500 × 32**, 1 h 08 m, loss 0.001: **Aravind evaluates** |
 | ~~π0.5~~, ~~MolmoAct2~~ | dropped | — | dropped |
-| **Panda v2** (cross-sim co-training) | SmolVLA v2 ❌ dropped (H28.5). **X-VLA v2** 🔄 `Rakeshdharan56/xvla_panda_pick_v2` on `pick_panda_v2` (robosuite + ManiSkill + Genesis, 1,136 eps), 7,500 × 32, ETA ~04:19 | | — |
+| **Panda v2** (cross-sim co-training) | SmolVLA v2 ❌ dropped (H28.5). **X-VLA v2** ✅ [`xvla_panda_pick_v2`](https://huggingface.co/Rakeshdharan56/xvla_panda_pick_v2) on `pick_panda_v2` (robosuite + ManiSkill + Genesis, 1,136 eps), 7,500 × 32, 1 h 48 m, loss 0.020 (1.3 epochs); evals in the 3 engines running (H38) | | — |
 
 **ACT is dropped for the new datasets** (it stays as the robosuite-trained baseline). FR3 checkpoints are evaluated by Aravind in Newton + MuJoCo. The ManiSkill runs use **exactly** the v1 recipes (only the dataset and repo ids differ, proven by a `train_config.json` diff): [`handoffs/2026-10-23-maniskill-training-session.md`](handoffs/2026-10-23-maniskill-training-session.md). Smokes and schedule (RTX 6000 Ada, 48 GB; runs are sequential because no two fit together):
 
@@ -34,7 +34,7 @@
 | X-VLA-FR3 | 44.1 GB | 1.16 | 3,500 (cut, floor was 7,500) | 20:53 → ✅ 22:03 |
 | X-VLA-ManiSkill | 34.0 GB | 0.85 | 2,500 (cut, v1 7,500) | 22:03 → ✅ 22:40 |
 | **X-VLA-Genesis** → `Rakeshdharan56/xvla_panda_genesis_v1` | ~34 GB | 1.03 | 7,500 (= v1 recipe) on `pick_genesis@v1` (383 eps, 66k frames) | 23:02 → ✅ 00:53 (1 h 51 m, loss 0.013, 3.6 epochs) |
-| **X-VLA v2 (3 engines)** → `Rakeshdharan56/xvla_panda_pick_v2` | 34.0 GB | 0.86 (1.17 step/s) | 7,500 (= v1 recipe) on local `pick_panda_v2` (1,136 eps, 181k frames, ~1.3 epochs) | 02:31 → ~04:20; at 03:24 step 3,687, loss 0.027, ckpt 2,500 saved |
+| **X-VLA v2 (3 engines)** → `Rakeshdharan56/xvla_panda_pick_v2` | 34.0 GB | 0.86 (1.17 step/s) | 7,500 (= v1 recipe) on local `pick_panda_v2` (1,136 eps, 181k frames, ~1.3 epochs) | 02:31 → ✅ 04:19 (pushed 04:19, loss 0.020) |
 
 `train_config.json` diff vs v1 (T1): only dataset, job name, output dir, repo id + smoke flags. The handoff's SmolVLA command lacked `--policy.use_amp=true` (v1 had it); the full run sets it. W&B offline as in v1. Evals of finished checkpoints (2–6 GB) run beside training; logs in `outputs/logs/status.txt`.
 
@@ -128,6 +128,8 @@ Every stage below already has a contract (spec Part B P9–P12 and Sharan's [han
 | **Failure report → next loop** | Failing cells (engine × tier × object × layout/colour), stage histogram, wrong-object grasps, sim2sim gap, `next_run.json` with exactly those cells → generate → v2 data → retrain | Rakesh (was Sharan, S6) | ✅ `report/failure_report.py` | ✅ |
 
 ## Next (owner)
+
+**Production rollout videos (H37.5):** `cathlab-pick@v2` (SmolVLA) × robosuite / ManiSkill / Genesis × vial / syringe / bottle, seed 5001, on the Hub at [`Rakeshdharan56/cathlab_demo_media`](https://huggingface.co/datasets/Rakeshdharan56/cathlab_demo_media) and listed in `configs/demo_videos.yaml` (ASSIST → RECORDED ROLLOUTS): **1/9 success = robosuite vial** (123 steps), robosuite syringe/bottle fail at grasp, all ManiSkill/Genesis fail at reach or grasp, as the 38 % / 0 % / 0 % evals predict. Targeted generate of the v2 `next_run.json` cells: 16/16 kept in each engine (`var/loop_v2/` on the RTX 6000 Ada).
 
 **Demo finish moves to the RTX 2000 Ada:** [`handoffs/2026-10-24-rtx2000-demo-finish-session.md`](handoffs/2026-10-24-rtx2000-demo-finish-session.md) (review R1–R7, demo script, `make demo-bootstrap`). The RTX 6000 Ada keeps the GPU jobs (rollout videos, targeted generate, `xvla_panda_pick_v2` evals).
 
