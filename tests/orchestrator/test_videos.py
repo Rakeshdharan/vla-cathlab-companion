@@ -77,5 +77,22 @@ def test_videos_file_path_outside_var_is_rejected(tmp_path):
     assert c.get("/api/videos/file", params={"path": "nope.mp4"}).status_code == 404
 
 
+def test_videos_file_rejects_non_media_suffixes(tmp_path):
+    var = tmp_path / "var"
+    var.mkdir()
+    # Create test files with various suffixes
+    (var / "test.db").write_bytes(b"database")
+    (var / "config.yaml").write_bytes(b"config")
+    (var / "demo.gif").write_bytes(b"image")
+    app = create_control_app(ROOT, var_dir=var, catalog_path=ROOT / "configs/catalog.yaml",
+                             workers_path=tmp_path / "none.yaml", frontend_dir=ROOT / "frontend")
+    c = TestClient(app)
+    # .db and .yaml files under var/ should return 400
+    assert c.get("/api/videos/file", params={"path": "test.db"}).status_code == 400
+    assert c.get("/api/videos/file", params={"path": "config.yaml"}).status_code == 400
+    # .gif (allowed media file) should return 200
+    assert c.get("/api/videos/file", params={"path": "demo.gif"}).status_code == 200
+
+
 def test_repo_demo_videos_config_is_valid():
     assert load_videos(ROOT / "configs/demo_videos.yaml") == []
