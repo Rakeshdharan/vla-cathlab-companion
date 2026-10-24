@@ -299,6 +299,81 @@
       "max_ms": 973.062019143253
     }
   },
+  "genesis/xvla_panda_genesis_v1": {
+    "model": "xvla_panda_genesis_v1",
+    "engine": "genesis",
+    "trained_on": "genesis",
+    "overall": {
+      "success_rate": 0.26666666666666666,
+      "ci_low": 0.17132496487078852,
+      "ci_high": 0.3900895360189135,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.3333333333333333,
+        "ci_low": 0.13811783989736134,
+        "ci_high": 0.609382412602386,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.3333333333333333,
+        "ci_low": 0.13811783989736134,
+        "ci_high": 0.609382412602386,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.16666666666666666,
+        "ci_low": 0.04696414761482223,
+        "ci_high": 0.44803635738467273,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.2,
+        "ci_low": 0.0806563532712,
+        "ci_high": 0.41602172202575993,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.05,
+        "ci_low": 0.008881219432873136,
+        "ci_high": 0.23613589351256675,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.55,
+        "ci_low": 0.3420820083075997,
+        "ci_high": 0.7418049791429071,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 18,
+      "grasp": 19,
+      "lift": 6,
+      "transport": 1,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 116.40055163297802,
+      "p95_ms": 193.4065809554886,
+      "max_ms": 477.85037150606473
+    }
+  },
   "genesis/xvla_panda_maniskill_v1": {
     "model": "xvla_panda_maniskill_v1",
     "engine": "genesis",
@@ -749,6 +824,81 @@
       "max_ms": 914.7653733612965
     }
   },
+  "maniskill/xvla_panda_genesis_v1": {
+    "model": "xvla_panda_genesis_v1",
+    "engine": "maniskill",
+    "trained_on": "genesis",
+    "overall": {
+      "success_rate": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.06017393047793289,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 50,
+      "grasp": 9,
+      "lift": 0,
+      "transport": 0,
+      "place": 1
+    },
+    "latency": {
+      "p50_ms": 78.59512453433126,
+      "p95_ms": 203.94564677611925,
+      "max_ms": 440.6288125785065
+    }
+  },
   "maniskill/xvla_panda_maniskill_v1": {
     "model": "xvla_panda_maniskill_v1",
     "engine": "maniskill",
@@ -1197,6 +1347,81 @@
       "p50_ms": 234.87181379459798,
       "p95_ms": 270.5295428971294,
       "max_ms": 745.0287085026498
+    }
+  },
+  "robosuite/xvla_panda_genesis_v1": {
+    "model": "xvla_panda_genesis_v1",
+    "engine": "robosuite",
+    "trained_on": "genesis",
+    "overall": {
+      "success_rate": 0.18333333333333332,
+      "ci_low": 0.1055768903713613,
+      "ci_high": 0.29919993226466285,
+      "n": 60
+    },
+    "per_tier": {
+      "in_distribution": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "held_out_layout": {
+        "success_rate": 0.08333333333333333,
+        "ci_low": 0.014864709450773478,
+        "ci_high": 0.35388592179859524,
+        "n": 12
+      },
+      "held_out_obj_color": {
+        "success_rate": 0.3333333333333333,
+        "ci_low": 0.13811783989736134,
+        "ci_high": 0.609382412602386,
+        "n": 12
+      },
+      "held_out_table_color": {
+        "success_rate": 0.25,
+        "ci_low": 0.08894003962896138,
+        "ci_high": 0.53231033912066,
+        "n": 12
+      },
+      "all_held_out": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.2425007574992425,
+        "n": 12
+      }
+    },
+    "per_object": {
+      "bottle": {
+        "success_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.16113012549493322,
+        "n": 20
+      },
+      "vial": {
+        "success_rate": 0.1,
+        "ci_low": 0.027865893984153206,
+        "ci_high": 0.30103820641179335,
+        "n": 20
+      },
+      "syringe": {
+        "success_rate": 0.45,
+        "ci_low": 0.25819502085709295,
+        "ci_high": 0.6579179916924003,
+        "n": 20
+      }
+    },
+    "failed_stage": {
+      "reach": 38,
+      "grasp": 9,
+      "lift": 0,
+      "transport": 2,
+      "place": 0
+    },
+    "latency": {
+      "p50_ms": 83.06406147312373,
+      "p95_ms": 192.57559839985333,
+      "max_ms": 432.7410371974108
     }
   },
   "robosuite/xvla_panda_maniskill_v1": {
