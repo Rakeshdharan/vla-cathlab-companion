@@ -1,5 +1,7 @@
 # Demo: 5-minute walk-through of the Control Station
 
+> Full UI reference: [GUIDE.md](GUIDE.md) (every tab, button and stage; troubleshooting).
+
 Audience: judges / reviewers who have not seen the Control Station before. Covers REPORT → MODELS → REPORT
 (failure report) → CREATE NEXT RUN → ASSIST. For the full UI and stage list see [README.md](../README.md);
 for the pipeline internals see [docs/STATUS.md](STATUS.md) and
