@@ -21,6 +21,7 @@ MODELS = {
     "xvla_panda_maniskill_v1": ("X-VLA", "maniskill"),
     "xvla_panda_genesis_v1": ("X-VLA", "genesis"),
     "xvla_panda_pick_v2": ("X-VLA", "robosuite+maniskill+genesis"),
+    "xvla_panda_pick_v3": ("X-VLA loop v3", "robosuite+maniskill+genesis"),
 }
 
 

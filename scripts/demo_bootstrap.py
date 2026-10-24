@@ -33,6 +33,7 @@ CHECKPOINTS = [
     ("xvla_panda_maniskill_v1", "Rakeshdharan56/pick_maniskill@v1"),
     ("xvla_panda_genesis_v1", "Rakeshdharan56/pick_genesis@v1"),
     ("xvla_panda_pick_v2", "Rakeshdharan56/pick_panda_v2 (local merge of robosuite + ManiSkill + Genesis v1)"),
+    ("xvla_panda_pick_v3", "Rakeshdharan56/pick_panda_v3 (local: pick_panda_v2@v1 + 48 targeted episodes of cathlab-pick@v2)"),
 ]
 # Tried in this order; the rule decides (ACT first as the baseline, then the rest by training order).
 PROMOTE_ORDER = [c for c, _ in CHECKPOINTS]
