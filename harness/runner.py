@@ -12,7 +12,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from harness import gitops
 from harness.agents import AgentsConfig, build_argv
-from harness.guard import path_violations
+from harness.guard import frozen_violations, path_violations
 from harness.model import TaskTemplate, allowed_for, checks_for, render_prompt, validate_params
 from orchestrator.process import read_log, start_process
 
@@ -159,6 +159,9 @@ class Harness:
             self._save(job)
             if not job.changed_files:
                 return self._fail(job, "agent made no changes")
+            frozen = frozen_violations(job.changed_files)
+            if frozen:
+                return self._fail(job, f"changes to frozen files (add a new versioned file instead): {frozen}")
             bad = path_violations(job.changed_files, allowed_for(template, job.params))
             if bad:
                 return self._fail(job, f"changes outside allowed paths: {bad}")

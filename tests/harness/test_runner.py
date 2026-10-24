@@ -250,3 +250,9 @@ def test_concurrent_saves_produce_valid_json(tmp_path, repo):
     final = h.get(job.id)
     assert final.id == job.id
 
+
+
+def test_guard_blocks_frozen_files_with_a_clear_reason(tmp_path, repo):
+    h = make_harness(tmp_path, repo, target="configs/variation/cathlab_v1.yaml")
+    job = h.run(h.create("demo", {"name": "x"}).id)
+    assert job.state == "failed" and "frozen" in job.error and "cathlab_v1.yaml" in job.error

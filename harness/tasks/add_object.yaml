@@ -14,7 +14,7 @@ params:
   - {name: upright, type: bool, default: true}
   - {name: mass, type: float, help: "kg"}
   - {name: grasp, type: choice, choices: [top, side], default: top}
-  - {name: spec_out, type: str, pattern: "^[a-z][a-z0-9_]*$", default: cathlab_v2, help: "new variation spec file name (never edit cathlab_v1)"}
+  - {name: spec_out, type: str, pattern: "^(?!cathlab_v1$)[a-z][a-z0-9_]*$", default: cathlab_v2, help: "new variation spec file name (never edit cathlab_v1)"}
 context:
   - AGENTS.md
   - docs/specs/2026-10-22-sim-framework-design.md
