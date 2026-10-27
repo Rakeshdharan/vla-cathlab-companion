@@ -32,3 +32,10 @@ reports/**/raw/
 
 # Control Station runtime state (SQLite, job logs, agent jobs, run snapshots)
 var/
+
+# Obsidian vault (repo root): share settings, keep per-user state local
+.obsidian/workspace*.json
+.obsidian/cache
+.obsidian/plugins/
+.obsidian/themes/
+.trash/

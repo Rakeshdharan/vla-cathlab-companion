@@ -4,7 +4,7 @@
     uv run python -m scripts.demo_bootstrap --var /tmp/var --dry-run
     uv run python -m scripts.demo_bootstrap --reset    # make demo-reset: wipe var/registry + our report dirs first
 
-var/ is git-ignored, so a fresh clone has no registry; this replays H37 exactly: every Panda checkpoint with eval
+var/ is git-ignored, so a fresh clone has no registry; this replays the published results exactly: every Panda checkpoint with eval
 reports in reports/robosuite/eval_reports/<engine>/<model>/ is registered as cathlab-pick@vN (training order below),
 then PROMOTE_ORDER is promoted by the rule in configs/serve.yaml, and the failure report + next_run.json of the
 production version are written for the REPORT tab. Idempotent: registered checkpoints are skipped, a version is only

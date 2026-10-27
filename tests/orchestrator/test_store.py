@@ -2,7 +2,6 @@ import pytest
 import threading
 import sys
 from orchestrator.store import Store
-from orchestrator.process import read_log, start_process
 
 PY = sys.executable
 
@@ -47,16 +46,16 @@ def test_update_unknown_job_raises(store):
 def test_concurrent_update_merges_all_results(store):
     job = store.create_job("stage", "test", run_id="r1")
     job_id = job.id
-    
+
     def update_with_key(i):
         store.update_job(job_id, result={f"k{i}": i})
-    
+
     threads = [threading.Thread(target=update_with_key, args=(i,)) for i in range(8)]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
-    
+
     final_job = store.get_job(job_id)
     assert final_job is not None
     assert len(final_job.result) == 8

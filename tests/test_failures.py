@@ -1,6 +1,6 @@
 """Tests for eval/failures.py failure analysis."""
 from contracts import EpisodeResult, EvalReport
-from eval.failures import FailureAnalyser, GapSpec
+from eval.failures import FailureAnalyser
 
 
 def _ep(i, ok, obj="guidewire", variant="in_distribution", stage=None):

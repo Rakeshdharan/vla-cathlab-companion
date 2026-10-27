@@ -10,7 +10,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
 
@@ -120,7 +119,7 @@ def run_benchmark(args: list[str] | None = None) -> None:
 
     rows = load_reports(ns.reports)
 
-    md = f"# CathLab Benchmark\n\n"
+    md = "# CathLab Benchmark\n\n"
     md += "## Success Rate\n\n"
     md += render_markdown_table(rows)
     md += "\n## Stage Failure Breakdown\n\n"

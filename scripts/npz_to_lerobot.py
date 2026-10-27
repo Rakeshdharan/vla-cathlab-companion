@@ -19,7 +19,7 @@ from dataengine.npz_sink import iter_npz_frames, merge_raw_shards  # noqa: E402
 
 def merged_manifest(shards: list[Path], n_episodes: int) -> DatasetManifest:
     parts = [load_yaml(s / "manifest.yaml", DatasetManifest) for s in shards]
-    notes = "; ".join(f"{s.name}: {p.notes}" for s, p in zip(shards, parts))
+    notes = "; ".join(f"{s.name}: {p.notes}" for s, p in zip(shards, parts, strict=True))
     return parts[0].model_copy(update={"n_episodes": n_episodes, "notes": notes})
 
 
