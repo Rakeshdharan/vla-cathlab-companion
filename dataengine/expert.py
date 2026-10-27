@@ -1,4 +1,5 @@
 """Sim-agnostic scripted expert: grasp templates -> waypoints -> normalized 7-D EEF-delta actions."""
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Callable, Protocol
 import numpy as np
@@ -23,7 +24,7 @@ class ExpertSim(Protocol):
     def tray_contains(self, name: str) -> bool: ...
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExpertParams:
     max_dpos: float = 0.05     # metres per unit action (robosuite OSC_POSE default output_max)
     max_drot: float = 0.5      # radians per unit action
@@ -40,6 +41,24 @@ class ExpertParams:
     min_grasp_tcp_z: float = 0.0  # lowest grasp TCP height, so fingertips below the TCP clear the table
     retreat_steps: int = 10       # end the episode this many steps into the retreat once the task has succeeded
     success_hold: int = 10        # success must hold this many consecutive steps up to the end (data-quality rule P6)
+
+
+
+def parse_param_overrides(pairs: list[str] | None, base: ExpertParams) -> ExpertParams:
+    """`base` with `k=v` overrides (the engine CLIs' repeatable --param); ValueError names the bad pair."""
+    fields = {f.name: f.type for f in dataclasses.fields(ExpertParams)}
+    overrides = {}
+    for pair in pairs or []:
+        key, sep, value = pair.partition("=")
+        if not sep:
+            raise ValueError(f"expected k=v, got {pair!r}")
+        if key not in fields:
+            raise ValueError(f"unknown ExpertParams field {key!r}; choose from {sorted(fields)}")
+        try:
+            overrides[key] = int(value) if fields[key] in (int, "int") else float(value)
+        except ValueError:
+            raise ValueError(f"bad value for {key}: {value!r}") from None
+    return dataclasses.replace(base, **overrides)
 
 
 @dataclass

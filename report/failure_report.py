@@ -60,7 +60,7 @@ def build_report(evals: dict[str, EvalReport], spec: VariationSpec, spec_path: s
         eps = rep.episodes
         overall[engine] = _rate(sum(e.success for e in eps), len(eps))
         stages[engine] = {s: sum(1 for e in eps if not e.success and e.failed_stage == s) for s in STAGES}
-        wrong[engine] = sum(1 for e in eps if e.judge_verdict and "wrong" in e.judge_verdict.lower())
+        wrong[engine] = sum(1 for e in eps if e.judge_verdict and "wrong object" in e.judge_verdict.lower())
         groups = defaultdict(list)
         for e in eps:
             groups[(e.scene_variant, e.object)].append(e)

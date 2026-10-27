@@ -62,7 +62,7 @@ class ProcessHandle:
         if self._kill_timer:
             self._kill_timer.cancel()
         self.returncode = rc
-        
+
         if rc == 0:
             self.state = "done"
         elif self._cancelled:
@@ -71,7 +71,7 @@ class ProcessHandle:
             self.state = "timeout"
         else:
             self.state = "failed"
-        
+
         if self._on_exit:
             self._on_exit(rc, self.state)
         self._done.set()
@@ -88,20 +88,33 @@ def start_process(cmd: list[str] | str, log_path: str | Path, cwd: str | Path | 
     """Start `cmd` (argv list, or a shell string) with stdout+stderr appended to `log_path`."""
     log_path = Path(log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    log = open(log_path, "ab" if append else "wb")
     child_env = {**os.environ, **(env or {})} if inherit_env else (env or {})
-    proc = subprocess.Popen(cmd, shell=isinstance(cmd, str), cwd=cwd, env=child_env,
-                            stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
-    log.close()
+    with open(log_path, "ab" if append else "wb") as log:
+        proc = subprocess.Popen(cmd, shell=isinstance(cmd, str), cwd=cwd, env=child_env, stdout=log,
+                                stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
     return ProcessHandle(proc, log_path, timeout_s, on_exit, kill_grace_s)
 
 
+def _incomplete_utf8_tail(data: bytes) -> int:
+    """Number of trailing bytes that start a UTF-8 character `data` does not finish."""
+    for i in range(1, min(4, len(data)) + 1):
+        b = data[-i]
+        if b & 0xC0 != 0x80:                           # lead byte (or ASCII)
+            need = 2 if b >> 5 == 0b110 else 3 if b >> 4 == 0b1110 else 4 if b >> 3 == 0b11110 else 1
+            return i if need > i else 0
+    return 0
+
+
 def read_log(path: str | Path, offset: int = 0, max_bytes: int = 256_000) -> tuple[str, int]:
-    """Return (new text since `offset`, next offset). Missing file -> ('', offset)."""
+    """Return (new text since `offset`, next offset). Missing file -> ('', offset). A UTF-8 character cut by
+    `max_bytes` is left for the next read."""
     path = Path(path)
     if not path.exists():
         return "", offset
     with open(path, "rb") as f:
         f.seek(offset)
         data = f.read(max_bytes)
+    cut = _incomplete_utf8_tail(data)
+    if cut and len(data) == max_bytes:
+        data = data[:-cut]
     return data.decode("utf-8", errors="replace"), offset + len(data)
