@@ -1,0 +1,11 @@
+{
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": false,
+  "colorGroups": [
+    {"query": "path:docs", "color": {"a": 1, "rgb": 2783446}},
+    {"query": "path:engines OR path:sim", "color": {"a": 1, "rgb": 15427636}},
+    {"query": "path:reports", "color": {"a": 1, "rgb": 1814394}}
+  ]
+}

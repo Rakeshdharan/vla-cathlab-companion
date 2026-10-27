@@ -2,13 +2,16 @@
 
 Two ways to run the CathLab Control Station:
 
-| | Native (today) | Docker |
+| | Native | Docker |
 |---|---|---|
-| Control plane + UI + agent harness | `uv` env on the host | `control` + `frontend` containers; the agent harness stays on the host |
-| robosuite worker | conda env `robosuite` | `worker-robosuite` image |
-| lerobot worker (convert, train, policy server) | conda env `lerobot` (laptop or GPU box) | `worker-lerobot` image (GPU) |
+| Control plane + UI | `uv` env on the host (`make dev`) | `docker/control.Dockerfile` (core deps only, `--no-agent`) |
+| Agent harness | `uv` env on the host | stays on the host |
+| Simulator and lerobot workers | conda envs / Genesis venv (`make worker-*`) | not containerised: run them natively and point `CATHLAB_WORKERS` at their URLs |
 
-The Docker images and `compose.yaml` arrive with the Docker task; this page then gets a Docker section.
+```bash
+docker build -f docker/control.Dockerfile -t cathlab-control .
+docker run --rm -p 8700:8700 -v "$PWD/var:/app/var" cathlab-control
+```
 
 ## 1. Prerequisites
 

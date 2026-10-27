@@ -1,0 +1,16 @@
+{
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "docs/assets",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "docs",
+  "showUnsupportedFiles": false,
+  "userIgnoreFilters": [
+    "var/",
+    ".venv/",
+    ".pytest_cache/",
+    "frontend/",
+    "uv.lock"
+  ]
+}
