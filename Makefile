@@ -9,7 +9,7 @@ GENESIS_PY ?= $(HOME)/venvs/genesis/bin/python
 # cpu | gpu: one Genesis world is launch-bound; on a GPU busy with training the CPU backend is ~15x faster
 GENESIS_BACKEND ?= cpu
 
-.PHONY: install test dev worker-robosuite worker-maniskill worker-genesis worker-lerobot agent demo-ui harness-list \
+.PHONY: install test lint dev worker-robosuite worker-maniskill worker-genesis worker-lerobot agent demo-ui harness-list \
 	conformance-robosuite conformance-maniskill conformance-genesis policy-server demo-bootstrap demo-reset
 
 install:            ## core env (uv) with dev deps
@@ -17,6 +17,9 @@ install:            ## core env (uv) with dev deps
 
 test:               ## GPU-free test suite
 	uv run pytest -q
+
+lint:               ## pyflakes + whitespace (ruff via uvx, no extra dependency)
+	uvx ruff check .
 
 dev:                ## control plane + UI + agent harness on http://localhost:$(PORT)
 	uv run python -m orchestrator.control --port $(PORT)

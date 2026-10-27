@@ -3,7 +3,7 @@ from dataengine.registry import GenerationReceipt
 from dataengine.registry import register_method
 
 # This file contains the Scripted Expert.
-# It's essentially a perfectly programmed robot that uses advanced math 
+# It's essentially a perfectly programmed robot that uses advanced math
 # (GraspGen for figuring out where to grab, and cuRobo for moving without hitting things)
 # to perfectly complete tasks. It can be used to generate perfect training data,
 # or to evaluate how a perfect run looks compared to our AI.
@@ -21,7 +21,7 @@ class ScriptedExpert(PolicyAdapter):
         # Calculate the perfect next move
         # Returns a mock action
         return (None, None)
-        
+
     def meta(self):
         return {"name": "ScriptedExpert", "version": "1.0"}
 

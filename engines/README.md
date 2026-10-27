@@ -4,7 +4,7 @@ An **engine plugin** is one simulator wired into the platform behind a single co
 with an `engine.yaml` manifest and a `cli.py` exposing six stages, plus a `SimBackend` and an `ExpertSim` adapter in
 `sim/<id>/`. The orchestrator, the UI and agents never special-case a simulator; they only call the manifest and the
 CLI. Today's plugins: `engines/robosuite/` (MuJoCo 3.3, Rakesh) and `engines/maniskill/` (ManiSkill3 / PhysX 5,
-Mitesh) and `engines/genesis/` (Genesis 1.4.5, own rigid solver), all `panda_libero` I/O. Isaac Sim was dropped. MuJoCo/Newton for
+Mitesh) and `engines/genesis/` (Genesis 1.4.5, own rigid solver), all `panda_libero` I/O. MuJoCo/Newton for
 the FR3 Duo embodiment live on Aravind's own repo track.
 
 ## CLI usage

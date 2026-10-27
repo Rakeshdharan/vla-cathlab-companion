@@ -19,11 +19,11 @@ def test_video_entry_requires_exactly_one_of_url_or_path():
     from orchestrator.videos import VideoEntry
     import pytest
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         VideoEntry(label="x")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         VideoEntry(label="x", url="https://a", path="b")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         VideoEntry(label="x", url="not-http")
     VideoEntry(label="x", url="https://a")
     VideoEntry(label="x", path="a/b.mp4")

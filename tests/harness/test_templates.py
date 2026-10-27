@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 import pytest
-import yaml
 from harness.agents import load_agents
 from harness.model import allowed_for, checks_for, load_templates, render_prompt, validate_params, ParamError
 from orchestrator.catalog import load_catalog
@@ -70,13 +69,13 @@ def test_identifier_patterns_reject_shell_metacharacters():
     valid_params = SAMPLE["add_object"].copy()
     valid_params["name"] = "valid_name_123"
     validate_params(t_obj, valid_params)  # Should not raise
-    
+
     # Test that invalid names are rejected
     invalid_params = SAMPLE["add_object"].copy()
     invalid_params["name"] = "x; rm -rf ~"
     with pytest.raises(ParamError, match="pattern"):
         validate_params(t_obj, invalid_params)
-    
+
     # Test that free_task's check param stays raw (type: command)
     t_free = TEMPLATES["free_task"]
     check_params = {"goal": "g", "paths": "eval/", "check": "uv run pytest -q && echo ok"}

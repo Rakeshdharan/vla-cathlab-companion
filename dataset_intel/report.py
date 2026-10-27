@@ -30,7 +30,7 @@ def load_dataset(root: str | Path) -> tuple[dict, dict[int, dict], dict[int, dic
             for p in sorted((root / "data").glob("*/*.parquet"))]
     rows: dict[int, list] = {}
     for t in data:
-        for ep, fi, s, a in zip(t["episode_index"], t["frame_index"], t["observation.state"], t["action"]):
+        for ep, fi, s, a in zip(t["episode_index"], t["frame_index"], t["observation.state"], t["action"], strict=True):
             rows.setdefault(int(ep), []).append((fi, s, a))
     episodes = {}
     for ep, r in rows.items():
