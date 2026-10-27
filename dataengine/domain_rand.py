@@ -29,15 +29,15 @@ def generate_domain_rand_data(gap: GapSpec | None, n: int) -> GenerationReceipt:
         "camera_jitter": True,
         "clutter_level": gap.clutter if gap else "medium"
     }
-    
+
     # 3. "Run" the generation process to create 'n' episodes.
-    # We would tell the simulator to play back the demonstration 'n' times, 
+    # We would tell the simulator to play back the demonstration 'n' times,
     # applying our random tweaks each time.
     print(f"Running domain randomization to generate {n} episodes with config: {randomization_config}...")
-    
+
     # 4. Return a "receipt" (GenerationReceipt) confirming what we just created.
     # As per the task requirements, we use a specific version tag for this dataset.
     return GenerationReceipt(
-        source='cathlab/handover_dr@v1', 
+        source='cathlab/handover_dr@v1',
         num_episodes=n
     )

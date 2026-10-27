@@ -39,11 +39,11 @@ def test_api_discard_force(tmp_path, repo):
     """Test that discard with force=true succeeds even when agent_running, discard without force fails."""
     harness = make_harness(tmp_path, repo)
     c = TestClient(create_agent_app(harness))
-    
+
     # Create and start a job
     job = c.post("/api/agent/jobs", json={"task": "demo", "params": {"name": "test"}}).json()
     job_id = job["id"]
-    
+
     # Manually set job state to "agent_running" and remove thread to simulate stuck state
     job_obj = harness.get(job_id)
     job_obj.state = "agent_running"
@@ -51,12 +51,12 @@ def test_api_discard_force(tmp_path, repo):
         # Remove thread if any to simulate the stuck state
         if job_id in harness._threads:
             del harness._threads[job_id]
-    
+
     # Try to discard without force - should fail with 409
     resp = c.post(f"/api/agent/jobs/{job_id}/discard")
     assert resp.status_code == 409
     assert "still" in resp.json()["detail"]
-    
+
     # Discard with force=true - should succeed with 200
     resp = c.post(f"/api/agent/jobs/{job_id}/discard?force=true")
     assert resp.status_code == 200
@@ -65,25 +65,23 @@ def test_api_discard_force(tmp_path, repo):
 
 def test_cli_discard_force_flag(tmp_path, repo, monkeypatch):
     """Test that the real CLI discard command with --force flag works end-to-end."""
-    import os
     import time
     from pathlib import Path
-    from harness.__main__ import main
     from harness.factory import default_harness
     from harness.runner import AgentJob, HarnessError
     import pytest
-    
+
     # Monkeypatch away CATHLAB_WORKTREES if set
     monkeypatch.delenv("CATHLAB_WORKTREES", raising=False)
-    
+
     # Copy real agents.yaml into the test repo
     agents_src = Path(__file__).parent.parent.parent / "configs/agents.yaml"
     (repo / "configs").mkdir(parents=True, exist_ok=True)
     (repo / "configs/agents.yaml").write_text(agents_src.read_text())
-    
+
     # Build the harness that the CLI will build
     h = default_harness(repo, fetch=False)
-    
+
     # Create a stuck job by manually saving an AgentJob record
     job_id = "test-stuck-job-1234"
     now = time.time()
@@ -101,15 +99,15 @@ def test_cli_discard_force_flag(tmp_path, repo, monkeypatch):
         updated=now,
     )
     h._save(stuck_job)
-    
+
     # Try to discard without force - should fail with HarnessError
     with pytest.raises(HarnessError):
         main(["--repo", str(repo), "--no-fetch", "discard", job_id])
-    
+
     # Discard with force - should succeed with exit code 0
     rc = main(["--repo", str(repo), "--no-fetch", "discard", job_id, "--force"])
     assert rc == 0
-    
+
     # Verify the job state is now "discarded"
     h2 = default_harness(repo, fetch=False)
     job = h2.get(job_id)

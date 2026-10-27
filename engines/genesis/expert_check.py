@@ -9,20 +9,16 @@ import time
 from collections import Counter
 from pathlib import Path
 
-from dataengine.expert import ExpertParams, run_expert_episode
+from dataengine.expert import ExpertParams, parse_param_overrides, run_expert_episode
 from dataengine.variation import TIERS, VariationSpec, eval_configs, train_configs
 from engines.registry import ROOT
 
 
 def parse_params(pairs: list[str], base: ExpertParams) -> ExpertParams:
-    fields = {f.name: f.type for f in dataclasses.fields(ExpertParams)}
-    overrides = {}
-    for pair in pairs:
-        key, value = pair.split("=", 1)
-        if key not in fields:
-            raise SystemExit(f"unknown ExpertParams field {key!r}; choose from {sorted(fields)}")
-        overrides[key] = int(value) if fields[key] in (int, "int") else float(value)
-    return dataclasses.replace(base, **overrides)
+    try:
+        return parse_param_overrides(pairs, base)
+    except ValueError as e:
+        raise SystemExit(str(e)) from None
 
 
 def pick_configs(spec: VariationSpec, split: str, n: int, objects: list[str]) -> list:

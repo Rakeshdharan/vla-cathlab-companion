@@ -1,6 +1,6 @@
 # AGENTS.md — CathLab Companion
 
-Siemens Healthineers Hackathon 2026 (C2). **Current sim design:** single-arm Franka Panda, own table scene in robosuite + ManiSkill3 + Genesis (engine plugins under `engines/`; Isaac Sim was dropped early on), LIBERO I/O, task "Hand me the {bottle | vial | syringe}". We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"), and failures feed back into new synthetic data and retraining.
+Built for the Siemens Healthineers Hackathon 2026 (C2). **Sim design:** single-arm Franka Panda, own table scene in robosuite + ManiSkill3 + Genesis (engine plugins under `engines/`), LIBERO I/O, task "Hand me the {bottle | vial | syringe}". We build a **simulation-first, self-improving robot learning loop**: a Franka Panda hands cathlab items to a clinician ("Hand me the syringe"), and failures feed back into new synthetic data and retraining.
 
 Read these before non-trivial work:
 - How the platform fits together, stage gates, and how to extend it: [docs/EXTENDING.md](docs/EXTENDING.md)
@@ -12,7 +12,7 @@ Read these before non-trivial work:
 
 ## Architecture
 
-Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`, closed by `loop/` (failures → gap → synthetic data → retrain → promote).
+Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`, closed by the loop in `orchestrator/loop.py` + `report/failure_report.py` (failures → gap → synthetic data → retrain → promote).
 
 - `contracts/` is the **only** coupling between packages:
   - `TaskSpec`, `SceneSpec`, `DatasetManifest`;
@@ -25,8 +25,8 @@ Pipeline: `01 ingest → 02 dataset_intel → 03 train → 04 eval → 05 serve`
 
 | Package | Owner |
 |---|---|
-| `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `loop/`, `sim/robosuite/`, `sim/robosimstudio/` | Rakesh |
-| `dataset_intel/`, `serve/`, `report/`, `docker/`, `compose.yaml`, `.github/workflows/`, `configs/{serve,intel,workers.docker}.yaml` | Sharan |
+| `contracts/`, `dataengine/` (shared sim core), `ingest/`, `train/`, `sim/robosuite/` | Rakesh |
+| `dataset_intel/`, `serve/`, `report/`, `docker/`, `.github/workflows/`, `configs/{serve,intel}.yaml` | Sharan |
 | `awareness/` | Navneet |
 | `sim/maniskill/`, `engines/maniskill/` | Mitesh (Rakesh built v1) |
 | `sim/genesis/`, `engines/genesis/` | Akanksh |

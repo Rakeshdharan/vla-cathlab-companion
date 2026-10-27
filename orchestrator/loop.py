@@ -172,7 +172,8 @@ def create_loop_router(store: Store, registry: Registry, var_dir: Path, repo_roo
             reports = {e: EvalReport.load(p) for e, p in evals_.items()}
         except ValueError as e:
             raise HTTPException(400, f"invalid eval report: {e}") from e
-        report = build_report(reports, VariationSpec.load(spec_path), rel(spec_path), body.model, body.top, body.k)
+        report = build_report(reports, VariationSpec.load(spec_path), rel(spec_path), body.model, body.top, body.k,
+                              rule.primary_engine)
         report["eval_reports"] = {e: rel(p) for e, p in evals_.items()}
         rid = new_id("rep")
         write_outputs(report, reports_dir / rid)

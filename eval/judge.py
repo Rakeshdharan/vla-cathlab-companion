@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import base64
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -198,9 +198,11 @@ def agreement(verdicts: list[Verdict], ground_truths: list[bool]) -> float:
     Returns:
         Fraction in [0, 1].
     """
+    if len(verdicts) != len(ground_truths):
+        raise ValueError(f"{len(verdicts)} verdicts vs {len(ground_truths)} ground truths")
     if not verdicts:
         return 0.0
-    matches = sum(v.success == gt for v, gt in zip(verdicts, ground_truths))
+    matches = sum(v.success == gt for v, gt in zip(verdicts, ground_truths, strict=True))
     return matches / len(verdicts)
 
 

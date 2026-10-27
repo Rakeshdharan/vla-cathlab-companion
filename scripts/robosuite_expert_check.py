@@ -14,21 +14,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from dataengine.expert import ExpertParams, run_expert_episode  # noqa: E402
+from dataengine.expert import ExpertParams, parse_param_overrides, run_expert_episode  # noqa: E402
 from dataengine.variation import TIERS, VariationSpec, eval_configs, train_configs  # noqa: E402
 from sim.robosuite.expert_sim import RobosuiteExpertSim  # noqa: E402
 from sim.robosuite.params import ROBOSUITE_EXPERT_PARAMS  # noqa: E402
 
 
 def parse_params(pairs: list[str]) -> ExpertParams:
-    fields = {f.name: f.type for f in dataclasses.fields(ExpertParams)}
-    overrides = {}
-    for pair in pairs:
-        key, value = pair.split("=", 1)
-        if key not in fields:
-            raise SystemExit(f"unknown ExpertParams field {key!r}; choose from {sorted(fields)}")
-        overrides[key] = int(value) if fields[key] in (int, "int") else float(value)
-    return dataclasses.replace(ROBOSUITE_EXPERT_PARAMS, **overrides)
+    try:
+        return parse_param_overrides(pairs, ROBOSUITE_EXPERT_PARAMS)
+    except ValueError as e:
+        raise SystemExit(str(e)) from None
 
 
 def pick_configs(spec: VariationSpec, split: str, n: int, objects: list[str]) -> list:

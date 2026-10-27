@@ -46,6 +46,8 @@ shows the URL and capabilities, or the error).
 
 ## PROJECT
 
+![PROJECT tab](assets/ui/project.png)
+
 Build a run: pick one catalog item per section (simulator, embodiment, objects, expert, variation, model), see
 what's wrong with the selection, and create the run.
 
@@ -63,6 +65,8 @@ SELECTION CHECK shows `✓ Selection is runnable.` when there are no problems, o
 `<Section>: select at least <min>`, `<Section>: unknown item '<id>'`.
 
 ## PIPELINE
+
+![PIPELINE tab](assets/ui/pipeline.png)
 
 Pick a run, see which of its 9 stages can start (and why not), run one, follow its log and outputs.
 
@@ -142,8 +146,8 @@ Pick a run, see which of its 9 stages can start (and why not), run one, follow i
 #### Register version
 - **Runs:** control plane action (local; `orchestrator/loop_stages.py`), no worker dispatch
 - **Where:** local (control plane)
-- **Params:** `ckpt` (HF repo or path of the evaluated checkpoint), `datasets` (comma-separated `<repo>@<revision>` it was trained on)
-- **Blocks:** `needs 'eval' to finish first`; missing `ckpt` (`register needs 'ckpt' (the HF repo or path that the eval stage evaluated)`); eval has no `eval_report.json`
+- **Params:** `ckpt` (default: the `lerobot:<ckpt>` the run's latest eval ran; must match it), `datasets` (comma-separated `<repo>@<revision>` it was trained on)
+- **Blocks:** `needs 'eval' to finish first`; the latest eval ran `expert`/`random`/`url:` instead of a checkpoint; `ckpt` differs from the evaluated checkpoint; eval has no `eval_report.json`
 - **Outputs:** new `cathlab-pick@vN` entry, visible in MODELS
 
 #### Promote to production
@@ -160,6 +164,8 @@ Pick a run, see which of its 9 stages can start (and why not), run one, follow i
 
 ## DATA
 
+![DATA tab](assets/ui/data.png)
+
 Published datasets (`configs/datasets.yaml`, pinned HF revisions that training uses) and local generate outputs
 (every `manifest.yaml` under `var/runs/`).
 
@@ -171,6 +177,8 @@ Published datasets (`configs/datasets.yaml`, pinned HF revisions that training u
 If there are no local outputs yet: "No generate outputs yet: run GENERATE in PIPELINE." under LOCAL GENERATE OUTPUTS.
 
 ## MODELS
+
+![MODELS tab](assets/ui/models.png)
 
 The model registry: register an evaluated checkpoint as a version, promote it to production by the CI rule, roll
 back, and jump to REPORT for any version's eval reports.
@@ -195,6 +203,8 @@ episodes`, `latency p95 <x> ms > budget <y> ms`, `<version> is already productio
 
 ## REPORT
 
+![REPORT tab](assets/ui/report.png)
+
 Cross-physics summary, failure reports built from eval reports, and the targeted next run.
 
 | Control | What it does | API | What you see | Common errors |
@@ -212,6 +222,8 @@ NEXT RUN info line: `Next run: <n> train-split failing cells, <k> targeted episo
 `No train-split failing cells: follow the recommendations (widen the spec) instead.`
 
 ## ASSIST
+
+![ASSIST tab](assets/ui/assist.png)
 
 A procedure step proposes the object the clinician needs; **YES** hands it over as a rollout of the chosen policy
 with that instruction.
@@ -250,6 +262,8 @@ files>`, `CHECKS <✓/✕ name ...>`. See [HARNESS.md](HARNESS.md) for the full 
 | (tab open, auto-refresh every 4 s) | Lists every stage/handover/agent job | `GET /api/jobs`, `GET /api/agent/jobs` | Table: ID, KIND, NAME, STATE (badge), UPDATED (time), newest first | — |
 
 ## AGENT BRIEF drawer
+
+![AGENT BRIEF drawer](assets/ui/brief.png)
 
 Available from the header on every tab. Describe anything the UI doesn't offer; get a markdown brief with the
 relevant stage contracts, tests, templates and rules for any coding agent.
@@ -295,7 +309,6 @@ relevant stage contracts, tests, templates and rules for any coding agent.
 | A 409 on CREATE RUN shows only the first problem message in the footer | PROJECT | The SELECTION CHECK list shows every problem |
 | SmolVLA live rollouts take ~2–4 min on the 8 GB laptop (~444 ms per predict) and the syringe can fail at grasp | ASSIST / PIPELINE | Demo the **vial** (succeeded in 125 and 149 steps today); RECORDED ROLLOUTS or the scripted expert as fallback |
 | PIPELINE strip lists stages by definition, not loop order (Eval/Rollout before Train). Stages are independent tools gated by `needs`; Eval/Rollout evaluate whatever `policy` says (default `expert` = reference) | PIPELINE | Loop order: Train → Evaluate with `lerobot:<repo-id>` → Register → Promote → Rollout `registry:cathlab-pick@production` → REPORT |
-| **Register attaches the run's latest eval report to the typed `ckpt` without checking that the eval ran that checkpoint** | PIPELINE → Register | Only register after an Evaluate whose policy was `lerobot:<that ckpt>`; never after an `expert` eval (fix planned: take ckpt from the eval's policy) |
 | DOWNLOAD .MD in the AGENT BRIEF could not be confirmed by browser automation (blob link) | AGENT BRIEF | Check by hand once |
 
 Fixed during the click test (commit `71649b1`): AGENT BRIEF FOR THIS STAGE on REGISTER/PROMOTE now ticks the `rollout` gate

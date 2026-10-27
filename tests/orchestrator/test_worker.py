@@ -45,20 +45,20 @@ def test_cancel_unknown_and_empty(tmp_path):
 
 def test_token_auth_required_for_non_health_endpoints(tmp_path):
     c = TestClient(create_worker_app("w", [], tmp_path, token="s3cret"))
-    
+
     # POST /jobs without token → 401
     r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
     assert r.status_code == 401
     assert "X-Cathlab-Token" in r.json()["detail"]
-    
+
     # POST /jobs with wrong token → 401
     r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}, headers={"X-Cathlab-Token": "wrong"})
     assert r.status_code == 401
-    
+
     # POST /jobs with correct token → 200
     r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}, headers={"X-Cathlab-Token": "s3cret"})
     assert r.status_code == 200
-    
+
     # GET /health works without token and reports auth true
     h = c.get("/health").json()
     assert h["auth"] is True
@@ -72,33 +72,33 @@ def test_health_reports_auth_false_when_no_token(tmp_path):
 
 def test_max_jobs_evicts_oldest_non_running(tmp_path):
     c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=2))
-    
+
     # Submit two quick jobs
     job1 = c.post("/jobs", json={"argv": [PY, "-c", "print('1')"]}).json()
     job2 = c.post("/jobs", json={"argv": [PY, "-c", "print('2')"]}).json()
-    
+
     # Wait for both to complete
     assert wait_state(c, job1["id"]) == "done"
     assert wait_state(c, job2["id"]) == "done"
-    
+
     # Submit third job (should evict job1 since max_jobs=2)
     job3 = c.post("/jobs", json={"argv": [PY, "-c", "print('3')"]}).json()
     assert job3["state"] == "running" or job3["state"] == "done"
-    
+
     # job1 should now be evicted and return 404
     assert c.get(f"/jobs/{job1['id']}").status_code == 404
-    
+
     # job3 should still be accessible
     assert c.get(f"/jobs/{job3['id']}").status_code == 200
 
 
 def test_too_many_running_jobs_returns_429(tmp_path):
     c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=1))
-    
+
     # Submit one long-running job
     job1 = c.post("/jobs", json={"argv": [PY, "-c", "import time; time.sleep(30)"]}).json()
     assert job1["state"] == "running"
-    
+
     try:
         # Try to submit another while first is running → 429
         r = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]})
@@ -112,36 +112,36 @@ def test_too_many_running_jobs_returns_429(tmp_path):
 def test_concurrent_job_submissions_with_eviction(tmp_path):
     """Test concurrent submissions don't race during eviction."""
     c = TestClient(create_worker_app("w", [], tmp_path, max_jobs=3))
-    
+
     # Fill with 3 finished jobs
     for _ in range(3):
         job = c.post("/jobs", json={"argv": [PY, "-c", "print('x')"]}).json()
         wait_state(c, job["id"])
-    
+
     # Submit 6 jobs concurrently from threads
     results = []
-    
+
     def submit_job(index):
         try:
             r = c.post("/jobs", json={"argv": [PY, "-c", f"print({index})"]})
             results.append(r.status_code)
         except Exception as e:
             results.append(f"EXC:{repr(e)}")
-    
+
     threads = [threading.Thread(target=submit_job, args=(i,)) for i in range(6)]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
-    
+
     # Verify exactly 6 results
     assert len(results) == 6, f"Expected 6 results, got {len(results)}"
-    
+
     # Every response must be 200 or 429 (no exceptions, no 500 errors)
     for i, result in enumerate(results):
         assert isinstance(result, int), f"Result {i} is exception: {result}"
         assert result in (200, 429), f"Result {i} has unexpected status {result}"
-    
+
     # Verify final state: jobs table should have at most max_jobs entries
     h = c.get("/health").json()
     assert h["jobs_total"] <= 3, f"Jobs table size {h['jobs_total']} exceeds max_jobs=3"
@@ -150,16 +150,16 @@ def test_concurrent_job_submissions_with_eviction(tmp_path):
 def test_failed_process_start_returns_500_and_no_slot_leak(tmp_path):
     """Test that failed start_process doesn't leak a slot and returns 500."""
     c = TestClient(create_worker_app("w", [], tmp_path))
-    
+
     # Get initial table size
     h1 = c.get("/health").json()
     initial_size = h1["jobs_total"]
-    
+
     # Try to start non-existent binary → 500
     r = c.post("/jobs", json={"argv": ["/nonexistent/binary", "arg"]})
     assert r.status_code == 500
     assert "failed to start" in r.json()["detail"]
-    
+
     # Verify table size unchanged (no slot leaked)
     h2 = c.get("/health").json()
     assert h2["jobs_total"] == initial_size, f"Table size changed from {initial_size} to {h2['jobs_total']}"

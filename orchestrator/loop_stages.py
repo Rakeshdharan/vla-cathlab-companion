@@ -22,12 +22,28 @@ def _git_sha(repo_root: Path) -> str | None:
         return None
 
 
+def _evaluated_ckpt(eval_result: dict) -> str | None:
+    """The --policy an eval job ran (the engine default 'expert' when absent); None if its argv is unknown."""
+    argv = eval_result.get("argv")
+    if not argv:
+        return None
+    return argv[argv.index("--policy") + 1] if "--policy" in argv[:-1] else "expert"
+
+
 def make_local_actions(pipeline, registry: Registry, repo_root: Path) -> dict[str, Callable[[Run, dict], dict]]:
     serve_yaml = Path(repo_root) / "configs/serve.yaml"
     rule = PromotionRule.from_yaml(serve_yaml) if serve_yaml.exists() else PromotionRule()
 
     def register(run: Run, params: dict) -> dict:
         ckpt = str(params.get("ckpt") or "").strip()
+        evaluated = _evaluated_ckpt(pipeline.latest(run.id, "eval").result)
+        if evaluated is not None and not evaluated.startswith("lerobot:"):
+            raise ValueError(f"the run's latest eval ran policy '{evaluated}', not a checkpoint: evaluate "
+                             "lerobot:<ckpt> (or registry:<ref>) before registering")
+        evaluated = evaluated and evaluated[len("lerobot:"):]
+        if evaluated and ckpt and ckpt != evaluated:
+            raise ValueError(f"ckpt '{ckpt}' is not the checkpoint the run's latest eval ran ('{evaluated}')")
+        ckpt = ckpt or evaluated or ""
         if not ckpt:
             raise ValueError("register needs 'ckpt' (the HF repo or path that the eval stage evaluated)")
         engine = run.selection["simulator"]

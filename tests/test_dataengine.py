@@ -16,10 +16,10 @@ def test_generate_unknown_method():
 def test_generate_success():
     # Simulate the loop telling us: "The robot is failing to grasp the guidewire on a highly cluttered table"
     gap = GapSpec(object="guidewire", region="table", clutter="high", stage="grasp")
-    
+
     # Generate 10 examples using our fake generator
     manifest = generate(gap, 10, "dummy_gen")
-    
+
     # Check if the receipt matches our request
     assert manifest.source == "dummy_gen"
     assert manifest.num_episodes == 10

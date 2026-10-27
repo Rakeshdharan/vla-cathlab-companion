@@ -62,7 +62,7 @@ STAGES: tuple = (
                      StageParam("io", "str", "", "I/O profile; default panda_libero"),
                      StageParam("dataset-root", "str", "", "local LeRobot folder instead of the Hub"))),
     StageDef("register", "Register version", "", "", local=True, needs=("eval",),
-             params=(StageParam("ckpt", "str", "", "HF repo or path of the evaluated checkpoint"),
+             params=(StageParam("ckpt", "str", "", "default: the lerobot:<ckpt> the eval ran (must match it)"),
                      StageParam("datasets", "str", "", "comma-separated <repo>@<revision> it was trained on"))),
     StageDef("promote", "Promote to production", "", "", local=True, needs=("register",),
              params=(StageParam("version", "str", "", "default: the version this run registered"),)),
