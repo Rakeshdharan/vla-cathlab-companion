@@ -130,3 +130,20 @@ def test_episode_ends_retreat_steps_after_success():
     assert r.trace[-1] == "open"
     full = run_expert_episode(FakeExpertSim(SPEC), SPEC, CFG, params)
     assert full.success and full.trace[-1] == "retreat"
+
+
+def test_parse_param_overrides_casts_and_rejects_bad_input():
+    from dataengine.expert import parse_param_overrides
+    base = ExpertParams(pos_tol=0.01)
+    p = parse_param_overrides(["pos_tol=0.02", "close_steps=12"], base)
+    assert p.pos_tol == 0.02 and p.close_steps == 12 and isinstance(p.close_steps, int)
+    assert base.pos_tol == 0.01
+    for bad in (["pos_tol"], ["nope=1"], ["close_steps=1.5"], ["pos_tol=abc"]):
+        with pytest.raises(ValueError):
+            parse_param_overrides(bad, base)
+
+
+def test_expert_params_are_immutable():
+    import dataclasses
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        ExpertParams().pos_tol = 1.0

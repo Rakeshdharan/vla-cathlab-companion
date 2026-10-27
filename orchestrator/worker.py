@@ -89,7 +89,7 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
     def submit(req: JobRequest, _: None = Depends(token_checker)) -> dict:
         if not req.argv:
             raise HTTPException(400, "argv must not be empty")
-        
+
         with jobs_lock:
             # Evict oldest non-running jobs if at capacity
             if len(jobs) >= max_jobs:
@@ -100,7 +100,7 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
                 while len(jobs) >= max_jobs and non_running:
                     jid, _ = non_running.pop(0)
                     del jobs[jid]
-            
+
             job_id = uuid.uuid4().hex[:12]
             try:
                 # Start process while holding lock to ensure atomic insert
@@ -108,8 +108,8 @@ def create_worker_app(name: str, capabilities: list[str], var_dir: str | Path, t
                                        timeout_s=req.timeout_s)
                 jobs[job_id] = {"handle": handle, "name": req.name, "started": time.time(), "id": job_id}
             except Exception as e:
-                raise HTTPException(500, f"failed to start: {e}")
-        
+                raise HTTPException(500, f"failed to start: {e}") from e
+
         return view(job_id)
 
     @app.get("/jobs/{job_id}")

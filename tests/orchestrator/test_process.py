@@ -58,14 +58,22 @@ def test_sigterm_ignored_escalates_to_sigkill(tmp_path):
         tmp_path / "h.log",
         kill_grace_s=0.3
     )
-    
+
     for _ in range(100):
         text, _ = read_log(tmp_path / "h.log")
         if "ready" in text:
             break
         time.sleep(0.01)
-    
+
     h.cancel()
     state = h.wait(10)
     assert state == "cancelled", f"Expected 'cancelled' but got '{state}'"
 
+
+
+def test_read_log_never_splits_a_utf8_character(tmp_path):
+    p = tmp_path / "u.log"
+    p.write_bytes("ab✓cd".encode())          # ✓ is 3 bytes: a b [e2 9c 93] c d
+    first, off = read_log(p, max_bytes=3)
+    rest, _ = read_log(p, off)
+    assert first == "ab" and rest == "✓cd"

@@ -66,3 +66,10 @@ def test_get_judge_returns_dummy_without_key(monkeypatch):
 def test_get_judge_no_vlm_flag():
     j = get_judge(use_vlm=False)
     assert isinstance(j, DummyJudge)
+
+
+def test_agreement_rejects_mismatched_lengths():
+    import pytest
+    v = DummyJudge().judge(None, "hand me the vial", ground_truth_success=True)
+    with pytest.raises(ValueError):
+        agreement([v, v], [True])

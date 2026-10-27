@@ -61,3 +61,9 @@ def test_cli_writes_three_files(tmp_path):
     assert main(["--eval", f"robosuite={p}", "--spec", SPEC_PATH, "--model", "m@v1", "--out", str(out)]) == 0
     assert {f.name for f in out.iterdir()} == {"report.json", "report.md", "next_run.json"}
     assert json.loads((out / "next_run.json").read_text())["cells"][0]["object"] == "vial"
+
+
+def test_wrong_object_counts_only_wrong_object_verdicts():
+    rs = rep("robosuite", [ep(0, "in_distribution", "vial", 5000, False, verdict="picked the wrong object"),
+                           ep(1, "in_distribution", "vial", 5001, False, verdict="grasp went wrong")])
+    assert build_report({"robosuite": rs}, SPEC, SPEC_PATH, "m@v1")["wrong_object"] == {"robosuite": 1}

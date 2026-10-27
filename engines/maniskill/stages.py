@@ -8,20 +8,13 @@ from collections import Counter
 from pathlib import Path
 import numpy as np
 from contracts import TaskSpec, load_yaml
-from dataengine.expert import ExpertParams, run_expert_episode
+from dataengine.expert import ExpertParams, parse_param_overrides, run_expert_episode
 from dataengine.variation import TIERS, EpisodeConfig, VariationSpec, eval_configs, select_configs, train_configs
 
 
 def expert_params(pairs: list[str] | None = None) -> ExpertParams:
     from sim.maniskill.params import MANISKILL_EXPERT_PARAMS
-    fields = {f.name: f.type for f in dataclasses.fields(ExpertParams)}
-    overrides = {}
-    for pair in pairs or []:
-        key, value = pair.split("=", 1)
-        if key not in fields:
-            raise ValueError(f"unknown ExpertParams field {key!r}; choose from {sorted(fields)}")
-        overrides[key] = int(value) if fields[key] in (int, "int") else float(value)
-    return dataclasses.replace(MANISKILL_EXPERT_PARAMS, **overrides)
+    return parse_param_overrides(pairs, MANISKILL_EXPERT_PARAMS)
 
 
 def check_configs(spec: VariationSpec, split: str, n: int, objects: list[str]) -> list[EpisodeConfig]:
