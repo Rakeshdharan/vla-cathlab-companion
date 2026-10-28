@@ -178,3 +178,8 @@ The repo is also an [Obsidian](https://obsidian.md) vault: open the repo root as
 
 Built for the Siemens Healthineers Hackathon 2026 (Challenge C2). Planning history (specs, plans, handoffs,
 status, decisions) lives on the `pre-dev` branch.
+
+## Licence
+
+[MIT](LICENSE). Third-party components keep their own licences, see [CREDITS.md](CREDITS.md). The hackathon's
+provided brief, scene and datasets are restricted and not part of this repository.
