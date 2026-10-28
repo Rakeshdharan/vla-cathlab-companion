@@ -1,4 +1,4 @@
-"""Expert parameters tuned for robosuite OSC_POSE (measured; history on the pre-dev branch)."""
+"""Expert parameters tuned for robosuite OSC_POSE (measured)."""
 from dataengine.expert import ExpertParams
 
 ROBOSUITE_EXPERT_PARAMS = ExpertParams(

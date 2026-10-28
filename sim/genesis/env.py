@@ -33,7 +33,7 @@ FINGER_DOFS = np.array([7, 8])
 # Controller
 MAX_DPOS, MAX_DROT = 0.05, 0.5           # action scaling (robosuite OSC_POSE output_max)
 # robosuite OSC_POSE does not reach the commanded delta within one 20 Hz step: at steady state it moves ~25 % of the
-# translation and ~13 % of the rotation per step (measured; history on the pre-dev branch). The same fractions are
+# translation and ~13 % of the rotation per step (measured). The same fractions are
 # applied here so an action produces the same TCP motion in both engines.
 POS_GAIN, ROT_GAIN = 0.235, 0.125
 MAX_DQ = 0.2                             # rad per control step
@@ -56,7 +56,7 @@ BACKEND_ENV = "CATHLAB_GENESIS_BACKEND"
 
 def genesis_backend() -> str:
     """'gpu' (default) or 'cpu'. One world is launch-bound on GPU: on a GPU shared with training, the CPU backend ran
-    an episode ~15x faster (measured; history on the pre-dev branch)."""
+    an episode ~15x faster (measured)."""
     name = os.environ.get(BACKEND_ENV, "gpu").lower()
     if name not in ("gpu", "cpu"):
         raise ValueError(f"{BACKEND_ENV} must be 'gpu' or 'cpu', got {name!r}")
