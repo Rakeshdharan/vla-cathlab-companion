@@ -26,7 +26,7 @@ TCP_OFFSET = 0.097            # robosuite grip site: 0.097 m along hand +z
 HAND_TO_EE = np.array([np.cos(np.pi / 4), 0.0, 0.0, -np.sin(np.pi / 4)])
 PANDA_MJCF = "xml/franka_emika_panda/panda_no_tendon.xml"
 # 5 ms (10 steps per 20 Hz action): at 10 ms the 11-20 g vial chattered at ~6 rad/s between the 20 N fingers and was
-# shaken out during transport (history on the pre-dev branch).
+# shaken out during transport.
 SIM_DT = 0.005
 ARM_DOFS = np.arange(7)
 FINGER_DOFS = np.array([7, 8])

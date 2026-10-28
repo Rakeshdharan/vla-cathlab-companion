@@ -8,7 +8,6 @@ Read these before non-trivial work:
 - Agent harness (templates, worktrees, briefs): [docs/HARNESS.md](docs/HARNESS.md)
 - Install: [docs/INSTALL.md](docs/INSTALL.md)
 - Provided and generated datasets, HF repos and schema: [docs/data.md](docs/data.md)
-- Planning history (specs, plans, handoffs, status, decisions, pitch) lives on the `pre-dev` branch.
 
 ## Architecture
 

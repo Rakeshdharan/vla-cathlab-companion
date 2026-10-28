@@ -17,7 +17,7 @@ Conventions (as robosuite):
 - Action = `[dpos/0.05 m, drot/0.5 rad (base frame, about the TCP), gripper −1 open / +1 close]`.
 
 Deviations from robosuite (controller dynamics, physics step, lighting, randomisation limits) are measured in the
-code and tests here (history on the pre-dev branch).
+code and tests here.
 
 Requires `~/venvs/genesis` (Python 3.11, genesis-world 1.4.5, CUDA torch); run with `PYTHONPATH=<repo>`. Engine
 stages: `python -m engines.genesis.cli <stage>`. Tests in `tests/sim/test_genesis_env.py` skip without genesis
