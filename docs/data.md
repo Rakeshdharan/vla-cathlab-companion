@@ -52,8 +52,7 @@ task data comes from our own **DataEngine** below.
 python -m engines.robosuite.cli convert --dataset <generate --out> --out <dir>   # engine-generated: npz -> LeRobot v3
 ```
 
-Re-uploading or refreshing the provided data is occasional hackathon-admin tooling, not part of the product; the
-script for it lives on the `pre-dev` branch if needed again.
+Re-uploading or refreshing the provided data is occasional hackathon-admin tooling, not part of the product.
 
 > **Private-repo access:** repos under a personal HF account are visible only to that account. To share them,
 > create a free HF organization, invite the team, and transfer the repos (**Settings → Rename or transfer**), then

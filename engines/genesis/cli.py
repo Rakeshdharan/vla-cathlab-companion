@@ -4,7 +4,7 @@
     conda run -n lerobot python -m engines.genesis.cli convert --dataset <generate --out> --out <dir>
 
 Only stage functions live here; Genesis and lerobot are imported by the wrapped modules or lazily. Run one Genesis
-stage at a time per GPU (the 4090 dropped off the bus twice under parallel simulator load; history on the pre-dev branch).
+stage at a time per GPU (the 4090 dropped off the bus twice under parallel simulator load).
 """
 import json
 from engines.cli_base import Flag, Stage, run_cli
